@@ -238,6 +238,18 @@ body{font-family:var(--font);color:var(--t1);height:100%;overflow:hidden;positio
         </div>
         <button class="login-btn" onclick="doLogin()">Enter StationWise →</button>
         <div class="login-note">Your details saved on this phone · One-time setup</div>
+        <div id="install_btn_wrap" style="margin-top:12px;display:none;">
+          <button onclick="installApp()" style="width:100%;padding:13px;background:transparent;border:2px solid var(--green);border-radius:13px;font-family:var(--font);font-size:14px;font-weight:800;color:var(--green);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+            📲 Add to Home Screen
+          </button>
+        </div>
+        <div id="install_manual_wrap" style="margin-top:10px;display:none;">
+          <div style="background:rgba(0,230,118,0.07);border:1px solid rgba(0,230,118,0.2);border-radius:12px;padding:12px 14px;font-size:12px;color:var(--t2);line-height:1.7;text-align:left;">
+            <strong style="color:var(--green);">📲 Install as App:</strong><br>
+            Tap <strong>⋮</strong> (3 dots) → <strong>Add to Home Screen</strong> → <strong>Add</strong><br>
+            <span style="color:var(--t3);">Then open from your home screen</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1088,6 +1100,21 @@ function toast(msg){
 // ════════ INIT ════════
 window.addEventListener('load',()=>{
   if(!localStorage.getItem('sw_sheet_url')) localStorage.setItem('sw_sheet_url','https://script.google.com/macros/s/AKfycbxb9KV-1QxMWmEw5Wpe-huMA3Fr4f89k8HTxhtwr4G-cYwOEldMsD_ZnVQcyspiRq0/exec');
+  // Show install instructions after 2 seconds always
+  setTimeout(()=>{
+    // Check if already installed (standalone mode)
+    const isInstalled=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone;
+    if(!isInstalled){
+      if(deferredPrompt){
+        const btnWrap=document.getElementById('install_btn_wrap');
+        if(btnWrap)btnWrap.style.display='block';
+      } else {
+        // Always show manual instructions on non-installed browsers
+        const manualWrap=document.getElementById('install_manual_wrap');
+        if(manualWrap)manualWrap.style.display='block';
+      }
+    }
+  },2000);
   // Pre-set Google Sheet URL if not already set
   if(!localStorage.getItem('sw_sheet_url')){
     localStorage.setItem('sw_sheet_url','https://script.google.com/macros/s/AKfycbxb9KV-1QxMWmEw5Wpe-huMA3Fr4f89k8HTxhtwr4G-cYwOEldMsD_ZnVQcyspiRq0/exec');
@@ -1123,6 +1150,10 @@ window.addEventListener('beforeinstallprompt',(e)=>{
   },3000);
 });
 function showInstallBanner(){
+  // Show the install button on login screen
+  const btnWrap=document.getElementById('install_btn_wrap');
+  if(btnWrap)btnWrap.style.display='block';
+  // Also show banner
   const banner=document.createElement('div');
   banner.id='install_banner';
   banner.style.cssText='position:fixed;bottom:80px;left:14px;right:14px;background:linear-gradient(135deg,#00c853,#00e676);color:#000;padding:14px 16px;border-radius:14px;display:flex;align-items:center;gap:12px;z-index:9998;box-shadow:0 4px 20px rgba(0,230,118,0.4);font-family:Nunito,sans-serif;';
@@ -1136,11 +1167,16 @@ async function installApp(){
     deferredPrompt=null;
     const banner=document.getElementById('install_banner');
     if(banner)banner.remove();
+    const wrap=document.getElementById('install_btn_wrap');
+    if(wrap)wrap.style.display='none';
     if(result.outcome==='accepted'){
-      // Show toast
       const t=document.getElementById('toast_el');
-      if(t){t.textContent='App installed on home screen ✓';t.classList.add('on');setTimeout(()=>t.classList.remove('on'),3000);}
+      if(t){t.textContent='✓ App installed on home screen!';t.classList.add('on');setTimeout(()=>t.classList.remove('on'),3000);}
     }
+  } else {
+    // Show manual instructions if no prompt available
+    const wrap=document.getElementById('install_manual_wrap');
+    if(wrap)wrap.style.display='block';
   }
 }
 </script>
