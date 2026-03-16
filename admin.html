@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>StationWise Admin</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#f0f4f1;--card:#fff;--green:#1a6b3a;--green2:#22a060;--green-pale:#e8f5ee;
+  --amber:#d4860a;--amber-pale:#fdf4e3;--red:#c0392b;--red-pale:#fdf0ee;
+  --blue:#1a5fa8;--border:#e2ece7;--t1:#0d1f12;--t2:#4a6858;--t3:#8aaa94;
+  --font:'Segoe UI',sans-serif;--mono:'Courier New',monospace;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100vh;}
+
+/* LOGIN */
+#login_screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999;}
+.login_box{background:#fff;border:1px solid var(--border);border-radius:20px;padding:40px 36px;max-width:380px;width:94%;box-shadow:0 8px 40px rgba(0,0,0,0.1);text-align:center;}
+.login_logo{width:64px;height:64px;border-radius:18px;background:var(--green);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
+.login_title{font-size:22px;font-weight:700;margin-bottom:4px;}
+.login_title span{color:var(--green);}
+.login_sub{font-size:13px;color:var(--t3);margin-bottom:28px;}
+.login_label{font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:0.5px;text-align:left;display:block;margin-bottom:6px;}
+.login_input{width:100%;padding:14px 16px;background:#f7faf8;border:2px solid var(--border);border-radius:11px;font-size:15px;color:var(--t1);outline:none;font-family:var(--font);transition:border-color 0.2s;margin-bottom:14px;}
+.login_input:focus{border-color:var(--green);}
+.login_btn{width:100%;padding:15px;background:var(--green);color:#fff;border:none;border-radius:11px;font-size:16px;font-weight:700;cursor:pointer;font-family:var(--font);}
+.login_btn:hover{background:var(--green2);}
+.login_err{background:#fdf0ee;color:var(--red);border-radius:8px;padding:10px;font-size:13px;margin-bottom:12px;display:none;}
+.login_note{font-size:11px;color:var(--t3);margin-top:14px;}
+
+/* TOPBAR */
+.topbar{height:56px;background:var(--green);display:flex;align-items:center;padding:0 24px;gap:14px;position:sticky;top:0;z-index:100;}
+.logo_name{font-size:18px;font-weight:700;color:#fff;letter-spacing:-0.3px;}
+.logo_name span{color:#a8e6c0;}
+.logo_tag{font-size:10px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:1.5px;text-transform:uppercase;}
+.tb_right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.tb_btn{padding:7px 16px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:none;font-family:var(--font);}
+.tb_btn.white{background:#fff;color:var(--green);}
+.tb_btn.outline{background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);}
+.tb_btn.red{background:rgba(255,82,82,0.3);color:#fff;border:1px solid rgba(255,82,82,0.4);}
+.live_dot{width:8px;height:8px;border-radius:50%;background:#a8e6c0;display:inline-block;margin-right:5px;}
+
+/* LAYOUT */
+.layout{display:flex;min-height:calc(100vh - 56px);}
+.sidebar{width:200px;background:#fff;border-right:1px solid var(--border);padding:12px 0;flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;}
+.sb_item{display:flex;align-items:center;gap:9px;padding:10px 16px;cursor:pointer;color:var(--t2);font-size:13px;font-weight:600;border-left:3px solid transparent;}
+.sb_item:hover{background:var(--green-pale);color:var(--green);}
+.sb_item.active{background:var(--green-pale);color:var(--green);border-left-color:var(--green);}
+.sb_sec{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:0.8px;padding:14px 16px 4px;}
+.main{flex:1;padding:22px;overflow-x:hidden;}
+
+/* PAGES */
+.page{display:none;}
+.page.active{display:block;}
+
+/* CARDS */
+.stats_row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+.stat_card{background:#fff;border-radius:14px;padding:18px;border:1px solid var(--border);border-top:3px solid var(--green);}
+.stat_val{font-size:32px;font-weight:800;font-family:var(--mono);}
+.stat_lbl{font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;margin-top:4px;}
+.stat_sub{font-size:12px;font-weight:600;margin-top:4px;color:var(--green);}
+
+/* STATE GRID */
+.state_grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+.state_card{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:all 0.2s;}
+.state_card:hover{border-color:var(--green2);box-shadow:0 4px 16px rgba(26,107,58,0.1);}
+.state_card.active{border-color:var(--green);box-shadow:0 0 0 2px #c6e8d4;}
+.sc_head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.sc_name{font-size:15px;font-weight:700;}
+.sc_pct{font-size:13px;font-weight:800;font-family:var(--mono);color:var(--green);}
+.sc_body{padding:12px 16px;}
+.sc_row{display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;}
+.sc_bar_wrap{width:100px;height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+.sc_bar{height:5px;border-radius:3px;}
+.sc_foot{padding:10px 16px;background:#f8faf9;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.alert_btn{font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;background:var(--amber-pale);color:var(--amber);border:1px solid rgba(212,134,10,0.3);cursor:pointer;font-family:var(--font);}
+.alert_btn:hover{background:#fde8b8;}
+
+/* SS TABLE */
+.ss_panel{background:#fff;border-radius:14px;border:1px solid var(--border);overflow:hidden;margin-bottom:20px;}
+.ss_head{padding:13px 18px;border-bottom:1px solid var(--border);background:#f8faf9;display:flex;align-items:center;gap:10px;}
+.ss_table{width:100%;border-collapse:collapse;}
+.ss_table th{background:#f8faf9;padding:10px 14px;text-align:left;font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;border-bottom:1px solid var(--border);}
+.ss_table td{padding:11px 14px;border-bottom:1px solid rgba(226,236,231,0.6);font-size:13px;}
+.ss_table tr:last-child td{border-bottom:none;}
+.ss_table tr:hover td{background:var(--green-pale);}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;}
+.pill.ok{background:var(--green-pale);color:var(--green);}
+.pill.miss{background:var(--red-pale);color:var(--red);}
+.pill.amber{background:var(--amber-pale);color:var(--amber);}
+.erp_tag{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--green);background:var(--green-pale);padding:2px 8px;border-radius:6px;}
+
+/* USER MANAGEMENT */
+.um_stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+.um_stat{background:#fff;border:1px solid var(--border);border-radius:11px;padding:14px;text-align:center;}
+.um_val{font-size:22px;font-weight:800;font-family:var(--mono);}
+.um_lbl{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;margin-top:3px;}
+.action_bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.abtn{padding:8px 14px;border-radius:9px;font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:5px;}
+.abtn.green{background:var(--green);color:#fff;}
+.abtn.amber{background:var(--amber-pale);color:var(--amber);border:1px solid rgba(212,134,10,0.3);}
+.abtn.red{background:var(--red-pale);color:var(--red);border:1px solid rgba(192,57,43,0.2);}
+.abtn.gray{background:var(--bg);color:var(--t2);border:1px solid var(--border);}
+.filters_row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.filter_inp{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-family:var(--font);font-size:12px;background:#fff;color:var(--t1);outline:none;}
+.filter_inp:focus{border-color:var(--green);}
+
+/* MODAL */
+.modal_bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:999;align-items:center;justify-content:center;backdrop-filter:blur(3px);}
+.modal_bg.open{display:flex;}
+.modal{background:#fff;border-radius:20px;padding:28px;max-width:500px;width:94%;box-shadow:0 16px 48px rgba(0,0,0,0.2);}
+.modal_title{font-size:18px;font-weight:700;margin-bottom:4px;}
+.modal_sub{font-size:13px;color:var(--t3);margin-bottom:20px;}
+.modal_field{margin-bottom:14px;}
+.modal_label{font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:5px;}
+.modal_input{width:100%;padding:11px 13px;background:var(--bg);border:1px solid var(--border);border-radius:9px;font-family:var(--font);font-size:14px;color:var(--t1);outline:none;}
+.modal_input:focus{border-color:var(--green);}
+.modal_btns{display:flex;gap:10px;margin-top:20px;}
+.mbtn{flex:1;padding:12px;border-radius:11px;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;border:none;}
+.mbtn.green{background:var(--green);color:#fff;}
+.mbtn.gray{background:var(--bg);border:1px solid var(--border);color:var(--t2);}
+.mbtn.wa{background:#25d366;color:#fff;}
+
+/* WA MODAL */
+.wa_preview{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px;font-family:var(--mono);font-size:12px;color:var(--t2);line-height:1.8;margin-bottom:16px;max-height:200px;overflow-y:auto;white-space:pre-wrap;}
+
+/* SECTION */
+.sec_head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.sec_title{font-size:16px;font-weight:700;}
+.bulk_alert{padding:9px 20px;background:var(--amber);color:#fff;border:none;border-radius:10px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--t1);color:#fff;padding:11px 22px;border-radius:20px;font-size:13px;font-weight:600;z-index:9999;opacity:0;pointer-events:none;transition:opacity 0.25s;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,0.3);}
+.toast.on{opacity:1;}
+
+@media(max-width:900px){.sidebar{display:none;}.stats_row,.state_grid{grid-template-columns:1fr 1fr;}.main{padding:14px;}}
+</style>
+</head>
+<body>
+
+<!-- ═══ LOGIN ═══ -->
+<div id="login_screen">
+  <div class="login_box">
+    <div class="login_logo">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+        <rect x="3" y="9" width="9" height="12" rx="1.5" fill="white"/>
+        <path d="M12 9.5L16 9.5L16 13.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        <rect x="14.5" y="13.5" width="3" height="2" rx="0.5" fill="#ffb300"/>
+      </svg>
+    </div>
+    <div class="login_title">StationWise <span>Admin</span></div>
+    <div class="login_sub">Secure Admin Panel · GoGas</div>
+    <label class="login_label">Password</label>
+    <input id="pwd_input" class="login_input" type="password" placeholder="Enter admin password" autofocus onkeydown="if(event.key==='Enter')doLogin()"/>
+    <div class="login_err" id="login_err">Wrong password. Please try again.</div>
+    <button class="login_btn" onclick="doLogin()">Login to Admin Panel →</button>
+    <div class="login_note">Default password: GoGas2026</div>
+  </div>
+</div>
+
+<!-- ═══ MAIN APP (hidden until login) ═══ -->
+<div id="main_app" style="display:none;">
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="3" y="9" width="9" height="12" rx="1.5" fill="white"/><path d="M12 9.5L16 9.5L16 13.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/><rect x="14.5" y="13.5" width="3" height="2" rx="0.5" fill="#ffb300"/></svg>
+  <span class="logo_name">Station<span>Wise</span></span>
+  <span class="logo_tag">Admin</span>
+  <div class="tb_right">
+    <span class="live_dot"></span><span id="live_status" style="font-size:12px;color:rgba(255,255,255,0.8);font-weight:600;">Loading…</span>
+    <button class="tb_btn outline" onclick="refreshAll()">↺ Refresh</button>
+    <button class="tb_btn white" onclick="doExcel()">↓ Excel</button>
+    <button class="tb_btn red" onclick="doLogout()">Logout</button>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb_sec">Menu</div>
+    <div class="sb_item active" id="nav_dash" onclick="showPage('dash')">📊 Dashboard</div>
+    <div class="sb_item" id="nav_stations" onclick="showPage('stations')">📍 Stations</div>
+    <div class="sb_item" id="nav_reports" onclick="showPage('reports')">📋 All Reports</div>
+    <div class="sb_item" id="nav_users" onclick="showPage('users')">👥 User Management</div>
+    <div class="sb_item" id="nav_export" onclick="showPage('export')">↓ Export</div>
+    <div class="sb_sec">Settings</div>
+    <div class="sb_item" id="nav_setup" onclick="showPage('setup')">⚙ Setup</div>
+  </div>
+
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page_dash">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+        <span style="font-size:13px;font-weight:600;color:var(--t2);">Show:</span>
+        <select id="dash_range" onchange="renderDash()" style="padding:7px 12px;border:1px solid var(--border);border-radius:8px;font-family:var(--font);font-size:13px;background:#fff;outline:none;">
+          <option value="1">Today</option>
+          <option value="7" selected>Last 7 days</option>
+          <option value="30">Last 30 days</option>
+          <option value="365">All time</option>
+        </select>
+        <span style="font-size:12px;color:var(--t3);" id="last_refresh">Last updated: —</span>
+        <button onclick="refreshAll()" style="padding:6px 14px;background:#fff;border:1px solid var(--border);border-radius:8px;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;color:var(--t2);">↺ Refresh</button>
+        <button onclick="clearDemo()" style="padding:6px 14px;background:var(--red-pale);border:1px solid rgba(192,57,43,0.2);border-radius:8px;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;color:var(--red);">🗑 Clear Sample</button>
+      </div>
+      <div class="stats_row">
+        <div class="stat_card"><div class="stat_val" id="s_total">0</div><div class="stat_lbl">Reports Today</div><div class="stat_sub" id="s_total_sub">of 0 stations</div></div>
+        <div class="stat_card" style="border-top-color:var(--amber);"><div class="stat_val" id="s_pend" style="color:var(--amber)">0</div><div class="stat_lbl">Pending</div><div class="stat_sub" style="color:var(--amber)" id="s_pend_sub">Not submitted</div></div>
+        <div class="stat_card" style="border-top-color:var(--red);"><div class="stat_val" id="s_over" style="color:var(--red)">0</div><div class="stat_lbl">Overdue &gt;4hrs</div><div class="stat_sub" style="color:var(--red)">Need alert</div></div>
+        <div class="stat_card" style="border-top-color:var(--blue);"><div class="stat_val" id="s_states" style="color:var(--blue)">0</div><div class="stat_lbl">Active States</div><div class="stat_sub" style="color:var(--blue)" id="s_states_sub">of 7 states</div></div>
+      </div>
+      <div class="sec_head">
+        <div class="sec_title">State-wise Status</div>
+        <button class="bulk_alert" onclick="alertAll()">🔔 Alert All Pending</button>
+      </div>
+      <div class="state_grid" id="state_grid"></div>
+      <div id="ss_section" style="display:none;">
+        <div class="sec_head">
+          <div><div class="sec_title" id="ss_title">Station Status</div><div style="font-size:12px;color:var(--t3);margin-top:2px;" id="ss_sub">Today</div></div>
+          <button class="bulk_alert" id="state_alert_btn" onclick="alertState()">🔔 Alert Pending</button>
+        </div>
+        <div class="ss_panel">
+          <div class="ss_head">
+            <span id="ss_state_tag" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:10px;background:var(--green-pale);color:var(--green);">State</span>
+            <span style="font-size:12px;color:var(--t3);margin-left:auto;" id="ss_count">0 stations</span>
+          </div>
+          <table class="ss_table"><thead><tr><th>SS Name</th><th>ERP</th><th>Station</th><th>Status</th><th>Time</th><th>Shift</th><th>Alert</th></tr></thead><tbody id="ss_tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATIONS -->
+    <div class="page" id="page_stations">
+      <div class="sec_head" style="margin-bottom:16px;"><div class="sec_title">All Stations — Today</div><button class="bulk_alert" onclick="alertAll()">🔔 Alert All Pending</button></div>
+      <div class="filters_row">
+        <select id="st_state_f" onchange="renderStations()" class="filter_inp"><option value="">All States</option></select>
+        <select id="st_status_f" onchange="renderStations()" class="filter_inp"><option value="">All Status</option><option value="ok">Submitted</option><option value="miss">Pending</option></select>
+      </div>
+      <div class="ss_panel"><div class="ss_head"><span id="st_count" style="font-size:13px;font-weight:700;">0 stations</span></div>
+        <table class="ss_table"><thead><tr><th>SS Name</th><th>ERP</th><th>Station</th><th>State</th><th>Status</th><th>Time</th><th>Alert</th></tr></thead><tbody id="st_tbody"></tbody></table>
+      </div>
+    </div>
+
+    <!-- ALL REPORTS -->
+    <div class="page" id="page_reports">
+      <div class="sec_head" style="margin-bottom:16px;"><div class="sec_title">All Reports</div><button class="abtn green" onclick="doExcel()">↓ Excel</button></div>
+      <div class="filters_row">
+        <input type="date" id="rep_from" onchange="renderReports()" class="filter_inp"/>
+        <input type="date" id="rep_to" onchange="renderReports()" class="filter_inp"/>
+        <select id="rep_state_f" onchange="renderReports()" class="filter_inp"><option value="">All States</option></select>
+      </div>
+      <div class="ss_panel"><div class="ss_head"><span id="rep_count" style="font-size:13px;font-weight:700;">0 reports</span></div>
+        <div style="overflow-x:auto;"><table class="ss_table"><thead><tr><th>Date</th><th>SS Name</th><th>ERP</th><th>Station</th><th>State</th><th>Shift</th><th>Net Sale</th><th>Total Amt</th><th>Cash Hand</th></tr></thead><tbody id="rep_tbody"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- USER MANAGEMENT -->
+    <div class="page" id="page_users">
+      <div class="sec_head" style="margin-bottom:16px;"><div class="sec_title">User Management</div><button class="abtn green" onclick="openAddUser()">+ Add New SS</button></div>
+      <div class="um_stats">
+        <div class="um_stat"><div class="um_val" id="um_total">0</div><div class="um_lbl">Total</div></div>
+        <div class="um_stat" style="border-top:3px solid var(--green);"><div class="um_val" style="color:var(--green)" id="um_active">0</div><div class="um_lbl">Active</div></div>
+        <div class="um_stat" style="border-top:3px solid var(--red);"><div class="um_val" style="color:var(--red)" id="um_blocked">0</div><div class="um_lbl">Blocked</div></div>
+        <div class="um_stat" style="border-top:3px solid var(--blue);"><div class="um_val" style="color:var(--blue)" id="um_states">0</div><div class="um_lbl">States</div></div>
+      </div>
+      <div class="action_bar">
+        <button class="abtn amber" onclick="bulkReset()">🔑 Reset All PWD</button>
+        <button class="abtn gray" onclick="exportUsers()">↓ Export CSV</button>
+        <button class="abtn gray" onclick="importUsers()">↑ Import CSV</button>
+      </div>
+      <div class="filters_row">
+        <input id="u_search" placeholder="Search ERP / Name…" oninput="renderUsers()" class="filter_inp" style="width:200px;"/>
+        <select id="u_state_f" onchange="renderUsers()" class="filter_inp"><option value="">All States</option></select>
+        <select id="u_status_f" onchange="renderUsers()" class="filter_inp"><option value="">All Status</option><option value="active">Active</option><option value="blocked">Blocked</option></select>
+      </div>
+      <div class="ss_panel"><div class="ss_head"><span id="u_count" style="font-size:13px;font-weight:700;">0 accounts</span></div>
+        <table class="ss_table"><thead><tr><th>ERP</th><th>SS Name</th><th>Station</th><th>State</th><th>Mobile</th><th>Password</th><th>Status</th><th>Actions</th></tr></thead><tbody id="u_tbody"></tbody></table>
+      </div>
+    </div>
+
+    <!-- EXPORT -->
+    <div class="page" id="page_export">
+      <div class="sec_title" style="margin-bottom:16px;">Export Reports</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;">
+        <div onclick="doExcel()" style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:22px;text-align:center;cursor:pointer;" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-size:32px;margin-bottom:8px;">📊</div><div style="font-size:14px;font-weight:700;">Excel (.xlsx)</div><div style="font-size:12px;color:var(--t3);margin-top:4px;">State-wise + Combined</div>
+        </div>
+        <div onclick="doCSV()" style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:22px;text-align:center;cursor:pointer;" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-size:32px;margin-bottom:8px;">📋</div><div style="font-size:14px;font-weight:700;">CSV (Flat)</div><div style="font-size:12px;color:var(--t3);margin-top:4px;">All reports in one file</div>
+        </div>
+        <div onclick="doTodayExcel()" style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:22px;text-align:center;cursor:pointer;" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-size:32px;margin-bottom:8px;">📅</div><div style="font-size:14px;font-weight:700;">Today Only</div><div style="font-size:12px;color:var(--t3);margin-top:4px;">Today's submissions</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETUP -->
+    <div class="page" id="page_setup">
+      <div class="sec_title" style="margin-bottom:16px;">Setup & Configuration</div>
+      <div style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:22px;margin-bottom:14px;">
+        <div style="font-size:15px;font-weight:700;margin-bottom:6px;">🔗 Google Sheet URL</div>
+        <div style="font-size:12px;color:var(--t3);margin-bottom:14px;">Paste your Google Apps Script deployment URL</div>
+        <input id="setup_url" type="url" placeholder="https://script.google.com/macros/s/.../exec" class="modal_input" style="margin-bottom:10px;"/>
+        <div style="display:flex;gap:8px;">
+          <button onclick="saveUrl()" class="abtn green">Save & Connect</button>
+          <button onclick="testUrl()" class="abtn gray">Test Connection</button>
+        </div>
+        <div id="url_status" style="margin-top:10px;font-size:12px;display:none;padding:8px 12px;border-radius:8px;"></div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:22px;">
+        <div style="font-size:15px;font-weight:700;margin-bottom:6px;">🔐 Change Admin Password</div>
+        <input id="new_pwd" type="password" placeholder="New password" class="modal_input" style="margin-bottom:10px;"/>
+        <button onclick="changePwd()" class="abtn green">Update Password</button>
+        <div style="font-size:11px;color:var(--t3);margin-top:8px;">Current default: GoGas2026</div>
+      </div>
+    </div>
+
+  </div><!-- end main -->
+</div><!-- end layout -->
+</div><!-- end main_app -->
+
+<!-- WA ALERT MODAL -->
+<div class="modal_bg" id="wa_modal">
+  <div class="modal">
+    <div class="modal_title">📲 WhatsApp Alert</div>
+    <div class="modal_sub" id="wa_modal_sub">Alert message</div>
+    <div class="wa_preview" id="wa_preview"></div>
+    <div class="modal_btns">
+      <button class="mbtn gray" onclick="closeModal('wa_modal')">Cancel</button>
+      <button class="mbtn wa" onclick="sendWA()">Open WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT USER MODAL -->
+<div class="modal_bg" id="user_modal">
+  <div class="modal">
+    <div class="modal_title" id="user_modal_title">Add New SS</div>
+    <div class="modal_sub">Fill all details for the station supervisor</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="modal_field"><label class="modal_label">ERP Code *</label><input id="u_erp" class="modal_input" placeholder="e.g. AY084" style="text-transform:uppercase"/></div>
+      <div class="modal_field"><label class="modal_label">SS Name *</label><input id="u_name" class="modal_input" placeholder="Full name"/></div>
+      <div class="modal_field"><label class="modal_label">Station Name *</label><input id="u_station" class="modal_input" placeholder="e.g. Sangamner GoGas"/></div>
+      <div class="modal_field"><label class="modal_label">State *</label>
+        <select id="u_state" class="modal_input">
+          <option value="">Select…</option>
+          <option>Maharashtra</option><option>Gujarat</option><option>Rajasthan</option>
+          <option>Karnataka</option><option>Tamil Nadu</option><option>Uttar Pradesh</option>
+          <option>Madhya Pradesh</option><option>Goa</option><option>Punjab</option>
+          <option>Haryana</option><option>Bihar</option><option>Andhra Pradesh</option>
+          <option>Telangana</option><option>Kerala</option>
+        </select>
+      </div>
+      <div class="modal_field" style="grid-column:1/-1;"><label class="modal_label">Password *</label><input id="u_pwd" class="modal_input" placeholder="e.g. SW@1234"/></div>
+      <div class="modal_field" style="grid-column:1/-1;"><label class="modal_label">Mobile (WhatsApp OTP) *</label><input id="u_mobile" class="modal_input" placeholder="e.g. 9145024049" inputmode="numeric" maxlength="10" style="font-family:var(--mono);"/></div>
+    </div>
+    <div class="modal_btns">
+      <button class="mbtn gray" onclick="closeModal('user_modal')">Cancel</button>
+      <button class="mbtn green" onclick="saveUser()">Save Account</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast_el"></div>
+
+<!-- MOBILE BOTTOM NAV -->
+<div class="mobile-nav" id="mobile_nav">
+  <div class="mn-item active" id="mn_dashboard" onclick="showPage('dashboard');setMobileNav('dashboard')">
+    <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/></svg>
+    Dashboard
+  </div>
+  <div class="mn-item" id="mn_stations" onclick="showPage('stations');setMobileNav('stations')">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="2"/><polyline points="9 22 9 12 15 12 15 22" stroke="currentColor" stroke-width="2"/></svg>
+    Stations
+  </div>
+  <div class="mn-item" id="mn_reports" onclick="showPage('reports');setMobileNav('reports')">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2"/><polyline points="14 2 14 8 20 8" stroke="currentColor" stroke-width="2"/><line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="2"/><line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="2"/></svg>
+    Reports
+  </div>
+  <div class="mn-item" id="mn_users" onclick="showPage('users');setMobileNav('users')">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" stroke-width="2"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2"/></svg>
+    Users
+  </div>
+  <div class="mn-item" id="mn_export" onclick="showPage('export');setMobileNav('export')">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="2"/><polyline points="7 10 12 15 17 10" stroke="currentColor" stroke-width="2"/><line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2"/></svg>
+    Export
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════
+const DEFAULT_PWD = 'GoGas2026';
+const STATES = ['Maharashtra','Gujarat','Rajasthan','Karnataka','Tamil Nadu','Uttar Pradesh','Madhya Pradesh','Goa','Punjab','Haryana','Bihar','Andhra Pradesh','Telangana','Kerala'];
+const TODAY = new Date().toDateString();
+
+// ══════════════════════════════════
+//  STATE
+// ══════════════════════════════════
+let allReports = [];
+let selectedState = null;
+let currentWAMsg = '';
+let editingErp = null;
+
+function getSheetUrl(){ return localStorage.getItem('sw_sheet_url') || 'https://script.google.com/macros/s/AKfycbxb9KV-1QxMWmEw5Wpe-huMA3Fr4f89k8HTxhtwr4G-cYwOEldMsD_ZnVQcyspiRq0/exec'; }
+function getAdminPwd(){ return localStorage.getItem('sw_admin_pwd') || DEFAULT_PWD; }
+function getSsCreds(){ return JSON.parse(localStorage.getItem('sw_ss_creds') || 'null') || getDefaultCreds(); }
+
+function getDefaultCreds(){
+  return {
+    'AY001':{name:'Rajesh Kumar',   station:'Sangamner GoGas',      state:'Maharashtra', password:'SW@1234', blocked:false},
+    'AY002':{name:'Priya Patil',    station:'Nashik GoGas',         state:'Maharashtra', password:'SW@1234', blocked:false},
+    'GJ001':{name:'Amit Shah',      station:'Ahmedabad GoGas',      state:'Gujarat',     password:'SW@1234', blocked:false},
+    'RJ001':{name:'Sonal Sharma',   station:'Jaipur GoGas',         state:'Rajasthan',   password:'SW@1234', blocked:false},
+    'KA001':{name:'Vikram Rao',     station:'Bengaluru GoGas',      state:'Karnataka',   password:'SW@1234', blocked:false},
+    'TN001':{name:'Meena Devi',     station:'Chennai GoGas',        state:'Tamil Nadu',  password:'SW@1234', blocked:false},
+    'MH001':{name:'Suresh Jadhav',  station:'Pune Kothrud GoGas',   state:'Maharashtra', password:'SW@1234', blocked:false},
+    'MH002':{name:'Anita Sharma',   station:'Aurangabad GoGas',     state:'Maharashtra', password:'SW@1234', blocked:false},
+    'GJ002':{name:'Hiral Patel',    station:'Surat GoGas',          state:'Gujarat',     password:'SW@1234', blocked:false},
+    'RJ002':{name:'Ramesh Gupta',   station:'Jodhpur GoGas',        state:'Rajasthan',   password:'SW@1234', blocked:false},
+  };
+}
+
+// ══════════════════════════════════
+//  LOGIN
+// ══════════════════════════════════
+function doLogin(){
+  const pwd = document.getElementById('pwd_input').value;
+  const err = document.getElementById('login_err');
+  if(pwd === getAdminPwd()){
+    document.getElementById('login_screen').style.display = 'none';
+    document.getElementById('main_app').style.display = 'block';
+    init();
+  } else {
+    err.style.display = 'block';
+    document.getElementById('pwd_input').value = '';
+    document.getElementById('pwd_input').focus();
+  }
+}
+
+function doLogout(){
+  if(!confirm('Logout from Admin Panel?')) return;
+  document.getElementById('main_app').style.display = 'none';
+  document.getElementById('login_screen').style.display = 'flex';
+  document.getElementById('pwd_input').value = '';
+  setTimeout(()=>document.getElementById('pwd_input').focus(), 100);
+}
+
+// ══════════════════════════════════
+//  INIT
+// ══════════════════════════════════
+function init(){
+  populateStateFilters();
+  setupUrl();
+  refreshAll();
+}
+
+function setupUrl(){
+  const url = getSheetUrl();
+  if(url) document.getElementById('setup_url').value = url;
+}
+
+function populateStateFilters(){
+  ['st_state_f','rep_state_f','u_state_f'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el || el.options.length > 1) return;
+    STATES.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;el.appendChild(o);});
+  });
+}
+
+// ══════════════════════════════════
+//  DATA
+// ══════════════════════════════════
+async function refreshAll(){
+  buildDemoData();
+  const url = getSheetUrl();
+  if(!url){
+    document.getElementById('live_status').textContent = 'Demo mode · ' + allReports.length + ' sample records';
+    document.getElementById('last_refresh').textContent = 'Last updated: ' + new Date().toLocaleTimeString('en-IN');
+    renderAll(); return;
+  }
+  try{
+    const res = await fetch(url + '?t=' + Date.now());
+    const data = await res.json();
+    if(data.status === 'ok'){
+      const sheetRows = data.rows || [];
+      const realIds = new Set(sheetRows.map(r=>r['Report ID']||(r['ERP Code']+'_'+r['Date']+'_'+r['Month'])));
+      const demo = allReports.filter(d=>{ const id=d['Report ID']||(d['ERP Code']+'_'+d['Date']+'_'+d['Month']); return !realIds.has(id); });
+      allReports = [...sheetRows, ...demo];
+      document.getElementById('live_status').textContent = 'Live · ' + sheetRows.length + ' real + ' + demo.length + ' sample';
+    }
+  }catch(e){
+    document.getElementById('live_status').textContent = 'Sample data (sheet offline)';
+  }
+  document.getElementById('last_refresh').textContent = 'Last updated: ' + new Date().toLocaleTimeString('en-IN');
+  renderAll();
+}
+
+function buildDemoData(){
+  allReports = [];
+  const STATIONS = [
+    {erp:'MH001',name:'Rajesh Kumar',    station:'Sangamner GoGas',          state:'Maharashtra'},
+    {erp:'MH002',name:'Priya Patil',     station:'Nashik Road GoGas',        state:'Maharashtra'},
+    {erp:'MH003',name:'Suresh Jadhav',   station:'Pune Kothrud GoGas',       state:'Maharashtra'},
+    {erp:'MH004',name:'Anita Sharma',    station:'Aurangabad GoGas',         state:'Maharashtra'},
+    {erp:'MH005',name:'Vijay More',      station:'Nagpur Sitabuldi GoGas',   state:'Maharashtra'},
+    {erp:'MH006',name:'Rekha Desai',     station:'Kolhapur GoGas',           state:'Maharashtra'},
+    {erp:'MH007',name:'Pramod Kulkarni', station:'Solapur GoGas',            state:'Maharashtra'},
+    {erp:'MH008',name:'Sunita Bhosale',  station:'Satara GoGas',             state:'Maharashtra'},
+    {erp:'GJ001',name:'Amit Shah',       station:'Ahmedabad Maninagar GoGas',state:'Gujarat'},
+    {erp:'GJ002',name:'Hiral Patel',     station:'Surat Ring Road GoGas',    state:'Gujarat'},
+    {erp:'GJ003',name:'Nirav Mehta',     station:'Vadodara GoGas',           state:'Gujarat'},
+    {erp:'GJ004',name:'Kavita Joshi',    station:'Rajkot GoGas',             state:'Gujarat'},
+    {erp:'GJ005',name:'Dhruv Trivedi',   station:'Gandhinagar GoGas',        state:'Gujarat'},
+    {erp:'GJ006',name:'Pooja Agarwal',   station:'Bharuch GoGas',            state:'Gujarat'},
+    {erp:'RJ001',name:'Sonal Sharma',    station:'Jaipur Tonk Road GoGas',   state:'Rajasthan'},
+    {erp:'RJ002',name:'Ramesh Gupta',    station:'Jodhpur GoGas',            state:'Rajasthan'},
+    {erp:'RJ003',name:'Meena Verma',     station:'Udaipur GoGas',            state:'Rajasthan'},
+    {erp:'RJ004',name:'Ajay Singh',      station:'Kota GoGas',               state:'Rajasthan'},
+    {erp:'RJ005',name:'Deepa Chauhan',   station:'Bikaner GoGas',            state:'Rajasthan'},
+    {erp:'KA001',name:'Vikram Rao',      station:'Bengaluru Koramangala',    state:'Karnataka'},
+    {erp:'KA002',name:'Lakshmi Nair',    station:'Mysuru GoGas',             state:'Karnataka'},
+    {erp:'KA003',name:'Sunil Kumar',     station:'Hubli GoGas',              state:'Karnataka'},
+    {erp:'KA004',name:'Ananya Reddy',    station:'Mangaluru GoGas',          state:'Karnataka'},
+    {erp:'KA005',name:'Ravi Shetty',     station:'Belagavi GoGas',           state:'Karnataka'},
+    {erp:'TN001',name:'Meena Devi',      station:'Chennai Anna Nagar GoGas', state:'Tamil Nadu'},
+    {erp:'TN002',name:'Karthik Rajan',   station:'Coimbatore GoGas',         state:'Tamil Nadu'},
+    {erp:'TN003',name:'Selvi Murugan',   station:'Madurai GoGas',            state:'Tamil Nadu'},
+    {erp:'TN004',name:'Arun Krishnan',   station:'Salem GoGas',              state:'Tamil Nadu'},
+    {erp:'UP001',name:'Ravi Verma',      station:'Lucknow Hazratganj GoGas', state:'Uttar Pradesh'},
+    {erp:'UP002',name:'Sunita Mishra',   station:'Kanpur GoGas',             state:'Uttar Pradesh'},
+    {erp:'UP003',name:'Kapil Tiwari',    station:'Varanasi GoGas',           state:'Uttar Pradesh'},
+    {erp:'GA001',name:'Fernandes D',     station:'Panaji GoGas',             state:'Goa'},
+    {erp:'GA002',name:'Maria Pereira',   station:'Margao GoGas',             state:'Goa'},
+  ];
+  const SUBMITTED = ['MH001','MH002','MH003','MH005','MH007','GJ001','GJ002','GJ004','GJ005','RJ001','RJ002','RJ005','KA001','KA002','KA003','KA004','TN001','TN002','UP001','GA001','GA002'];
+  const now = new Date();
+  STATIONS.forEach((st,idx)=>{
+    const did = SUBMITTED.includes(st.erp);
+    const ns = (Math.random()*600+150).toFixed(2);
+    const ta = (parseFloat(ns)*80+Math.random()*5000).toFixed(2);
+    const ts = new Date(now.getFullYear(),now.getMonth(),now.getDate(),6+Math.floor(Math.random()*10),Math.floor(Math.random()*60)).toISOString();
+    if(did) allReports.push({'Timestamp':ts,'ERP Code':st.erp,'Station Name':st.station,'State':st.state,'SS Name':st.name,'Shift':['1','2','1+2'][idx%3],'Date':now.getDate().toString(),'Month':now.toLocaleString('en-IN',{month:'long'}),'Year':now.getFullYear().toString(),'Net Sale (L)':ns,'Total Sales Amt':ta,'Cash In Hand':(parseFloat(ta)*0.1+500).toFixed(2),'Report ID':st.erp+'_'+now.toISOString().split('T')[0],'Status':'Synced'});
+    for(let d=1;d<=7;d++){
+      const pd=new Date();pd.setDate(pd.getDate()-d);
+      const pns=(Math.random()*600+150).toFixed(2);
+      const pta=(parseFloat(pns)*80+Math.random()*5000).toFixed(2);
+      const pts=new Date(pd.getFullYear(),pd.getMonth(),pd.getDate(),6+Math.floor(Math.random()*10),Math.floor(Math.random()*60)).toISOString();
+      allReports.push({'Timestamp':pts,'ERP Code':st.erp,'Station Name':st.station,'State':st.state,'SS Name':st.name,'Shift':['1','2','3'][d%3],'Date':pd.getDate().toString(),'Month':pd.toLocaleString('en-IN',{month:'long'}),'Year':pd.getFullYear().toString(),'Net Sale (L)':pns,'Total Sales Amt':pta,'Cash In Hand':(parseFloat(pta)*0.1+500).toFixed(2),'Report ID':st.erp+'_'+pd.toISOString().split('T')[0],'Status':'Synced'});
+    }
+  });
+}
+
+function clearDemo(){ allReports=[]; renderAll(); toast('Sample data cleared. Click Refresh to reload.'); }
+
+function renderAll(){ renderDash(); renderStations(); renderReports(); renderUsers(); }
+
+// ══════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════
+function getTodayReports(){ return allReports.filter(r=>r['Timestamp']&&new Date(r['Timestamp']).toDateString()===TODAY); }
+function getUniqueStates(){ return [...new Set(allReports.map(r=>r['State']).filter(Boolean))]; }
+function getUniqueStations(){ return [...new Map(allReports.map(r=>[r['ERP Code'],r])).values()]; }
+
+function renderDash(){
+  const today = getTodayReports();
+  const allSt = getUniqueStations();
+  const pend = Math.max(0, allSt.length - today.length);
+  const states = getUniqueStates();
+  document.getElementById('s_total').textContent = today.length;
+  document.getElementById('s_total_sub').textContent = 'of ' + allSt.length + ' stations';
+  document.getElementById('s_pend').textContent = pend;
+  document.getElementById('s_pend_sub').textContent = pend > 0 ? 'Need to submit' : 'All submitted!';
+  document.getElementById('s_over').textContent = today.filter(r=>(Date.now()-new Date(r['Timestamp']))>4*3600000).length;
+  document.getElementById('s_states').textContent = [...new Set(today.map(r=>r['State']).filter(Boolean))].length;
+  document.getElementById('s_states_sub').textContent = 'of ' + states.length + ' states';
+  renderStateGrid(states, today, allSt);
+}
+
+function renderStateGrid(states, today, allSt){
+  if(!states.length){ document.getElementById('state_grid').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--t3);">Loading data…</div>'; return; }
+  document.getElementById('state_grid').innerHTML = states.map(state=>{
+    const stAll = allSt.filter(r=>r['State']===state);
+    const stToday = today.filter(r=>r['State']===state);
+    const total = stAll.length, sub = stToday.length, pend = Math.max(0,total-sub);
+    const pct = total>0?Math.round(sub/total*100):0;
+    const color = pct>=80?'var(--green)':pct>=50?'var(--amber)':'var(--red)';
+    const isActive = selectedState===state;
+    return `<div class="state_card${isActive?' active':''}" onclick="selectState('${state}')">
+      <div class="sc_head"><div class="sc_name">${state}</div><div class="sc_pct" style="color:${color}">${pct}%</div></div>
+      <div class="sc_body">
+        <div class="sc_row"><span style="color:var(--green);font-weight:700;">✓ Submitted</span><div style="display:flex;align-items:center;gap:8px;"><div class="sc_bar_wrap"><div class="sc_bar" style="width:${pct}%;background:var(--green)"></div></div><span style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--green)">${sub}</span></div></div>
+        <div class="sc_row"><span style="color:${pend>0?'var(--red)':'var(--t3)'};font-weight:700;">⏳ Pending</span><div style="display:flex;align-items:center;gap:8px;"><div class="sc_bar_wrap"><div class="sc_bar" style="width:${pend>0?100-pct:0}%;background:var(--red)"></div></div><span style="font-family:var(--mono);font-size:11px;font-weight:700;color:${pend>0?'var(--red)':'var(--t3)'}">${pend}</span></div></div>
+      </div>
+      <div class="sc_foot"><span style="font-size:11px;color:var(--t3);">${total} stations</span>${pend>0?`<button class="alert_btn" onclick="event.stopPropagation();alertStateOnly('${state}')">🔔 Alert ${pend}</button>`:`<span style="font-size:11px;color:var(--green);font-weight:700;">✓ All done!</span>`}</div>
+    </div>`;
+  }).join('');
+}
+
+function selectState(state){
+  selectedState = state;
+  renderStateGrid(); // just re-render grid to show selection highlight
+  renderSSTable(state);
+  document.getElementById('ss_section').style.display='block';
+  document.getElementById('ss_title').textContent = state + ' — Station Status';
+  document.getElementById('ss_state_tag').textContent = state;
+  document.getElementById('ss_section').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function renderSSTable(state){
+  const today = getTodayReports().filter(r=>r['State']===state);
+  const allInState = allReports.filter(r=>r['State']===state);
+  const stMap = {};
+  allInState.forEach(r=>{ if(!stMap[r['ERP Code']]) stMap[r['ERP Code']]={erp:r['ERP Code'],name:r['SS Name'],station:r['Station Name'],state,sub:false,rep:null}; });
+  today.forEach(r=>{ if(stMap[r['ERP Code']]){stMap[r['ERP Code']].sub=true;stMap[r['ERP Code']].rep=r;} });
+  const stations = Object.values(stMap);
+  document.getElementById('ss_count').textContent = stations.length + ' stations';
+  document.getElementById('ss_tbody').innerHTML = stations.map(s=>{
+    const t = s.rep?.['Timestamp']?new Date(s.rep['Timestamp']).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}):'—';
+    return `<tr><td><strong>${s.name||'—'}</strong></td><td><span class="erp_tag">${s.erp||'—'}</span></td><td style="font-size:12px;">${s.station||'—'}</td>
+      <td><span class="pill ${s.sub?'ok':'miss'}">${s.sub?'✓ Submitted':'⏳ Pending'}</span></td>
+      <td style="font-family:var(--mono);font-size:12px;">${t}</td>
+      <td style="font-family:var(--mono);font-size:12px;">${s.rep?.['Shift']||'—'}</td>
+      <td>${!s.sub?`<button class="alert_btn" onclick="alertOne('${s.erp}','${s.name}','${s.station}','${s.state}')">🔔 Alert</button>`:'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════
+//  STATIONS PAGE
+// ══════════════════════════════════
+function renderStations(){
+  const stF=document.getElementById('st_state_f')?.value||'';
+  const stS=document.getElementById('st_status_f')?.value||'';
+  const today=getTodayReports();
+  const allSt=getUniqueStations();
+  const subSet=new Set(today.map(r=>r['ERP Code']));
+  let stations=allSt.map(r=>({erp:r['ERP Code'],name:r['SS Name'],station:r['Station Name'],state:r['State'],sub:subSet.has(r['ERP Code']),rep:today.find(t=>t['ERP Code']===r['ERP Code'])}));
+  if(stF) stations=stations.filter(s=>s.state===stF);
+  if(stS==='ok') stations=stations.filter(s=>s.sub);
+  if(stS==='miss') stations=stations.filter(s=>!s.sub);
+  document.getElementById('st_count').textContent=stations.length+' stations';
+  document.getElementById('st_tbody').innerHTML=stations.map(s=>{
+    const t=s.rep?.['Timestamp']?new Date(s.rep['Timestamp']).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}):'—';
+    return`<tr><td><strong>${s.name||'—'}</strong></td><td><span class="erp_tag">${s.erp||'—'}</span></td><td style="font-size:12px;">${s.station||'—'}</td><td><span style="font-size:11px;font-weight:700;color:var(--blue)">${s.state||'—'}</span></td><td><span class="pill ${s.sub?'ok':'miss'}">${s.sub?'✓ Submitted':'⏳ Pending'}</span></td><td style="font-family:var(--mono);font-size:12px;">${t}</td><td>${!s.sub?`<button class="alert_btn" onclick="alertOne('${s.erp}','${s.name}','${s.station}','${s.state}')">🔔 Alert</button>`:'—'}</td></tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════
+//  REPORTS PAGE
+// ══════════════════════════════════
+function renderReports(){
+  const from=document.getElementById('rep_from')?.value;
+  const to=document.getElementById('rep_to')?.value;
+  const stF=document.getElementById('rep_state_f')?.value||'';
+  let rows=[...allReports].filter(r=>r['Shift']||r['Net Sale (L)']);
+  if(from){const d=new Date(from);rows=rows.filter(r=>r['Timestamp']&&new Date(r['Timestamp'])>=d);}
+  if(to){const d=new Date(to);d.setHours(23,59,59);rows=rows.filter(r=>r['Timestamp']&&new Date(r['Timestamp'])<=d);}
+  if(stF) rows=rows.filter(r=>r['State']===stF);
+  rows=rows.slice().reverse();
+  document.getElementById('rep_count').textContent=rows.length+' reports';
+  document.getElementById('rep_tbody').innerHTML=rows.slice(0,500).map(r=>`<tr><td style="font-family:var(--mono);font-size:12px;">${r['Date']||'—'} ${r['Month']||''}</td><td><strong>${r['SS Name']||'—'}</strong></td><td><span class="erp_tag">${r['ERP Code']||'—'}</span></td><td style="font-size:12px;">${r['Station Name']||'—'}</td><td><span style="font-size:11px;font-weight:700;color:var(--blue)">${r['State']||'—'}</span></td><td style="font-family:var(--mono);font-size:12px;">${r['Shift']||'—'}</td><td style="font-family:var(--mono);font-weight:700;">${r['Net Sale (L)']||'—'}</td><td style="font-family:var(--mono);">₹${r['Total Sales Amt']||'—'}</td><td style="font-family:var(--mono);">₹${r['Cash In Hand']||'—'}</td></tr>`).join('');
+}
+
+// ══════════════════════════════════
+//  USER MANAGEMENT
+// ══════════════════════════════════
+function saveCreds(creds){ localStorage.setItem('sw_ss_creds',JSON.stringify(creds)); }
+
+function renderUsers(){
+  const creds=getSsCreds();
+  const search=(document.getElementById('u_search')?.value||'').toLowerCase();
+  const stF=document.getElementById('u_state_f')?.value||'';
+  const stS=document.getElementById('u_status_f')?.value||'';
+  let entries=Object.entries(creds);
+  if(search) entries=entries.filter(([e,c])=>(e+c.name+c.station).toLowerCase().includes(search));
+  if(stF) entries=entries.filter(([,c])=>c.state===stF);
+  if(stS==='blocked') entries=entries.filter(([,c])=>c.blocked);
+  if(stS==='active') entries=entries.filter(([,c])=>!c.blocked);
+  const all=Object.values(creds);
+  document.getElementById('um_total').textContent=all.length;
+  document.getElementById('um_active').textContent=all.filter(c=>!c.blocked).length;
+  document.getElementById('um_blocked').textContent=all.filter(c=>c.blocked).length;
+  document.getElementById('um_states').textContent=new Set(all.map(c=>c.state)).size;
+  document.getElementById('u_count').textContent=entries.length+' of '+all.length+' accounts';
+  if(!entries.length){document.getElementById('u_tbody').innerHTML='<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--t3);">No accounts found. Click + Add New SS.</td></tr>';return;}
+  document.getElementById('u_tbody').innerHTML=entries.map(([erp,c])=>`<tr style="${c.blocked?'opacity:0.6':''}">
+    <td><span class="erp_tag">${erp}</span></td>
+    <td><strong>${c.name}</strong></td>
+    <td style="font-size:12px;">${c.station}</td>
+    <td><span style="font-size:11px;font-weight:700;color:var(--blue)">${c.state}</span></td>
+    <td><span style="font-family:var(--mono);font-size:12px;cursor:pointer;" onclick="this.textContent=this.textContent==='••••••'?'${c.password}':'••••••'">••••••</span></td>
+    <td><span class="pill ${c.blocked?'miss':'ok'}">${c.blocked?'🚫 Blocked':'✓ Active'}</span></td>
+    <td><div style="display:flex;gap:5px;">
+      <button onclick="resetPwd('${erp}')" class="alert_btn">🔑 PWD</button>
+      <button onclick="toggleBlock('${erp}')" class="alert_btn" style="${c.blocked?'background:var(--green-pale);color:var(--green)':'background:var(--red-pale);color:var(--red)'}">${c.blocked?'✓ Unblock':'🚫 Block'}</button>
+      <button onclick="editUser('${erp}')" class="alert_btn" style="background:#e8f0fb;color:var(--blue);">✏️ Edit</button>
+      <button onclick="deleteUser('${erp}')" class="alert_btn" style="background:var(--red-pale);color:var(--red);">🗑</button>
+    </div></td>
+  </tr>`).join('');
+}
+
+function resetPwd(erp){
+  const creds=getSsCreds();
+  const p=prompt('New password for '+erp+' ('+creds[erp]?.name+'):');
+  if(!p||!p.trim())return;
+  creds[erp].password=p.trim();saveCreds(creds);renderUsers();toast('Password updated for '+erp);
+}
+
+function toggleBlock(erp){
+  const creds=getSsCreds();
+  creds[erp].blocked=!creds[erp].blocked;
+  saveCreds(creds);renderUsers();
+  toast((creds[erp].blocked?'Blocked ':'Unblocked ')+erp);
+}
+
+function deleteUser(erp){
+  if(!confirm('Delete '+erp+'?'))return;
+  const creds=getSsCreds();delete creds[erp];saveCreds(creds);renderUsers();toast('Deleted '+erp);
+}
+
+function openAddUser(){editingErp=null;document.getElementById('user_modal_title').textContent='Add New SS';['u_erp','u_name','u_station','u_pwd'].forEach(id=>document.getElementById(id).value='');document.getElementById('u_state').value='';document.getElementById('user_modal').classList.add('open');}
+
+function editUser(erp){
+  const creds=getSsCreds();const c=creds[erp];
+  editingErp=erp;document.getElementById('user_modal_title').textContent='Edit SS — '+erp;
+  document.getElementById('u_erp').value=erp;document.getElementById('u_name').value=c.name;
+  document.getElementById('u_station').value=c.station;document.getElementById('u_state').value=c.state;
+  document.getElementById('u_pwd').value=c.password;document.getElementById('u_mobile').value=c.mobile||'';document.getElementById('user_modal').classList.add('open');
+}
+
+function saveUser(){
+  const erp=document.getElementById('u_erp').value.trim().toUpperCase();
+  const name=document.getElementById('u_name').value.trim();
+  const station=document.getElementById('u_station').value.trim();
+  const state=document.getElementById('u_state').value;
+  const pwd=document.getElementById('u_pwd').value.trim();
+  const mobile=document.getElementById('u_mobile').value.trim();
+  if(!erp||!name||!station||!state||!pwd){toast('Fill all fields');return;}
+  const creds=getSsCreds();
+  creds[erp]={name,station,state,password:pwd,mobile,blocked:creds[erp]?.blocked||false};
+  saveCreds(creds);renderUsers();closeModal('user_modal');
+  toast((editingErp?'Updated':'Created')+': '+erp+' ✓');editingErp=null;
+}
+
+function bulkReset(){
+  const p=prompt('Set same password for ALL SS accounts:');
+  if(!p||!p.trim())return;
+  const creds=getSsCreds();Object.keys(creds).forEach(e=>creds[e].password=p.trim());
+  saveCreds(creds);renderUsers();toast('All passwords reset ✓');
+}
+
+function exportUsers(){
+  const creds=getSsCreds();
+  const rows=[['ERP Code','SS Name','Station','State','Password','Status'],...Object.entries(creds).map(([e,c])=>[e,c.name,c.station,c.state,c.password,c.blocked?'Blocked':'Active'])];
+  const csv=rows.map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='SS_Credentials.csv';a.click();
+}
+
+function importUsers(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='.csv';
+  inp.onchange=async e=>{
+    const text=await new Promise(r=>{const fr=new FileReader();fr.onload=ev=>r(ev.target.result);fr.readAsText(e.target.files[0]);});
+    const lines=text.split('\n').filter(l=>l.trim());let added=0;
+    const creds=getSsCreds();
+    lines.slice(1).forEach(l=>{const cols=l.split(',').map(c=>c.replace(/"/g,'').trim());if(cols[0]&&cols[1]){creds[cols[0].toUpperCase()]={name:cols[1],station:cols[2]||'',state:cols[3]||'',password:cols[4]||'SW@1234',blocked:false};added++;}});
+    saveCreds(creds);renderUsers();toast(added+' accounts imported');
+  };inp.click();
+}
+
+// ══════════════════════════════════
+//  ALERTS
+// ══════════════════════════════════
+function buildAlertMsg(stations){
+  const now=new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+  if(stations.length===1){const s=stations[0];return`⚠️ *StationWise REMINDER*\n\nDear ${s.name||'Supervisor'},\n\nYour GOGAS daily report for *${s.station||s.erp}* has NOT been submitted today.\n\n📅 ${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'})}\n⏰ Alert at: ${now}\n\nPlease submit immediately on StationWise app.\n\n_GoGas StationWise Admin_`;}
+  const list=stations.slice(0,10).map((s,i)=>`${i+1}. ${s.name||'SS'} — ${s.station||s.erp}`).join('\n')+(stations.length>10?`\n...and ${stations.length-10} more`:'');
+  return`⚠️ *StationWise — PENDING REPORTS*\n\n*${stations.length} stations have NOT submitted today's report:*\n\n${list}\n\n📅 ${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'})}\n⏰ ${now}\n\nAll supervisors — submit your GOGAS report immediately on StationWise app.\n\n_GoGas StationWise Admin_`;
+}
+
+function getPendingStations(state){
+  const today=getTodayReports();const subSet=new Set(today.map(r=>r['ERP Code']));
+  const allSt=getUniqueStations().filter(r=>!state||r['State']===state);
+  return allSt.filter(r=>!subSet.has(r['ERP Code'])).map(r=>({erp:r['ERP Code'],name:r['SS Name'],station:r['Station Name'],state:r['State']}));
+}
+
+function alertOne(erp,name,station,state){ showWAModal('Alert: '+name, buildAlertMsg([{erp,name,station,state}])); }
+function alertStateOnly(state){ const p=getPendingStations(state);if(!p.length){toast('All submitted in '+state+' 🎉');return;}showWAModal('Alert '+p.length+' pending in '+state,buildAlertMsg(p)); }
+function alertState(){ if(selectedState) alertStateOnly(selectedState); }
+function alertAll(){ const p=getPendingStations();if(!p.length){toast('All stations submitted! 🎉');return;}showWAModal('Alert All '+p.length+' Pending',buildAlertMsg(p)); }
+
+function showWAModal(title,msg){
+  currentWAMsg=msg;
+  document.getElementById('wa_modal_sub').textContent=title;
+  document.getElementById('wa_preview').textContent=msg;
+  document.getElementById('wa_modal').classList.add('open');
+}
+function sendWA(){ window.open('https://wa.me/?text='+encodeURIComponent(currentWAMsg),'_blank');closeModal('wa_modal');toast('WhatsApp opened'); }
+
+// ══════════════════════════════════
+//  SETUP
+// ══════════════════════════════════
+function saveUrl(){
+  const url=document.getElementById('setup_url').value.trim();
+  if(!url){toast('Enter URL first');return;}
+  localStorage.setItem('sw_sheet_url',url);toast('URL saved ✓');refreshAll();
+}
+
+async function testUrl(){
+  const url=document.getElementById('setup_url').value.trim();
+  if(!url){toast('Enter URL first');return;}
+  const el=document.getElementById('url_status');
+  el.style.display='block';el.style.background='#fdf4e3';el.style.color='var(--amber)';el.textContent='Testing…';
+  if(!url.includes('script.google.com')||!url.includes('/exec')){el.style.background='#fdf0ee';el.style.color='var(--red)';el.textContent='✗ Invalid URL format';return;}
+  try{
+    await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({type:'ping'})});
+    el.style.background='var(--green-pale)';el.style.color='var(--green)';el.textContent='✓ Connected! Google Sheet is ready.';
+  }catch(e){el.style.background='#fdf0ee';el.style.color='var(--red)';el.textContent='✗ Could not connect. Check URL.';}
+}
+
+function changePwd(){
+  const p=document.getElementById('new_pwd').value.trim();
+  if(!p||p.length<4){toast('Password must be at least 4 characters');return;}
+  localStorage.setItem('sw_admin_pwd',p);
+  document.getElementById('new_pwd').value='';
+  toast('Password updated ✓ Use new password next login.');
+}
+
+// ══════════════════════════════════
+//  EXPORT
+// ══════════════════════════════════
+function fmtD(){const d=new Date();return d.getFullYear()+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2);}
+function getHeaders(){return['ERP Code','Station Name','State','SS Name','Shift','Date','Month','Net Sale (L)','Total Sales Amt','Cash In Hand','Timestamp'];}
+
+function doExcel(){
+  if(!allReports.length){toast('No data');return;}
+  const wb=XLSX.utils.book_new();
+  const h=getHeaders();
+  const states=getUniqueStates();
+  const ws=XLSX.utils.aoa_to_sheet([h,...allReports.map(r=>h.map(k=>r[k]||''))]);
+  XLSX.utils.book_append_sheet(wb,ws,'All Reports');
+  states.forEach(state=>{
+    const rows=allReports.filter(r=>r['State']===state);
+    if(!rows.length)return;
+    const ws2=XLSX.utils.aoa_to_sheet([h,...rows.map(r=>h.map(k=>r[k]||''))]);
+    XLSX.utils.book_append_sheet(wb,ws2,state.substring(0,31));
+  });
+  XLSX.writeFile(wb,'StationWise_'+fmtD()+'.xlsx');toast('Excel downloaded ✓');
+}
+
+function doCSV(){
+  if(!allReports.length){toast('No data');return;}
+  const h=getHeaders();
+  const csv=[h,...allReports.map(r=>h.map(k=>`"${(r[k]||'').toString().replace(/"/g,'""')}"`))].map(r=>Array.isArray(r)?r.join(','):r).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='StationWise_'+fmtD()+'.csv';a.click();
+  toast('CSV downloaded ✓');
+}
+
+function doTodayExcel(){
+  const today=getTodayReports();
+  if(!today.length){toast('No reports today');return;}
+  const wb=XLSX.utils.book_new();const h=getHeaders();
+  const ws=XLSX.utils.aoa_to_sheet([h,...today.map(r=>h.map(k=>r[k]||''))]);
+  XLSX.utils.book_append_sheet(wb,ws,'Today');
+  XLSX.writeFile(wb,'StationWise_Today_'+fmtD()+'.xlsx');toast("Today's report downloaded ✓");
+}
+
+// ══════════════════════════════════
+//  NAVIGATION & UTILS
+// ══════════════════════════════════
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb_item').forEach(i=>i.classList.remove('active'));
+  document.getElementById('page_'+name).classList.add('active');
+  document.getElementById('nav_'+name)?.classList.add('active');
+}
+
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+function setMobileNav(name){
+  document.querySelectorAll('.mn-item').forEach(i=>i.classList.remove('active'));
+  const el=document.getElementById('mn_'+name);
+  if(el)el.classList.add('active');
+}
+
+function toast(msg){
+  const t=document.getElementById('toast_el');
+  t.textContent=msg;t.classList.add('on');
+  setTimeout(()=>t.classList.remove('on'),2600);
+}
+
+// Auto-refresh every 2 min
+setInterval(refreshAll, 2*60*1000);
+</script>
+</body>
+</html>
