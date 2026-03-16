@@ -365,30 +365,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 
 <div class="toast" id="toast_el"></div>
 
-<!-- MOBILE BOTTOM NAV -->
-<div class="mobile-nav" id="mobile_nav">
-  <div class="mn-item active" id="mn_dashboard" onclick="showPage('dashboard');setMobileNav('dashboard')">
-    <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/></svg>
-    Dashboard
-  </div>
-  <div class="mn-item" id="mn_stations" onclick="showPage('stations');setMobileNav('stations')">
-    <svg viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="2"/><polyline points="9 22 9 12 15 12 15 22" stroke="currentColor" stroke-width="2"/></svg>
-    Stations
-  </div>
-  <div class="mn-item" id="mn_reports" onclick="showPage('reports');setMobileNav('reports')">
-    <svg viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2"/><polyline points="14 2 14 8 20 8" stroke="currentColor" stroke-width="2"/><line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="2"/><line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="2"/></svg>
-    Reports
-  </div>
-  <div class="mn-item" id="mn_users" onclick="showPage('users');setMobileNav('users')">
-    <svg viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" stroke-width="2"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2"/></svg>
-    Users
-  </div>
-  <div class="mn-item" id="mn_export" onclick="showPage('export');setMobileNav('export')">
-    <svg viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="2"/><polyline points="7 10 12 15 17 10" stroke="currentColor" stroke-width="2"/><line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2"/></svg>
-    Export
-  </div>
-</div>
-
 <script>
 // ══════════════════════════════════
 //  CONFIG
@@ -881,11 +857,10 @@ function showPage(name){
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 
 function setMobileNav(name){
-  document.querySelectorAll('.mn-item').forEach(i=>i.classList.remove('active'));
-  const el=document.getElementById('mn_'+name);
+  document.querySelectorAll('.mn-item').forEach(function(i){i.classList.remove('active');});
+  var el=document.getElementById('mn_'+name);
   if(el)el.classList.add('active');
 }
-
 function toast(msg){
   const t=document.getElementById('toast_el');
   t.textContent=msg;t.classList.add('on');
