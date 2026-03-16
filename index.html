@@ -204,6 +204,62 @@ body{font-family:var(--font);color:var(--t1);height:100%;overflow:hidden;positio
 </head>
 <body>
 
+<!-- ═══ OTP VERIFY ═══ -->
+<div class="screen hidden" id="s_otp">
+  <div class="status-bar"></div>
+  <div class="scroll-body">
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;min-height:100%;">
+      <div class="login-logomark">
+        <svg width="38" height="38" viewBox="0 0 24 24" fill="none">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.21h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.81a16 16 0 0 0 6 6l.86-.86a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.02z" stroke="white" stroke-width="2"/>
+        </svg>
+      </div>
+      <div class="login-appname fadein">Station<span>Wise</span></div>
+      <div class="login-tag" style="margin-bottom:28px;">Verify your identity</div>
+      <div class="login-card fadein" style="max-width:340px;">
+        <div class="lc-h" id="otp_title">Enter OTP</div>
+        <div class="lc-s" id="otp_sub">Enter the 6-digit OTP sent to your WhatsApp</div>
+        <div style="display:flex;gap:8px;justify-content:center;margin:20px 0;">
+          <input id="otp1" type="number" inputmode="numeric" maxlength="1" style="width:44px;height:52px;text-align:center;background:var(--card2);border:1.5px solid var(--border);border-radius:10px;font-family:var(--mono);font-size:22px;font-weight:700;color:var(--t1);outline:none;" oninput="otpNext(this,'otp2')" onkeydown="otpBack(event,'','otp1')"/>
+          <input id="otp2" type="number" inputmode="numeric" maxlength="1" style="width:44px;height:52px;text-align:center;background:var(--card2);border:1.5px solid var(--border);border-radius:10px;font-family:var(--mono);font-size:22px;font-weight:700;color:var(--t1);outline:none;" oninput="otpNext(this,'otp3')" onkeydown="otpBack(event,'otp1','otp2')"/>
+          <input id="otp3" type="number" inputmode="numeric" maxlength="1" style="width:44px;height:52px;text-align:center;background:var(--card2);border:1.5px solid var(--border);border-radius:10px;font-family:var(--mono);font-size:22px;font-weight:700;color:var(--t1);outline:none;" oninput="otpNext(this,'otp4')" onkeydown="otpBack(event,'otp2','otp3')"/>
+          <input id="otp4" type="number" inputmode="numeric" maxlength="1" style="width:44px;height:52px;text-align:center;background:var(--card2);border:1.5px solid var(--border);border-radius:10px;font-family:var(--mono);font-size:22px;font-weight:700;color:var(--t1);outline:none;" oninput="otpNext(this,'otp5')" onkeydown="otpBack(event,'otp3','otp4')"/>
+          <input id="otp5" type="number" inputmode="numeric" maxlength="1" style="width:44px;height:52px;text-align:center;background:var(--card2);border:1.5px solid var(--border);border-radius:10px;font-family:var(--mono);font-size:22px;font-weight:700;color:var(--t1);outline:none;" oninput="otpNext(this,'otp6')" onkeydown="otpBack(event,'otp4','otp5')"/>
+          <input id="otp6" type="number" inputmode="numeric" maxlength="1" style="width:44px;height:52px;text-align:center;background:var(--card2);border:1.5px solid var(--border);border-radius:10px;font-family:var(--mono);font-size:22px;font-weight:700;color:var(--t1);outline:none;" oninput="otpNext(this,null)" onkeydown="otpBack(event,'otp5','otp6')"/>
+        </div>
+        <button class="login-btn" onclick="verifyOTP()">Verify & Login →</button>
+        <div style="text-align:center;margin-top:14px;">
+          <span style="font-size:12px;color:var(--t3);" id="otp_resend_lbl">Didn't receive OTP?</span>
+          <span style="font-size:12px;color:var(--green);font-weight:700;cursor:pointer;margin-left:6px;" onclick="resendOTP()" id="otp_resend_btn">Resend via WhatsApp</span>
+        </div>
+        <div style="text-align:center;margin-top:8px;">
+          <span style="font-size:12px;color:var(--t3);cursor:pointer;" onclick="goScreen('s_login')">← Back to details</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(tab){
+  var eb=document.getElementById('tab_erp');
+  var ob=document.getElementById('tab_otp');
+  var ec=document.getElementById('tab_erp_content');
+  var oc=document.getElementById('tab_otp_content');
+  if(!eb||!ob||!ec||!oc)return;
+  if(tab==='erp'){
+    eb.style.background='var(--green)';eb.style.color='#000';
+    ob.style.background='transparent';ob.style.color='var(--t3)';
+    ec.style.display='block';oc.style.display='none';
+    setTimeout(function(){var e=document.getElementById('li_erp');if(e)e.focus();},100);
+  } else {
+    ob.style.background='var(--green)';ob.style.color='#000';
+    eb.style.background='transparent';eb.style.color='var(--t3)';
+    ec.style.display='none';oc.style.display='block';
+    setTimeout(function(){var e=document.getElementById('li_mobile');if(e)e.focus();},100);
+  }
+}
+</script>
 <!-- ═══ LOGIN ═══ -->
 <div class="screen" id="s_login">
   <div class="status-bar"></div>
@@ -221,35 +277,32 @@ body{font-family:var(--font);color:var(--t1);height:100%;overflow:hidden;positio
       <div class="login-appname">Station<span>Wise</span></div>
       <div class="login-tag">SS Daily Report App</div>
       <div class="login-card fadein">
-        <div class="lc-h">Sign In</div>
-        <div class="lc-s">Enter your station details</div>
-        <div class="lf"><label>ERP Code *</label><input id="li_erp" placeholder="e.g. AY084" style="text-transform:uppercase"/></div>
-        <div class="lf"><label>Your Name *</label><input id="li_name" placeholder="Your full name"/></div>
-        <div class="lf"><label>Station Name *</label><input id="li_station" placeholder="e.g. Sangamner GoGas"/></div>
-        <div class="lf"><label>State *</label>
-          <select id="li_state">
-            <option value="">Select state…</option>
-            <option>Maharashtra</option><option>Gujarat</option><option>Rajasthan</option>
-            <option>Karnataka</option><option>Tamil Nadu</option><option>Uttar Pradesh</option>
-            <option>Madhya Pradesh</option><option>Goa</option><option>Punjab</option>
-            <option>Haryana</option><option>Bihar</option><option>Andhra Pradesh</option>
-            <option>Telangana</option><option>Kerala</option>
-          </select>
+        <!-- TAB SWITCHER -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;background:var(--card3);border-radius:10px;padding:3px;margin-bottom:18px;">
+          <button id="tab_erp" onclick="switchTab('erp')" style="padding:9px;border:none;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:800;cursor:pointer;background:var(--green);color:#000;">ERP Login</button>
+          <button id="tab_otp" onclick="switchTab('otp')" style="padding:9px;border:none;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:800;cursor:pointer;background:transparent;color:var(--t3);">📱 Mobile OTP</button>
         </div>
-        <button class="login-btn" onclick="doLogin()">Enter StationWise →</button>
-        <div class="login-note">Your details saved on this phone · One-time setup</div>
-        <div id="install_btn_wrap" style="margin-top:12px;display:none;">
-          <button onclick="installApp()" style="width:100%;padding:13px;background:transparent;border:2px solid var(--green);border-radius:13px;font-family:var(--font);font-size:14px;font-weight:800;color:var(--green);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
-            📲 Add to Home Screen
-          </button>
-        </div>
-        <div id="install_manual_wrap" style="margin-top:10px;display:none;">
-          <div style="background:rgba(0,230,118,0.07);border:1px solid rgba(0,230,118,0.2);border-radius:12px;padding:12px 14px;font-size:12px;color:var(--t2);line-height:1.7;text-align:left;">
-            <strong style="color:var(--green);">📲 Install as App:</strong><br>
-            Tap <strong>⋮</strong> (3 dots) → <strong>Add to Home Screen</strong> → <strong>Add</strong><br>
-            <span style="color:var(--t3);">Then open from your home screen</span>
+        <!-- ERP TAB -->
+        <div id="tab_erp_content">
+          <div class="lf"><label>ERP Code *</label><input id="li_erp" placeholder="e.g. AY084" style="text-transform:uppercase" onkeydown="if(event.key==='Enter')document.getElementById('li_pwd').focus()"/></div>
+          <div class="lf"><label>Password *</label>
+            <div style="position:relative;">
+              <input id="li_pwd" type="password" placeholder="Enter password" style="width:100%;padding:13px 44px 13px 15px;background:var(--card2);border:1.5px solid var(--border);border-radius:11px;font-family:var(--font);font-size:15px;color:var(--t1);outline:none;" onkeydown="if(event.key==='Enter')doLogin()"/>
+              <span onclick="var i=document.getElementById('li_pwd');i.type=i.type==='password'?'text':'password'" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:20px;color:var(--green);">👁</span>
+            </div>
           </div>
+          <div id="login_err" style="display:none;background:rgba(255,82,82,0.08);border:1px solid rgba(255,82,82,0.2);border-radius:10px;padding:10px;font-size:12px;color:var(--red);font-weight:600;margin-bottom:8px;"></div>
+          <button class="login-btn" onclick="doLogin()" style="margin-top:6px;">Login →</button>
         </div>
+        <!-- MOBILE OTP TAB -->
+        <div id="tab_otp_content" style="display:none;">
+          <div class="lf"><label>Mobile Number (WhatsApp) *</label>
+            <input id="li_mobile" type="tel" inputmode="numeric" maxlength="10" placeholder="Enter 10-digit number" style="width:100%;padding:13px 15px;background:var(--card2);border:1.5px solid var(--border);border-radius:11px;font-family:var(--mono);font-size:16px;color:var(--t1);outline:none;letter-spacing:2px;" onkeydown="if(event.key==='Enter')sendMobileOTP()"/>
+          </div>
+          <div id="otp_err" style="display:none;background:rgba(255,82,82,0.08);border:1px solid rgba(255,82,82,0.2);border-radius:10px;padding:10px;font-size:12px;color:var(--red);font-weight:600;margin-bottom:8px;"></div>
+          <button onclick="sendMobileOTP()" style="width:100%;padding:14px;background:linear-gradient(135deg,#1a7f3c,#25d366);border:none;border-radius:13px;font-family:var(--font);font-size:15px;font-weight:800;color:#fff;cursor:pointer;">📲 Send OTP on WhatsApp</button>
+        </div>
+        <div class="login-note">Your details are saved on this phone only</div>
       </div>
     </div>
   </div>
@@ -446,6 +499,36 @@ body{font-family:var(--font);color:var(--t1);height:100%;overflow:hidden;positio
       </div>
       <div class="frow"><div class="ffield"><div class="fflbl">Hours</div><input class="ffin" id="f_dgh" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div></div>
     </div>
+    <div class="sec-div">DU Meter Photo</div>
+    <div class="fsec fadein" style="margin:10px 14px 0;">
+      <div class="fsec-head"><div class="fsec-title">📷 Upload DU Meter Reading Photo</div></div>
+      <div style="padding:14px;">
+        <div style="font-size:11px;color:var(--t3);margin-bottom:10px;font-weight:600;">N1 · N2 · N3 · N4 meter readings — take one photo covering all</div>
+        <div id="photo_preview_wrap" style="display:none;margin-bottom:10px;position:relative;">
+          <img id="photo_preview" style="width:100%;border-radius:10px;border:1.5px solid var(--border);max-height:200px;object-fit:cover;"/>
+          <button onclick="removePhoto()" style="position:absolute;top:8px;right:8px;background:rgba(255,82,82,0.9);border:none;border-radius:50%;width:28px;height:28px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+          <div style="margin-top:8px;display:flex;gap:8px;">
+            <button onclick="retakePhoto()" style="flex:1;padding:9px;background:var(--card2);border:1px solid var(--border);border-radius:10px;font-family:var(--font);font-size:13px;font-weight:700;color:var(--t2);cursor:pointer;">📷 Retake</button>
+            <div id="upload_status" style="flex:1;padding:9px;border-radius:10px;font-size:12px;font-weight:700;text-align:center;background:rgba(0,230,118,0.07);color:var(--green);border:1px solid rgba(0,230,118,0.2);">Ready to submit</div>
+          </div>
+        </div>
+        <div id="photo_btn_wrap">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <button onclick="openCamera()" style="padding:14px;background:var(--card2);border:2px dashed var(--border2);border-radius:12px;font-family:var(--font);font-size:14px;font-weight:700;color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;flex-direction:column;">
+              <span style="font-size:28px;">📷</span>
+              <span>Camera</span>
+            </button>
+            <button onclick="openGallery()" style="padding:14px;background:var(--card2);border:2px dashed var(--border2);border-radius:12px;font-family:var(--font);font-size:14px;font-weight:700;color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;flex-direction:column;">
+              <span style="font-size:28px;">🖼️</span>
+              <span>Gallery / File</span>
+            </button>
+          </div>
+        </div>
+        <input type="file" id="photo_input" accept="image/*" style="display:none;" onchange="onPhotoSelected(this)"/>
+        <input type="file" id="camera_input" accept="image/*" capture="environment" style="display:none;" onchange="onPhotoSelected(this)"/>
+      </div>
+    </div>
+
     <div class="sec-div">Comments</div>
     <div class="comment-wrap fadein">
       <div class="cmt-lbl">Additional Comments (Optional)</div>
@@ -577,6 +660,51 @@ body{font-family:var(--font);color:var(--t1);height:100%;overflow:hidden;positio
 <div class="toast" id="toast_el"></div>
 
 <script>
+// ── CREDENTIALS ──
+// doLogin uses SS_CREDENTIALS defined above
+const SS_CREDENTIALS = JSON.parse(localStorage.getItem('sw_ss_creds')||'null') || {
+  'AY001':{name:'Rajesh Kumar',station:'Sangamner GoGas',state:'Maharashtra',password:'SW@1234',mobile:'9145024049'},
+  'AY002':{name:'Priya Patil',station:'Nashik GoGas',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'GJ001':{name:'Amit Shah',station:'Ahmedabad GoGas',state:'Gujarat',password:'SW@1234',mobile:''},
+  'MH001':{name:'Vijay More',station:'Nagpur GoGas',state:'Maharashtra',password:'SW@1234',mobile:''},
+};
+
+// ── TAB SWITCHER ──
+function switchTab(tab){
+  var eb=document.getElementById('tab_erp'),ob=document.getElementById('tab_otp');
+  var ec=document.getElementById('tab_erp_content'),oc=document.getElementById('tab_otp_content');
+  if(tab==='erp'){
+    eb.style.background='var(--green)';eb.style.color='#000';
+    ob.style.background='transparent';ob.style.color='var(--t3)';
+    ec.style.display='block';oc.style.display='none';
+    setTimeout(function(){document.getElementById('li_erp').focus();},100);
+  } else {
+    ob.style.background='var(--green)';ob.style.color='#000';
+    eb.style.background='transparent';eb.style.color='var(--t3)';
+    ec.style.display='none';oc.style.display='block';
+    setTimeout(function(){document.getElementById('li_mobile').focus();},100);
+  }
+}
+
+// ── MOBILE OTP ──
+var mobileOTPCode=null, mobileOTPExpiry=null, mobileOTPNumber=null;
+function sendMobileOTP(){
+  var mobile=document.getElementById('li_mobile').value.trim().replace(/[^0-9]/g,'');
+  var errEl=document.getElementById('otp_err');
+  errEl.style.display='none';
+  if(mobile.length!==10){errEl.style.display='block';errEl.textContent='Enter valid 10-digit mobile number';return;}
+  mobileOTPCode=Math.floor(100000+Math.random()*900000).toString();
+  mobileOTPExpiry=Date.now()+(10*60*1000);
+  mobileOTPNumber=mobile;
+  var msg='Your StationWise OTP is: *'+mobileOTPCode+'*\n\nValid for 10 minutes. Do not share.\n\n_GoGas StationWise_';
+  window.open('https://wa.me/91'+mobile+'?text='+encodeURIComponent(msg),'_blank');
+  document.getElementById('otp_sub').textContent='OTP sent to +91'+mobile.slice(-4).padStart(10,'•')+' — enter below';
+  ['otp1','otp2','otp3','otp4','otp5','otp6'].forEach(function(id){document.getElementById(id).value='';});
+  goScreen('s_otp');
+  setTimeout(function(){document.getElementById('otp1').focus();},300);
+  toast('OTP sent ✓');
+}
+
 // ════════ CONSTANTS ════════
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const MONTHS_S=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -590,20 +718,195 @@ let settings = JSON.parse(localStorage.getItem('sw_settings')||'{}');
 let editId = null;
 let reminderTimers = [];
 
-// ════════ LOGIN ════════
-function doLogin(){
+// ════════ DEVICE SECURITY ════════
+function getOrCreateDeviceId(){
+  let did = localStorage.getItem('sw_device_id');
+  if(!did){
+    did = 'DEV_' + Date.now() + '_' + Math.random().toString(36).substring(2,10).toUpperCase();
+    localStorage.setItem('sw_device_id', did);
+  }
+  return did;
+}
+
+async function registerDevice(userData){
+  const url = localStorage.getItem('sw_sheet_url');
+  if(!url) return;
+  const deviceId = getOrCreateDeviceId();
+  const payload = {
+    type: 'registerDevice',
+    deviceId,
+    erp: userData.erp,
+    ssName: userData.name,
+    stationName: userData.station,
+    state: userData.state,
+    firstSeen: new Date().toISOString(),
+    lastSeen: new Date().toISOString(),
+    userAgent: navigator.userAgent.substring(0,100)
+  };
+  try {
+    await fetch(url, {
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify(payload)
+    });
+  } catch(e){}
+}
+
+async function checkDeviceStatus(){
+  const url = localStorage.getItem('sw_sheet_url');
+  if(!url || !user) return;
+  const deviceId = getOrCreateDeviceId();
+  try {
+    const res = await fetch(url+'?action=checkDevice&deviceId='+deviceId+'&erp='+user.erp);
+    const data = await res.json();
+    if(data.blocked){
+      // Device blocked by admin
+      user = null;
+      localStorage.removeItem('sw_user');
+      alert('⛔ Your access has been blocked by admin. Contact your supervisor.');
+      goScreen('s_login');
+      return false;
+    }
+    if(data.forceLogout){
+      user = null;
+      localStorage.removeItem('sw_user');
+      alert('🔒 You have been logged out by admin. Please login again.');
+      goScreen('s_login');
+      return false;
+    }
+  } catch(e){}
+  return true;
+}
+
+// Check device status every 5 minutes while app is open
+setInterval(()=>{ if(user) checkDeviceStatus(); }, 5*60*1000);
+
+// ════════ OTP ════════
+let currentOTP = null;
+let otpExpiry = null;
+let pendingUser = null;
+
+function generateOTP(){
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+function doLoginWithOTP(){
   const erp=document.getElementById('li_erp').value.trim().toUpperCase();
   const name=document.getElementById('li_name').value.trim();
   const station=document.getElementById('li_station').value.trim();
   const state=document.getElementById('li_state').value;
   if(!erp||!name||!station||!state){toast('Please fill all fields');return;}
-  user={erp,name,station,state};
+  pendingUser={erp,name,station,state};
+  currentOTP=generateOTP();
+  otpExpiry=Date.now()+(10*60*1000); // 10 min
+  // Send OTP via WhatsApp
+  const msg='Your StationWise OTP is: *'+currentOTP+'*\n\nValid for 10 minutes.\nDo not share with anyone.\n\n_GoGas StationWise_';
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+  // Clear OTP fields
+  ['otp1','otp2','otp3','otp4','otp5','otp6'].forEach(id=>{document.getElementById(id).value='';});
+  document.getElementById('otp_sub').textContent='OTP sent to your WhatsApp — check and enter below';
+  goScreen('s_otp');
+  setTimeout(()=>document.getElementById('otp1').focus(),300);
+  toast('OTP sent to WhatsApp ✓');
+}
+
+function doLoginDirect(){
+  doLogin();
+}
+
+function otpNext(el, nextId){
+  const val=el.value.toString().slice(-1);
+  el.value=val;
+  if(val && nextId) document.getElementById(nextId)?.focus();
+  // Auto verify when all 6 entered
+  const otp=['otp1','otp2','otp3','otp4','otp5','otp6'].map(id=>document.getElementById(id).value).join('');
+  if(otp.length===6) setTimeout(verifyOTP, 300);
+}
+
+function otpBack(e, prevId, currId){
+  if(e.key==='Backspace'&&!document.getElementById(currId).value&&prevId){
+    document.getElementById(prevId).focus();
+  }
+}
+
+function verifyOTP(){
+  const entered=['otp1','otp2','otp3','otp4','otp5','otp6'].map(id=>document.getElementById(id).value).join('');
+  if(entered.length<6){toast('Enter all 6 digits');return;}
+  const expiry = otpExpiry || mobileOTPExpiry;
+  if(Date.now()>expiry){toast('OTP expired — please resend');return;}
+  const validOTP = currentOTP || mobileOTPCode;
+  if(entered===validOTP){
+    // OTP correct - check if mobile login or ERP login
+    if(mobileOTPCode && mobileOTPNumber){
+      var match=Object.entries(SS_CREDENTIALS).find(function(e){return e[1].mobile&&e[1].mobile.replace(/[^0-9]/g,'')===mobileOTPNumber;});
+      if(match){user={erp:match[0],name:match[1].name,station:match[1].station,state:match[1].state};}
+      else{user=pendingUser||{erp:'MOBILE',name:'SS User',station:'Station',state:'Unknown'};}
+      mobileOTPCode=null;mobileOTPNumber=null;
+    } else {
+      user=pendingUser;
+    }
+    localStorage.setItem('sw_user',JSON.stringify(user));
+    currentOTP=null;pendingUser=null;
+    registerDevice(user);
+    toast('✓ Verified! Welcome '+user.name);
+    initHome();goScreen('s_home');
+  } else {
+    // Wrong OTP — shake effect
+    toast('Wrong OTP — please try again');
+    ['otp1','otp2','otp3','otp4','otp5','otp6'].forEach(id=>{
+      const el=document.getElementById(id);
+      el.style.borderColor='var(--red)';
+      setTimeout(()=>el.style.borderColor='var(--border)',1500);
+    });
+  }
+}
+
+function resendOTP(){
+  if(!pendingUser){goScreen('s_login');return;}
+  currentOTP=generateOTP();
+  otpExpiry=Date.now()+(10*60*1000);
+  const msg='Your StationWise OTP is: *'+currentOTP+'*\n\nValid for 10 minutes.\nDo not share with anyone.\n\n_GoGas StationWise_';
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+  toast('New OTP sent to WhatsApp ✓');
+}
+
+// ════════ SS CREDENTIALS (loaded from admin config or defaults) ════════
+// Format: {ERP: {name, station, state, password}}
+// Admin can update this via the config code from admin panel
+// SS_CREDENTIALS defined above
+
+// ════════ LOGIN ════════
+function togglePwd(){
+  const inp=document.getElementById('li_pwd');
+  const eye=document.getElementById('pwd_eye');
+  if(inp.type==='password'){inp.type='text';eye.textContent='🙈';}
+  else{inp.type='password';eye.textContent='👁';}
+}
+
+function doLogin(){
+  var erp=document.getElementById('li_erp').value.trim().toUpperCase();
+  var pwd=document.getElementById('li_pwd').value.trim();
+  var errEl=document.getElementById('login_err');
+  if(errEl)errEl.style.display='none';
+  if(!erp||!pwd){if(errEl){errEl.style.display='block';errEl.textContent='Enter ERP and password';}return;}
+  var cred=SS_CREDENTIALS[erp];
+  if(!cred){if(errEl){errEl.style.display='block';errEl.textContent='ERP not found. Contact admin.';}return;}
+  if(cred.password!==pwd){if(errEl){errEl.style.display='block';errEl.textContent='Wrong password.';}document.getElementById('li_pwd').value='';return;}
+  user={erp:erp,name:cred.name,station:cred.station,state:cred.state};
   localStorage.setItem('sw_user',JSON.stringify(user));
+  try{registerDevice(user);}catch(e){}
   initHome();goScreen('s_home');
 }
+
+function doLoginDirect(){ doLogin(); }
+
 function logout(){
-  if(!confirm('Change account? Your reports stay on this phone.'))return;
-  user=null;goScreen('s_login');
+  if(!confirm('Logout? Your saved reports stay on this phone.'))return;
+  user=null;
+  localStorage.removeItem('sw_user');
+  document.getElementById('li_erp').value='';
+  document.getElementById('li_pwd').value='';
+  goScreen('s_login');
 }
 
 // ════════ HOME ════════
@@ -667,6 +970,8 @@ function resetForm(){
   na.forEach(id=>{const e=document.getElementById(id);if(e)e.value='NA';});
   const z=['f_rtn','f_free','f_prev','f_card','f_paytm','f_famt','f_csale','f_bank','f_dgo','f_dgc','f_dgh'];
   z.forEach(id=>{const e=document.getElementById(id);if(e)e.value='0.00';});
+  // Reset photo
+  removePhoto&&removePhoto();photoDataUrl=null;photoFile=null;
   ['sh1_chk','sh2_chk','sh3_chk'].forEach(id=>{const e=document.getElementById(id);if(e)e.checked=false;});
   ['sh1_row','sh2_row','sh3_row'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none';});
   ['sl1','sl2','sl3'].forEach((id,i)=>styleShiftLabel(id,'sl'+(i+1)+'_dot',false));
@@ -782,11 +1087,15 @@ function doPreview(){
   goScreen('s_preview');
 }
 
-function doWA(){
+async function doWA(){
   const d=buildData('sent');
   d.id=editId||d.id;
+  // Upload photo if available
+  if(photoFile){
+    const photoUrl=await uploadPhotoToDrive(d.id);
+    if(photoUrl)d.photoUrl=photoUrl;
+  }
   saveRep(d);
-  // Add to sync queue
   addToSyncQueue(d);
   const txt=buildText();
   window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank');
@@ -845,16 +1154,16 @@ async function testConnection(){
   const url=document.getElementById('sheet_url').value.trim();
   if(!url){toast('Enter the URL first');return;}
   const el=document.getElementById('conn_status');
-  el.style.display='block';el.style.color='var(--amber)';el.textContent='Testing connection…';
+  el.style.display='block';el.style.color='var(--amber)';el.textContent='Verifying…';
+  if(!url.includes('script.google.com')||!url.includes('/exec')){
+    el.style.color='var(--red)';el.textContent='✗ Invalid URL. Must be a Google Apps Script /exec URL.';return;
+  }
   try{
-    const res=await fetch(url+'?test=1');
-    if(res.ok){
-      el.style.color='var(--green)';el.textContent='✓ Connection successful! Your sheet is ready.';
-    }else{
-      el.style.color='var(--red)';el.textContent='✗ Connection failed. Check the URL and try again.';
-    }
+    await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({type:'ping'})});
+    el.style.color='var(--green)';el.textContent='✓ Connected! Sheet is ready to receive reports.';
   }catch(e){
-    el.style.color='var(--red)';el.textContent='✗ Could not reach the URL. Check internet and URL.';
+    if(!navigator.onLine){el.style.color='var(--amber)';el.textContent='⚠️ No internet. URL looks correct.';}
+    else{el.style.color='var(--red)';el.textContent='✗ Could not reach URL. Check and try again.';}
   }
 }
 
@@ -1010,7 +1319,7 @@ function showReports(){
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" fill="white"/></svg>
           Share WA
         </button>
-        ${!r.synced?`<button class="rcb sync" onclick="forceSyncOne('${r.id}')">↑ Sync</button>`:''}
+        ${''+(!r.synced?'<button class="rcb sync" onclick="forceSyncOne(\''+r.id+'\')">↑ Sync</button>':'')}
         <button class="rcb view" onclick="viewRep('${r.id}')">View</button>
         <button class="rcb view" onclick="editRep('${r.id}')">Edit</button>
         <button class="rcb del" onclick="delRep('${r.id}')">Del</button>
@@ -1081,6 +1390,7 @@ function initSettings(){
 
 // ════════ NAVIGATION ════════
 function goScreen(id){
+  history.pushState(null,'',location.href);
   document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
   document.getElementById(id).classList.remove('hidden');
   if(id==='s_reports')showReports();
@@ -1119,17 +1429,111 @@ window.addEventListener('load',()=>{
   if(!localStorage.getItem('sw_sheet_url')){
     localStorage.setItem('sw_sheet_url','https://script.google.com/macros/s/AKfycbxb9KV-1QxMWmEw5Wpe-huMA3Fr4f89k8HTxhtwr4G-cYwOEldMsD_ZnVQcyspiRq0/exec');
   }
-  if(user){
-    document.getElementById('li_erp').value=user.erp||'';
-    document.getElementById('li_name').value=user.name||'';
-    document.getElementById('li_station').value=user.station||'';
-    document.getElementById('li_state').value=user.state||'';
-    loadRemSettings();
-    initHome();
-    goScreen('s_home');
-  }
+  // Always show login for fresh test
+  localStorage.removeItem('sw_user');
+  user = null;
+  goScreen('s_login');
 });
+// ════ PHOTO FUNCTIONS ════
+let photoDataUrl = null;
+let photoFile = null;
+
+function takePhoto(){
+  document.getElementById('photo_input').click();
+}
+function openCamera(){
+  // On mobile: opens camera directly. On laptop: opens file picker
+  const isMobile=/Android|iPhone|iPad/i.test(navigator.userAgent);
+  if(isMobile){
+    document.getElementById('camera_input').click();
+  } else {
+    // On laptop — open file picker with image filter
+    document.getElementById('photo_input').click();
+  }
+}
+function openGallery(){
+  document.getElementById('photo_input').click();
+}
+function retakePhoto(){
+  const isMobile=/Android|iPhone|iPad/i.test(navigator.userAgent);
+  if(isMobile) document.getElementById('camera_input').click();
+  else document.getElementById('photo_input').click();
+}
+function removePhoto(){
+  photoDataUrl=null;photoFile=null;
+  document.getElementById('photo_preview_wrap').style.display='none';
+  document.getElementById('photo_btn_wrap').style.display='block';
+  document.getElementById('photo_input').value='';
+}
+function onPhotoSelected(input){
+  const file=input.files[0];
+  if(!file)return;
+  photoFile=file;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    photoDataUrl=e.target.result;
+    document.getElementById('photo_preview').src=photoDataUrl;
+    document.getElementById('photo_preview_wrap').style.display='block';
+    document.getElementById('photo_btn_wrap').style.display='none';
+    document.getElementById('upload_status').textContent='Photo ready ✓';
+    document.getElementById('upload_status').style.color='var(--green)';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function uploadPhotoToDrive(reportId){
+  if(!photoFile)return null;
+  const url=localStorage.getItem('sw_sheet_url');
+  if(!url)return null;
+  try{
+    document.getElementById('upload_status').textContent='Uploading…';
+    // Convert to base64
+    const base64=await new Promise(r=>{
+      const reader=new FileReader();
+      reader.onload=e=>r(e.target.result.split(',')[1]);
+      reader.readAsDataURL(photoFile);
+    });
+    const res=await fetch(url,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({
+        type:'photo',
+        reportId,
+        fileName:'DU_'+reportId+'_'+Date.now()+'.jpg',
+        mimeType:photoFile.type||'image/jpeg',
+        base64Data:base64,
+        stationName:user.station,
+        erp:user.erp,
+        ssName:user.name
+      })
+    });
+    const data=await res.json();
+    if(data.photoUrl){
+      document.getElementById('upload_status').textContent='☁ Uploaded ✓';
+      return data.photoUrl;
+    }
+  }catch(e){
+    document.getElementById('upload_status').textContent='Will upload when online';
+    document.getElementById('upload_status').style.color='var(--amber)';
+  }
+  return null;
+}
+
 document.addEventListener('touchmove',e=>{if(!e.target.closest('.scroll-body'))e.preventDefault();},{passive:false});
+
+// Android back button handler
+window.addEventListener('popstate',()=>{
+  const screens=['s_preview','s_form','s_reports','s_settings','s_home'];
+  const active=screens.find(id=>!document.getElementById(id).classList.contains('hidden'));
+  if(active==='s_preview'){goScreen('s_form');history.pushState(null,'',location.href);}
+  else if(active==='s_form'){goHome();history.pushState(null,'',location.href);}
+  else if(active==='s_reports'){goHome();history.pushState(null,'',location.href);}
+  else if(active==='s_settings'){goHome();history.pushState(null,'',location.href);}
+  else if(active==='s_home'){history.pushState(null,'',location.href);} // stay on home
+});
+
+// Push initial state so back button works
+history.pushState(null,'',location.href);
 </script>
 <script>
 if('serviceWorker' in navigator){
