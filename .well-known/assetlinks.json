@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.github.sunnyguptagogas_bot.twa",
+        "sha256_cert_fingerprints": ["A4:44:FD:88:8A:AD:71:27:C5:4B:A6:44:46:DB:99:24:CB:1D:EC:A1:52:1B:D8:CE:78:DE:F2:4A:17:6B:C0:55"]
+      }
+    }]
