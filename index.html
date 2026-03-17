@@ -891,8 +891,6 @@ function doLogin(){
   initHome();goScreen('s_home');
 }
 
-function doLoginDirect(){ doLogin(); }
-
 function logout(){
   if(!confirm('Logout? Your saved reports stay on this phone.'))return;
   user=null;
@@ -1446,7 +1444,7 @@ let photoDataUrl = null;
 let photoFile = null;
 
 function takePhoto(){
-  document.getElementById('photo_input').click();
+  document.getElementById('camera_input').click();
 }
 function openCamera(){
   // Always open camera directly — SS must take photo, not upload from gallery
@@ -1459,7 +1457,7 @@ function removePhoto(){
   photoDataUrl=null;photoFile=null;
   document.getElementById('photo_preview_wrap').style.display='none';
   document.getElementById('photo_btn_wrap').style.display='block';
-  document.getElementById('photo_input').value='';
+  const pi=document.getElementById('camera_input');if(pi)pi.value='';
 }
 function onPhotoSelected(input){
   const file=input.files[0];
