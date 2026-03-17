@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<meta name="theme-color" content="#0a1f12"/>
+<meta name="theme-color" content="#075E54"/>
 <link rel="manifest" href="manifest.json"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -16,187 +16,179 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-:root{
-  --bg:#0a1f12;--card:#0f2a18;--card2:#132f1c;--card3:#183824;
-  --green:#00e676;--green2:#00c853;--green3:#1b5e20;
-  --amber:#ffb300;--red:#ff5252;--blue:#40c4ff;--purple:#ce93d8;
-  --border:rgba(0,230,118,0.12);--border2:rgba(0,230,118,0.22);
-  --t1:#e8f5e9;--t2:#a5d6a7;--t3:#558b2f;
-  --font:'Nunito',sans-serif;--mono:'JetBrains Mono',monospace;
-  --safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px);
-}
-html,body{height:100%;background:var(--bg);}
-body{font-family:var(--font);color:var(--t1);height:100%;overflow:hidden;position:fixed;width:100%;}
-.screen{position:fixed;inset:0;display:flex;flex-direction:column;background:#f0f4f1;overflow:hidden;transition:transform 0.3s cubic-bezier(.4,0,.2,1),opacity 0.3s;}
+:root{}
+html,body{height:100%;background:#F0F2F5;}
+body{font-family:'Segoe UI',Arial,sans-serif;color:#111B21;height:100%;overflow:hidden;position:fixed;width:100%;}
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;background:#F0F2F5;overflow:hidden;transition:transform 0.3s cubic-bezier(.4,0,.2,1),opacity 0.3s;}
 .screen.hidden{transform:translateX(100%);opacity:0;pointer-events:none;}
-.status-bar{height:calc(var(--safe-top)+6px);background:var(--card);flex-shrink:0;}
-.topbar{height:56px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0;}
-.tb-back{width:36px;height:36px;border-radius:50%;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:var(--t2);}
-.tb-title{font-size:17px;font-weight:800;color:var(--t1);flex:1;}
-.tb-sub{font-size:11px;color:var(--t3);font-weight:600;}
+.status-bar{height:calc(var(--safe-top)+6px);background:#FFFFFF;flex-shrink:0;}
+.topbar{height:56px;background:#FFFFFF;border-bottom:1px solid #E9EDEF;display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0;}
+.tb-back{width:36px;height:36px;border-radius:50%;background:#F7F8FA;border:1px solid #E9EDEF;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:#54656F;}
+.tb-title{font-size:17px;font-weight:800;color:#111B21;flex:1;}
+.tb-sub{font-size:11px;color:#8696A0;font-weight:600;}
 .scroll-body{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:calc(88px + var(--safe-bot));}
-.bottom-bar{position:fixed;bottom:0;left:0;right:0;padding:10px 16px calc(10px + var(--safe-bot));background:linear-gradient(to top,var(--card) 80%,transparent);display:flex;gap:10px;z-index:50;}
-.btn-main{flex:1;padding:16px;background:linear-gradient(135deg,var(--green2),var(--green));border:none;border-radius:16px;font-family:var(--font);font-size:16px;font-weight:800;color:#000;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 20px rgba(0,230,118,0.3);transition:transform 0.15s;}
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;padding:10px 16px calc(10px + var(--safe-bot));background:linear-gradient(to top,#FFFFFF 80%,transparent);display:flex;gap:10px;z-index:50;}
+.btn-main{flex:1;padding:16px;background:linear-gradient(135deg,#25D366,#25D366);border:none;border-radius:16px;font-family:'Segoe UI',Arial,sans-serif;font-size:16px;font-weight:800;color:#000;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 20px rgba(0,230,118,0.3);transition:transform 0.15s;}
 .btn-main:active{transform:scale(0.97);}
-.btn-sec{padding:16px 20px;background:var(--card2);border:1px solid var(--border2);border-radius:16px;font-family:var(--font);font-size:15px;font-weight:700;color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:transform 0.15s;}
+.btn-sec{padding:16px 20px;background:#F7F8FA;border:1px solid #D1D7DB;border-radius:16px;font-family:'Segoe UI',Arial,sans-serif;font-size:15px;font-weight:700;color:#54656F;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:transform 0.15s;}
 .btn-sec:active{transform:scale(0.97);}
-.btn-wa{flex:1;padding:16px;background:linear-gradient(135deg,#1a7f3c,#25d366);border:none;border-radius:16px;font-family:var(--font);font-size:16px;font-weight:800;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 20px rgba(37,211,102,0.35);transition:transform 0.15s;}
+.btn-wa{flex:1;padding:16px;background:linear-gradient(135deg,#128C7E,#25d366);border:none;border-radius:16px;font-family:'Segoe UI',Arial,sans-serif;font-size:16px;font-weight:800;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 20px rgba(37,211,102,0.35);transition:transform 0.15s;}
 .btn-wa:active{transform:scale(0.97);}
 
 /* LOGIN */
 #s_login .scroll-body{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;min-height:100%;}
-.login-logomark{width:76px;height:76px;border-radius:22px;background:linear-gradient(135deg,var(--green3),var(--green));display:flex;align-items:center;justify-content:center;margin:0 auto 14px;box-shadow:0 8px 28px rgba(0,230,118,0.3);}
-.login-appname{font-size:28px;font-weight:900;letter-spacing:-0.6px;text-align:center;margin-bottom:4px;}
-.login-appname span{color:var(--green);}
-.login-tag{font-size:12px;color:var(--t3);text-align:center;margin-bottom:32px;}
-.login-card{width:100%;max-width:380px;background:var(--card);border:1px solid var(--border2);border-radius:22px;padding:26px 22px;}
+.login-logomark{width:76px;height:76px;border-radius:22px;background:linear-gradient(135deg,#075E54,#128C7E);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;box-shadow:0 8px 28px rgba(7,94,84,0.4);}
+.login-appname{font-size:28px;font-weight:900;letter-spacing:-0.6px;text-align:center;margin-bottom:4px;color:#111B21;}
+.login-appname span{color:#25D366;}
+.login-tag{font-size:12px;color:#8696A0;text-align:center;margin-bottom:32px;}
+.login-card{width:100%;max-width:380px;background:#FFFFFF;border:1px solid #D1D7DB;border-radius:22px;padding:26px 22px;}
 .lc-h{font-size:19px;font-weight:800;margin-bottom:3px;}
-.lc-s{font-size:13px;color:var(--t3);margin-bottom:20px;}
+.lc-s{font-size:13px;color:#54656F;margin-bottom:20px;}
 .lf{margin-bottom:14px;}
-.lf label{display:block;font-size:11px;font-weight:700;color:var(--t3);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;}
-.lf input,.lf select{width:100%;padding:13px 15px;background:var(--card2);border:1.5px solid var(--border);border-radius:11px;font-family:var(--font);font-size:15px;color:var(--t1);outline:none;-webkit-appearance:none;transition:border-color 0.2s;}
-.lf input:focus,.lf select:focus{border-color:var(--green);}
-.lf input::placeholder{color:var(--t3);}
-.lf select option{background:var(--card2);color:var(--t1);}
-.login-btn{width:100%;padding:15px;margin-top:6px;background:linear-gradient(135deg,var(--green2),var(--green));border:none;border-radius:13px;font-family:var(--font);font-size:16px;font-weight:800;color:#000;cursor:pointer;box-shadow:0 4px 18px rgba(0,230,118,0.28);}
-.login-note{text-align:center;font-size:11px;color:var(--t3);margin-top:12px;}
+.lf label{display:block;font-size:11px;font-weight:700;color:#8696A0;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;}
+.lf input,.lf select{width:100%;padding:13px 15px;background:#F0F2F5;border:1.5px solid #E9EDEF;border-radius:11px;font-family:'Segoe UI',Arial,sans-serif;font-size:15px;color:#111B21;outline:none;-webkit-appearance:none;transition:border-color 0.2s;}
+.lf input:focus,.lf select:focus{border-color:#25D366;}
+.lf input::placeholder{color:#8696A0;}
+.lf select option{background:#F7F8FA;color:#111B21;}
+.login-btn{width:100%;padding:15px;margin-top:6px;background:linear-gradient(135deg,#25D366,#25D366);border:none;border-radius:13px;font-family:'Segoe UI',Arial,sans-serif;font-size:16px;font-weight:800;color:#000;cursor:pointer;box-shadow:0 4px 18px rgba(0,230,118,0.28);}
+.login-note{text-align:center;font-size:11px;color:#8696A0;margin-top:12px;}
 
 /* HOME */
-.user-hero{background:linear-gradient(135deg,var(--card),var(--card2));padding:18px 16px 22px;border-bottom:1px solid var(--border);}
-.uh-greet{font-size:12px;color:var(--t3);font-weight:600;margin-bottom:2px;}
+.user-hero{background:linear-gradient(135deg,#FFFFFF,#F7F8FA);padding:18px 16px 22px;border-bottom:1px solid #E9EDEF;}
+.uh-greet{font-size:12px;color:#8696A0;font-weight:600;margin-bottom:2px;}
 .uh-name{font-size:21px;font-weight:900;letter-spacing:-0.3px;}
-.uh-badge{display:inline-flex;align-items:center;gap:5px;margin-top:7px;background:rgba(0,230,118,0.08);border:1px solid var(--border2);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;color:var(--green);}
-.uh-date{font-size:12px;color:var(--t3);margin-top:7px;font-weight:600;}
-.today-strip{margin:14px 14px 0;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;}
-.ts-title{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;}
+.uh-badge{display:inline-flex;align-items:center;gap:5px;margin-top:7px;background:rgba(0,230,118,0.08);border:1px solid #D1D7DB;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;color:#25D366;}
+.uh-date{font-size:12px;color:#8696A0;margin-top:7px;font-weight:600;}
+.today-strip{margin:14px 14px 0;background:#FFFFFF;border:1px solid #E9EDEF;border-radius:14px;padding:14px;}
+.ts-title{font-size:10px;font-weight:700;color:#8696A0;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;}
 .ts-stats{display:grid;grid-template-columns:repeat(3,1fr);}
 .ts-stat{text-align:center;padding:2px 0;}
-.ts-stat:not(:last-child){border-right:1px solid var(--border);}
-.ts-val{font-size:24px;font-weight:900;font-family:var(--mono);color:var(--green);}
-.ts-lbl{font-size:10px;color:var(--t3);font-weight:600;text-transform:uppercase;}
+.ts-stat:not(:last-child){border-right:1px solid #E9EDEF;}
+.ts-val{font-size:24px;font-weight:900;font-family:'Courier New',monospace;color:#25D366;}
+.ts-lbl{font-size:10px;color:#8696A0;font-weight:600;text-transform:uppercase;}
 .home-actions{padding:14px 14px 0;}
-.action-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:10px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:transform 0.15s;position:relative;overflow:hidden;}
+.action-card{background:#FFFFFF;border:1px solid #E9EDEF;border-radius:18px;padding:18px;margin-bottom:10px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:transform 0.15s;position:relative;overflow:hidden;}
 .action-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
-.action-card.new::before{background:linear-gradient(90deg,var(--green2),var(--green));}
-.action-card.hist::before{background:linear-gradient(90deg,#0288d1,var(--blue));}
-.action-card.remind::before{background:linear-gradient(90deg,#7b1fa2,var(--purple));}
+.action-card.new::before{background:linear-gradient(90deg,#25D366,#25D366);}
+.action-card.hist::before{background:linear-gradient(90deg,#0288d1,#0088CC);}
+.action-card.remind::before{background:linear-gradient(90deg,#7b1fa2,#25D366);}
 .action-card:active{transform:scale(0.98);}
 .ac-icon{width:50px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .ac-icon.new{background:rgba(0,230,118,0.1);}
 .ac-icon.hist{background:rgba(64,196,255,0.1);}
 .ac-icon.remind{background:rgba(206,147,216,0.1);}
 .ac-title{font-size:16px;font-weight:800;}
-.ac-sub{font-size:12px;color:var(--t3);margin-top:2px;line-height:1.4;}
-.ac-arrow{margin-left:auto;font-size:22px;color:var(--t3);}
+.ac-sub{font-size:12px;color:#8696A0;margin-top:2px;line-height:1.4;}
+.ac-arrow{margin-left:auto;font-size:22px;color:#8696A0;}
 
 /* SYNC STATUS BANNER */
 .sync-banner{margin:10px 14px 0;border-radius:11px;padding:10px 14px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;}
-.sync-ok{background:rgba(0,230,118,0.07);border:1px solid rgba(0,230,118,0.18);color:var(--green);}
-.sync-pend{background:rgba(255,179,0,0.07);border:1px solid rgba(255,179,0,0.18);color:var(--amber);}
-.sync-off{background:rgba(255,82,82,0.07);border:1px solid rgba(255,82,82,0.18);color:var(--red);}
+.sync-ok{background:rgba(0,230,118,0.07);border:1px solid rgba(0,230,118,0.18);color:#25D366;}
+.sync-pend{background:rgba(255,179,0,0.07);border:1px solid rgba(255,179,0,0.18);color:#FF8C00;}
+.sync-off{background:rgba(255,82,82,0.07);border:1px solid rgba(255,82,82,0.18);color:#FF3B30;}
 
 /* FORM */
-.fill-bar-wrap{margin:12px 14px 0;background:var(--card);border:1px solid var(--border);border-radius:11px;padding:11px 14px;display:flex;align-items:center;gap:12px;}
-.fb-bg{flex:1;height:5px;background:var(--card3);border-radius:3px;overflow:hidden;}
-.fb-fill{height:5px;background:linear-gradient(90deg,var(--green2),var(--green));border-radius:3px;transition:width 0.4s;}
-.fb-txt{font-size:11px;font-weight:700;color:var(--t2);white-space:nowrap;}
-.sec-div{margin:14px 14px 0;font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:0.8px;display:flex;align-items:center;gap:8px;}
-.sec-div::after{content:'';flex:1;height:1px;background:var(--border);}
-.fsec{margin:10px 14px 0;background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
-.fsec-head{padding:11px 14px;background:var(--card2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
-.fsec-title{font-size:12px;font-weight:800;color:var(--t1);letter-spacing:0.3px;}
-.fsec-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;background:rgba(0,230,118,0.1);color:var(--green);margin-left:auto;}
-.frow{display:grid;border-bottom:1px solid var(--border);}
+.fill-bar-wrap{margin:12px 14px 0;background:#FFFFFF;border:1px solid #E9EDEF;border-radius:11px;padding:11px 14px;display:flex;align-items:center;gap:12px;}
+.fb-bg{flex:1;height:5px;background:#EBEBEB;border-radius:3px;overflow:hidden;}
+.fb-fill{height:5px;background:linear-gradient(90deg,#25D366,#25D366);border-radius:3px;transition:width 0.4s;}
+.fb-txt{font-size:11px;font-weight:700;color:#54656F;white-space:nowrap;}
+.sec-div{margin:14px 14px 0;font-size:10px;font-weight:700;color:#8696A0;text-transform:uppercase;letter-spacing:0.8px;display:flex;align-items:center;gap:8px;}
+.sec-div::after{content:'';flex:1;height:1px;background:#E9EDEF;}
+.fsec{margin:10px 14px 0;background:#FFFFFF;border:1px solid #E9EDEF;border-radius:14px;overflow:hidden;}
+.fsec-head{padding:11px 14px;background:#F7F8FA;border-bottom:1px solid #E9EDEF;display:flex;align-items:center;gap:8px;}
+.fsec-title{font-size:12px;font-weight:800;color:#111B21;letter-spacing:0.3px;}
+.fsec-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;background:rgba(0,230,118,0.1);color:#25D366;margin-left:auto;}
+.frow{display:grid;border-bottom:1px solid #E9EDEF;}
 .frow:last-child{border-bottom:none;}
 .frow.two{grid-template-columns:1fr 1fr;}
-.ffield{padding:11px 13px;border-right:1px solid var(--border);position:relative;}
+.ffield{padding:11px 13px;border-right:1px solid #E9EDEF;position:relative;}
 .ffield:last-child{border-right:none;}
 .ffield:focus-within{background:rgba(0,230,118,0.03);}
-.ffield:focus-within .fflbl{color:var(--green);}
-.fflbl{font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;display:flex;align-items:center;gap:3px;}
-.fflbl .req{color:var(--red);font-size:11px;}
-.fflocked{font-size:14px;font-weight:700;color:var(--t2);}
-.ffin{width:100%;border:none;background:transparent;font-family:var(--mono);font-size:14px;font-weight:500;color:var(--t1);outline:none;padding:0;-webkit-appearance:none;}
-.ffin::placeholder{color:var(--t3);font-size:12px;font-family:var(--font);}
-.ffin:focus{color:var(--green);}
-.ffsel{width:100%;border:none;background:transparent;font-family:var(--font);font-size:14px;font-weight:600;color:var(--t1);outline:none;padding:0;-webkit-appearance:none;appearance:none;}
-.ffsel option{background:var(--card2);}
+.ffield:focus-within .fflbl{color:#25D366;}
+.fflbl{font-size:9px;font-weight:700;color:#8696A0;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;display:flex;align-items:center;gap:3px;}
+.fflbl .req{color:#FF3B30;font-size:11px;}
+.fflocked{font-size:14px;font-weight:700;color:#54656F;}
+.ffin{width:100%;border:none;background:transparent;font-family:'Courier New',monospace;font-size:14px;font-weight:500;color:#111B21;outline:none;padding:0;-webkit-appearance:none;}
+.ffin::placeholder{color:#8696A0;font-size:12px;font-family:'Segoe UI',Arial,sans-serif;}
+.ffin:focus{color:#25D366;}
+.ffsel{width:100%;border:none;background:transparent;font-family:'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:600;color:#111B21;outline:none;padding:0;-webkit-appearance:none;appearance:none;}
+.ffsel option{background:#F7F8FA;}
 .comment-wrap{margin:10px 14px 0;}
-.cmt-lbl{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
-.cmt-box{width:100%;min-height:80px;background:var(--card);border:1.5px solid var(--border);border-radius:13px;padding:13px;font-family:var(--font);font-size:15px;color:var(--t1);outline:none;resize:none;-webkit-appearance:none;transition:border-color 0.2s;}
-.cmt-box:focus{border-color:var(--green);}
-.cmt-box::placeholder{color:var(--t3);}
+.cmt-lbl{font-size:10px;font-weight:700;color:#8696A0;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
+.cmt-box{width:100%;min-height:80px;background:#FFFFFF;border:1.5px solid #E9EDEF;border-radius:13px;padding:13px;font-family:'Segoe UI',Arial,sans-serif;font-size:15px;color:#111B21;outline:none;resize:none;-webkit-appearance:none;transition:border-color 0.2s;}
+.cmt-box:focus{border-color:#25D366;}
+.cmt-box::placeholder{color:#8696A0;}
 .val-strip{margin:12px 14px 0;padding:11px 14px;border-radius:11px;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;}
-.val-ok{background:rgba(0,230,118,0.07);border:1px solid rgba(0,230,118,0.18);color:var(--green);}
-.val-err{background:rgba(255,82,82,0.07);border:1px solid rgba(255,82,82,0.18);color:var(--red);}
-.val-pend{background:var(--card);border:1px solid var(--border);color:var(--t3);}
+.val-ok{background:rgba(0,230,118,0.07);border:1px solid rgba(0,230,118,0.18);color:#25D366;}
+.val-err{background:rgba(255,82,82,0.07);border:1px solid rgba(255,82,82,0.18);color:#FF3B30;}
+.val-pend{background:#FFFFFF;border:1px solid #E9EDEF;color:#8696A0;}
 
 /* PREVIEW */
 .preview-wrap{padding:14px;}
-.prev-note{padding:11px 14px;background:rgba(255,179,0,0.07);border:1px solid rgba(255,179,0,0.18);border-radius:10px;font-size:12px;color:var(--amber);font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
-.prev-box{background:var(--card);border:1.5px solid var(--border2);border-radius:14px;padding:16px;font-family:var(--mono);font-size:12.5px;color:var(--t2);line-height:1.9;white-space:pre-wrap;word-break:break-word;}
+.prev-note{padding:11px 14px;background:rgba(255,179,0,0.07);border:1px solid rgba(255,179,0,0.18);border-radius:10px;font-size:12px;color:#FF8C00;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.prev-box{background:#FFFFFF;border:1.5px solid #D1D7DB;border-radius:14px;padding:16px;font-family:'Courier New',monospace;font-size:12.5px;color:#54656F;line-height:1.9;white-space:pre-wrap;word-break:break-word;}
 
 /* REPORTS LIST */
 .rep-list{padding:14px;}
-.rep-card{background:var(--card);border:1px solid var(--border);border-radius:14px;margin-bottom:10px;overflow:hidden;}
+.rep-card{background:#FFFFFF;border:1px solid #E9EDEF;border-radius:14px;margin-bottom:10px;overflow:hidden;}
 .rc-head{padding:13px 14px;display:flex;align-items:center;gap:11px;cursor:pointer;}
 .rc-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
-.rc-dot.sent{background:var(--green);}
-.rc-dot.synced{background:var(--blue);}
-.rc-dot.draft{background:var(--amber);}
+.rc-dot.sent{background:#25D366;}
+.rc-dot.synced{background:#0088CC;}
+.rc-dot.draft{background:#FF8C00;}
 .rc-info{flex:1;min-width:0;}
 .rc-date{font-size:13px;font-weight:700;}
-.rc-meta{font-size:11px;color:var(--t3);margin-top:2px;}
+.rc-meta{font-size:11px;color:#8696A0;margin-top:2px;}
 .rc-chips{display:flex;flex-direction:column;align-items:flex-end;gap:3px;}
 .rc-chip{font-size:9px;font-weight:700;padding:3px 9px;border-radius:9px;text-transform:uppercase;letter-spacing:0.4px;white-space:nowrap;}
-.rc-chip.sent{background:rgba(0,230,118,0.1);color:var(--green);}
-.rc-chip.draft{background:rgba(255,179,0,0.1);color:var(--amber);}
-.rc-chip.synced{background:rgba(64,196,255,0.1);color:var(--blue);}
-.rc-chip.pending{background:rgba(255,179,0,0.1);color:var(--amber);}
+.rc-chip.sent{background:rgba(0,230,118,0.1);color:#25D366;}
+.rc-chip.draft{background:rgba(255,179,0,0.1);color:#FF8C00;}
+.rc-chip.synced{background:rgba(64,196,255,0.1);color:#0088CC;}
+.rc-chip.pending{background:rgba(255,179,0,0.1);color:#FF8C00;}
 .rc-acts{padding:0 14px 13px;display:none;gap:7px;flex-wrap:wrap;}
 .rc-acts.open{display:flex;}
-.rcb{padding:9px 14px;border-radius:9px;font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;border:none;}
+.rcb{padding:9px 14px;border-radius:9px;font-family:'Segoe UI',Arial,sans-serif;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;border:none;}
 .rcb.wa{background:#25d366;color:#fff;flex:1;}
-.rcb.view{background:var(--card2);border:1px solid var(--border);color:var(--t2);}
-.rcb.sync{background:rgba(64,196,255,0.1);border:1px solid rgba(64,196,255,0.2);color:var(--blue);}
-.rcb.del{background:rgba(255,82,82,0.08);border:1px solid rgba(255,82,82,0.18);color:var(--red);}
-.empty-st{text-align:center;padding:56px 24px;color:var(--t3);}
+.rcb.view{background:#F7F8FA;border:1px solid #E9EDEF;color:#54656F;}
+.rcb.sync{background:rgba(64,196,255,0.1);border:1px solid rgba(64,196,255,0.2);color:#0088CC;}
+.rcb.del{background:rgba(255,82,82,0.08);border:1px solid rgba(255,82,82,0.18);color:#FF3B30;}
+.empty-st{text-align:center;padding:56px 24px;color:#8696A0;}
 .empty-ic{font-size:44px;margin-bottom:10px;}
-.empty-t{font-size:15px;font-weight:700;color:var(--t2);margin-bottom:5px;}
+.empty-t{font-size:15px;font-weight:700;color:#54656F;margin-bottom:5px;}
 .empty-s{font-size:13px;line-height:1.5;}
 
 /* REMINDER SETTINGS SCREEN */
-.rem-section{margin:14px 14px 0;background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
-.rem-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);}
+.rem-section{margin:14px 14px 0;background:#FFFFFF;border:1px solid #E9EDEF;border-radius:14px;overflow:hidden;}
+.rem-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #E9EDEF;}
 .rem-row:last-child{border-bottom:none;}
 .rem-label{font-size:14px;font-weight:700;}
-.rem-sub{font-size:11px;color:var(--t3);margin-top:2px;}
-.rem-time{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--green);background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:7px 12px;width:110px;text-align:center;outline:none;color:var(--t1);}
-.rem-time:focus{border-color:var(--green);}
+.rem-sub{font-size:11px;color:#8696A0;margin-top:2px;}
+.rem-time{font-family:'Courier New',monospace;font-size:15px;font-weight:700;color:#25D366;background:#F7F8FA;border:1px solid #E9EDEF;border-radius:8px;padding:7px 12px;width:110px;text-align:center;outline:none;color:#111B21;}
+.rem-time:focus{border-color:#25D366;}
 .toggle-wrap{display:flex;align-items:center;}
-.toggle{width:44px;height:24px;border-radius:12px;background:var(--card2);border:1px solid var(--border);cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0;}
-.toggle.on{background:var(--green);}
+.toggle{width:44px;height:24px;border-radius:12px;background:#F7F8FA;border:1px solid #E9EDEF;cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0;}
+.toggle.on{background:#25D366;}
 .toggle::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform 0.2s;}
 .toggle.on::after{transform:translateX(20px);}
-.notif-perm{margin:10px 14px 0;padding:12px 14px;background:rgba(255,179,0,0.07);border:1px solid rgba(255,179,0,0.18);border-radius:11px;font-size:12px;color:var(--amber);font-weight:600;display:flex;align-items:center;gap:8px;cursor:pointer;}
+.notif-perm{margin:10px 14px 0;padding:12px 14px;background:rgba(255,179,0,0.07);border:1px solid rgba(255,179,0,0.18);border-radius:11px;font-size:12px;color:#FF8C00;font-weight:600;display:flex;align-items:center;gap:8px;cursor:pointer;}
 
 /* GOOGLE SHEET SETUP */
-.setup-card{margin:14px 14px 0;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;}
+.setup-card{margin:14px 14px 0;background:#FFFFFF;border:1px solid #E9EDEF;border-radius:14px;padding:16px;}
 .setup-title{font-size:14px;font-weight:800;margin-bottom:8px;}
-.setup-sub{font-size:12px;color:var(--t3);line-height:1.6;margin-bottom:12px;}
-.url-input{width:100%;padding:11px 13px;background:var(--card2);border:1.5px solid var(--border);border-radius:10px;font-family:var(--mono);font-size:12px;color:var(--t1);outline:none;transition:border-color 0.2s;}
-.url-input:focus{border-color:var(--green);}
-.url-input::placeholder{color:var(--t3);font-family:var(--font);font-size:12px;}
+.setup-sub{font-size:12px;color:#8696A0;line-height:1.6;margin-bottom:12px;}
+.url-input{width:100%;padding:11px 13px;background:#F0F2F5;border:1.5px solid #E9EDEF;border-radius:10px;font-family:'Courier New',monospace;font-size:12px;color:#111B21;outline:none;transition:border-color 0.2s;}
+.url-input:focus{border-color:#25D366;}
+.url-input::placeholder{color:#8696A0;font-family:'Segoe UI',Arial,sans-serif;font-size:12px;}
 .setup-btns{display:flex;gap:8px;margin-top:10px;}
-.sbtn{flex:1;padding:11px;border-radius:10px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;border:none;display:flex;align-items:center;justify-content:center;gap:6px;}
-.sbtn.g{background:linear-gradient(135deg,var(--green2),var(--green));color:#000;}
-.sbtn.s{background:var(--card2);border:1px solid var(--border);color:var(--t2);}
+.sbtn{flex:1;padding:11px;border-radius:10px;font-family:'Segoe UI',Arial,sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:none;display:flex;align-items:center;justify-content:center;gap:6px;}
+.sbtn.g{background:linear-gradient(135deg,#25D366,#25D366);color:#000;}
+.sbtn.s{background:#F7F8FA;border:1px solid #E9EDEF;color:#54656F;}
 .status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-.dot-ok{background:var(--green);}
-.dot-warn{background:var(--amber);}
-.dot-off{background:var(--red);}
+.dot-ok{background:#25D366;}
+.dot-warn{background:#FF8C00;}
+.dot-off{background:#FF3B30;}
 
-.toast{position:fixed;bottom:calc(92px + var(--safe-bot));left:50%;transform:translateX(-50%);background:var(--card2);color:var(--t1);padding:11px 20px;border-radius:18px;font-size:13px;font-weight:600;z-index:9999;opacity:0;pointer-events:none;transition:opacity 0.25s;white-space:nowrap;border:1px solid var(--border2);box-shadow:0 8px 24px rgba(0,0,0,0.5);}
+.toast{position:fixed;bottom:calc(92px + var(--safe-bot));left:50%;transform:translateX(-50%);background:#F7F8FA;color:#111B21;padding:11px 20px;border-radius:18px;font-size:13px;font-weight:600;z-index:9999;opacity:0;pointer-events:none;transition:opacity 0.25s;white-space:nowrap;border:1px solid #D1D7DB;box-shadow:0 8px 24px rgba(0,0,0,0.5);}
 .toast.on{opacity:1;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 .fadein{animation:fadeUp 0.3s ease forwards;}
@@ -210,30 +202,32 @@ body{font-family:var(--font);color:var(--t1);height:100%;overflow:hidden;positio
   <div class="scroll-body">
     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;min-height:100%;">
       <div class="login-logomark">
-        <svg width="38" height="38" viewBox="0 0 24 24" fill="none">
-          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.21h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.81a16 16 0 0 0 6 6l.86-.86a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.02z" stroke="white" stroke-width="2"/>
-        </svg>
-      </div>
-      <div class="login-appname fadein">Station<span>Wise</span></div>
+        <svg width="42" height="42" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="3" width="10" height="18" rx="2" fill="white" opacity="0.9"/>
+          <path d="M13 7h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-1" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <rect x="5" y="6" width="6" height="4" rx="1" fill="#25D366"/>
+          <circle cx="17" cy="16" r="2" fill="white" opacity="0.7"/>
+          <path d="M3 19h10" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>in">Station<span>Wise</span></div>
       <div class="login-tag" style="margin-bottom:28px;">Verify your identity</div>
       <div class="login-card fadein" style="max-width:340px;">
         <div class="lc-h" id="otp_title">Enter OTP</div>
         <div class="lc-s" id="otp_sub">Enter the 6-digit OTP sent to your WhatsApp</div>
         <div style="display:flex;gap:8px;justify-content:center;margin:20px 0;">
-          <input id="otp1" type="number" inputmode="numeric" maxlength="1" style="width:44px;height:52px;text-align:center;background:var(--card2);border:1.5px solid var(--border);border-radius:10px;font-family:var(--mono);font-size:22px;font-weight:700;color:var(--t1);outline:none;" oninput="otpNext(this,'otp2')" onkeydown="otpBack(event,'','otp1')"/>
-          <input id="otp2" type="number" inputmode="numeric" maxlength="1" style="width:44px;height:52px;text-align:center;background:var(--card2);border:1.5px solid var(--border);border-radius:10px;font-family:var(--mono);font-size:22px;font-weight:700;color:var(--t1);outline:none;" oninput="otpNext(this,'otp3')" onkeydown="otpBack(event,'otp1','otp2')"/>
-          <input id="otp3" type="number" inputmode="numeric" maxlength="1" style="width:44px;height:52px;text-align:center;background:var(--card2);border:1.5px solid var(--border);border-radius:10px;font-family:var(--mono);font-size:22px;font-weight:700;color:var(--t1);outline:none;" oninput="otpNext(this,'otp4')" onkeydown="otpBack(event,'otp2','otp3')"/>
-          <input id="otp4" type="number" inputmode="numeric" maxlength="1" style="width:44px;height:52px;text-align:center;background:var(--card2);border:1.5px solid var(--border);border-radius:10px;font-family:var(--mono);font-size:22px;font-weight:700;color:var(--t1);outline:none;" oninput="otpNext(this,'otp5')" onkeydown="otpBack(event,'otp3','otp4')"/>
-          <input id="otp5" type="number" inputmode="numeric" maxlength="1" style="width:44px;height:52px;text-align:center;background:var(--card2);border:1.5px solid var(--border);border-radius:10px;font-family:var(--mono);font-size:22px;font-weight:700;color:var(--t1);outline:none;" oninput="otpNext(this,'otp6')" onkeydown="otpBack(event,'otp4','otp5')"/>
-          <input id="otp6" type="number" inputmode="numeric" maxlength="1" style="width:44px;height:52px;text-align:center;background:var(--card2);border:1.5px solid var(--border);border-radius:10px;font-family:var(--mono);font-size:22px;font-weight:700;color:var(--t1);outline:none;" oninput="otpNext(this,null)" onkeydown="otpBack(event,'otp5','otp6')"/>
+          <input id="otp1" type="number" inputmode="numeric" maxlength="1" style="width:44px;height:52px;text-align:center;background:#F0F2F5;border:1.5px solid #E9EDEF;border-radius:10px;font-family:'Courier New',monospace;font-size:22px;font-weight:700;color:#E7F8EE;outline:none;" oninput="otpNext(this,'otp2')" onkeydown="otpBack(event,'','otp1')"/>
+          <input id="otp2" type="number" inputmode="numeric" maxlength="1" style="width:44px;height:52px;text-align:center;background:#F0F2F5;border:1.5px solid #E9EDEF;border-radius:10px;font-family:'Courier New',monospace;font-size:22px;font-weight:700;color:#E7F8EE;outline:none;" oninput="otpNext(this,'otp3')" onkeydown="otpBack(event,'otp1','otp2')"/>
+          <input id="otp3" type="number" inputmode="numeric" maxlength="1" style="width:44px;height:52px;text-align:center;background:#F0F2F5;border:1.5px solid #E9EDEF;border-radius:10px;font-family:'Courier New',monospace;font-size:22px;font-weight:700;color:#E7F8EE;outline:none;" oninput="otpNext(this,'otp4')" onkeydown="otpBack(event,'otp2','otp3')"/>
+          <input id="otp4" type="number" inputmode="numeric" maxlength="1" style="width:44px;height:52px;text-align:center;background:#F0F2F5;border:1.5px solid #E9EDEF;border-radius:10px;font-family:'Courier New',monospace;font-size:22px;font-weight:700;color:#E7F8EE;outline:none;" oninput="otpNext(this,'otp5')" onkeydown="otpBack(event,'otp3','otp4')"/>
+          <input id="otp5" type="number" inputmode="numeric" maxlength="1" style="width:44px;height:52px;text-align:center;background:#F0F2F5;border:1.5px solid #E9EDEF;border-radius:10px;font-family:'Courier New',monospace;font-size:22px;font-weight:700;color:#E7F8EE;outline:none;" oninput="otpNext(this,'otp6')" onkeydown="otpBack(event,'otp4','otp5')"/>
+          <input id="otp6" type="number" inputmode="numeric" maxlength="1" style="width:44px;height:52px;text-align:center;background:#F0F2F5;border:1.5px solid #E9EDEF;border-radius:10px;font-family:'Courier New',monospace;font-size:22px;font-weight:700;color:#E7F8EE;outline:none;" oninput="otpNext(this,null)" onkeydown="otpBack(event,'otp5','otp6')"/>
         </div>
         <button class="login-btn" onclick="verifyOTP()">Verify & Login →</button>
         <div style="text-align:center;margin-top:14px;">
-          <span style="font-size:12px;color:var(--t3);" id="otp_resend_lbl">Didn't receive OTP?</span>
-          <span style="font-size:12px;color:var(--green);font-weight:700;cursor:pointer;margin-left:6px;" onclick="resendOTP()" id="otp_resend_btn">Resend via WhatsApp</span>
+          <span style="font-size:12px;color:#8696A0;" id="otp_resend_lbl">Didn't receive OTP?</span>
+          <span style="font-size:12px;color:#25D366;font-weight:700;cursor:pointer;margin-left:6px;" onclick="resendOTP()" id="otp_resend_btn">Resend via WhatsApp</span>
         </div>
         <div style="text-align:center;margin-top:8px;">
-          <span style="font-size:12px;color:var(--t3);cursor:pointer;" onclick="goScreen('s_login')">← Back to details</span>
+          <span style="font-size:12px;color:#8696A0;cursor:pointer;" onclick="goScreen('s_login')">← Back to details</span>
         </div>
       </div>
     </div>
@@ -248,13 +242,13 @@ function switchTab(tab){
   var oc=document.getElementById('tab_otp_content');
   if(!eb||!ob||!ec||!oc)return;
   if(tab==='erp'){
-    eb.style.background='var(--green)';eb.style.color='#000';
-    ob.style.background='transparent';ob.style.color='var(--t3)';
+    eb.style.background='#25D366';eb.style.color='#000';
+    ob.style.background='transparent';ob.style.color='#8696A0';
     ec.style.display='block';oc.style.display='none';
     setTimeout(function(){var e=document.getElementById('li_erp');if(e)e.focus();},100);
   } else {
-    ob.style.background='var(--green)';ob.style.color='#000';
-    eb.style.background='transparent';eb.style.color='var(--t3)';
+    ob.style.background='#25D366';ob.style.color='#000';
+    eb.style.background='transparent';eb.style.color='#8696A0';
     ec.style.display='none';oc.style.display='block';
     setTimeout(function(){var e=document.getElementById('li_mobile');if(e)e.focus();},100);
   }
@@ -278,29 +272,29 @@ function switchTab(tab){
       <div class="login-tag">SS Daily Report App</div>
       <div class="login-card fadein">
         <!-- TAB SWITCHER -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;background:var(--card3);border-radius:10px;padding:3px;margin-bottom:18px;">
-          <button id="tab_erp" onclick="switchTab('erp')" style="padding:9px;border:none;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:800;cursor:pointer;background:var(--green);color:#000;">ERP Login</button>
-          <button id="tab_otp" onclick="switchTab('otp')" style="padding:9px;border:none;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:800;cursor:pointer;background:transparent;color:var(--t3);">📱 Mobile OTP</button>
+        <div style="display:grid;grid-template-columns:1fr 1fr;background:#EBEBEB;border-radius:10px;padding:3px;margin-bottom:18px;">
+          <button id="tab_erp" onclick="switchTab('erp')" style="padding:9px;border:none;border-radius:8px;font-family:'Segoe UI',Arial,sans-serif;font-size:13px;font-weight:800;cursor:pointer;background:#25D366;color:#000;">ERP Login</button>
+          <button id="tab_otp" onclick="switchTab('otp')" style="padding:9px;border:none;border-radius:8px;font-family:'Segoe UI',Arial,sans-serif;font-size:13px;font-weight:800;cursor:pointer;background:transparent;color:#8696A0;">📱 Mobile OTP</button>
         </div>
         <!-- ERP TAB -->
         <div id="tab_erp_content">
           <div class="lf"><label>ERP Code *</label><input id="li_erp" placeholder="e.g. AY084" style="text-transform:uppercase" onkeydown="if(event.key==='Enter')document.getElementById('li_pwd').focus()"/></div>
           <div class="lf"><label>Password *</label>
             <div style="position:relative;">
-              <input id="li_pwd" type="password" placeholder="Enter password" style="width:100%;padding:13px 44px 13px 15px;background:var(--card2);border:1.5px solid var(--border);border-radius:11px;font-family:var(--font);font-size:15px;color:var(--t1);outline:none;" onkeydown="if(event.key==='Enter')doLogin()"/>
-              <span onclick="var i=document.getElementById('li_pwd');i.type=i.type==='password'?'text':'password'" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:20px;color:var(--green);">👁</span>
+              <input id="li_pwd" type="password" placeholder="Enter password" style="width:100%;padding:13px 44px 13px 15px;background:#F0F2F5;border:1.5px solid #E9EDEF;border-radius:11px;font-family:'Segoe UI',Arial,sans-serif;font-size:15px;color:#E7F8EE;outline:none;" onkeydown="if(event.key==='Enter')doLogin()"/>
+              <span onclick="var i=document.getElementById('li_pwd');i.type=i.type==='password'?'text':'password'" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:20px;color:#25D366;">👁</span>
             </div>
           </div>
-          <div id="login_err" style="display:none;background:rgba(255,82,82,0.08);border:1px solid rgba(255,82,82,0.2);border-radius:10px;padding:10px;font-size:12px;color:var(--red);font-weight:600;margin-bottom:8px;"></div>
+          <div id="login_err" style="display:none;background:rgba(255,82,82,0.08);border:1px solid rgba(255,82,82,0.2);border-radius:10px;padding:10px;font-size:12px;color:#FF3B30;font-weight:600;margin-bottom:8px;"></div>
           <button class="login-btn" onclick="doLogin()" style="margin-top:6px;">Login →</button>
         </div>
         <!-- MOBILE OTP TAB -->
         <div id="tab_otp_content" style="display:none;">
           <div class="lf"><label>Mobile Number (WhatsApp) *</label>
-            <input id="li_mobile" type="tel" inputmode="numeric" maxlength="10" placeholder="Enter 10-digit number" style="width:100%;padding:13px 15px;background:var(--card2);border:1.5px solid var(--border);border-radius:11px;font-family:var(--mono);font-size:16px;color:var(--t1);outline:none;letter-spacing:2px;" onkeydown="if(event.key==='Enter')sendMobileOTP()"/>
+            <input id="li_mobile" type="tel" inputmode="numeric" maxlength="10" placeholder="Enter 10-digit number" style="width:100%;padding:13px 15px;background:#F0F2F5;border:1.5px solid #E9EDEF;border-radius:11px;font-family:'Courier New',monospace;font-size:16px;color:#E7F8EE;outline:none;letter-spacing:2px;" onkeydown="if(event.key==='Enter')sendMobileOTP()"/>
           </div>
-          <div id="otp_err" style="display:none;background:rgba(255,82,82,0.08);border:1px solid rgba(255,82,82,0.2);border-radius:10px;padding:10px;font-size:12px;color:var(--red);font-weight:600;margin-bottom:8px;"></div>
-          <button onclick="sendMobileOTP()" style="width:100%;padding:14px;background:linear-gradient(135deg,#1a7f3c,#25d366);border:none;border-radius:13px;font-family:var(--font);font-size:15px;font-weight:800;color:#fff;cursor:pointer;">📲 Send OTP on WhatsApp</button>
+          <div id="otp_err" style="display:none;background:rgba(255,82,82,0.08);border:1px solid rgba(255,82,82,0.2);border-radius:10px;padding:10px;font-size:12px;color:#FF3B30;font-weight:600;margin-bottom:8px;"></div>
+          <button onclick="sendMobileOTP()" style="width:100%;padding:14px;background:linear-gradient(135deg,#128C7E,#25d366);border:none;border-radius:13px;font-family:'Segoe UI',Arial,sans-serif;font-size:15px;font-weight:800;color:#fff;cursor:pointer;">📲 Send OTP on WhatsApp</button>
         </div>
         <div class="login-note">Your details are saved on this phone only</div>
       </div>
@@ -319,35 +313,35 @@ function switchTab(tab){
     <div style="padding:24px;">
       <!-- Avatar -->
       <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:28px;">
-        <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--green2),var(--green));display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:800;color:#000;margin-bottom:14px;" id="prof_av">R</div>
-        <div style="font-size:22px;font-weight:800;color:var(--t1);" id="prof_name">Rajesh Kumar</div>
-        <div style="font-size:13px;color:var(--t3);margin-top:4px;" id="prof_station">Sangamner GoGas</div>
-        <div style="margin-top:8px;padding:5px 16px;background:var(--green-pale);border-radius:20px;font-size:12px;font-weight:700;color:var(--green);" id="prof_erp">AY001</div>
+        <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#25D366,#25D366);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:800;color:#000;margin-bottom:14px;" id="prof_av">R</div>
+        <div style="font-size:22px;font-weight:800;color:#E7F8EE;" id="prof_name">Rajesh Kumar</div>
+        <div style="font-size:13px;color:#8696A0;margin-top:4px;" id="prof_station">Sangamner GoGas</div>
+        <div style="margin-top:8px;padding:5px 16px;background:#E7F8EE;border-radius:20px;font-size:12px;font-weight:700;color:#25D366;" id="prof_erp">AY001</div>
       </div>
       <!-- Details -->
-      <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px;">
-        <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
-          <span style="font-size:12px;font-weight:700;color:var(--t3);text-transform:uppercase;">ERP Code</span>
-          <span style="font-size:14px;font-weight:800;font-family:var(--mono);color:var(--green);" id="prof_erp2">AY001</span>
+      <div style="background:#FFFFFF;border:1px solid #E9EDEF;border-radius:14px;overflow:hidden;margin-bottom:16px;">
+        <div style="padding:14px 16px;border-bottom:1px solid #E9EDEF;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:12px;font-weight:700;color:#8696A0;text-transform:uppercase;">ERP Code</span>
+          <span style="font-size:14px;font-weight:800;font-family:'Courier New',monospace;color:#25D366;" id="prof_erp2">AY001</span>
         </div>
-        <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
-          <span style="font-size:12px;font-weight:700;color:var(--t3);text-transform:uppercase;">Station</span>
+        <div style="padding:14px 16px;border-bottom:1px solid #E9EDEF;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:12px;font-weight:700;color:#8696A0;text-transform:uppercase;">Station</span>
           <span style="font-size:14px;font-weight:700;" id="prof_station2">Sangamner GoGas</span>
         </div>
-        <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
-          <span style="font-size:12px;font-weight:700;color:var(--t3);text-transform:uppercase;">State</span>
-          <span style="font-size:14px;font-weight:700;color:var(--blue);" id="prof_state">Maharashtra</span>
+        <div style="padding:14px 16px;border-bottom:1px solid #E9EDEF;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:12px;font-weight:700;color:#8696A0;text-transform:uppercase;">State</span>
+          <span style="font-size:14px;font-weight:700;color:#0088CC;" id="prof_state">Maharashtra</span>
         </div>
         <div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;">
-          <span style="font-size:12px;font-weight:700;color:var(--t3);text-transform:uppercase;">Name</span>
+          <span style="font-size:12px;font-weight:700;color:#8696A0;text-transform:uppercase;">Name</span>
           <span style="font-size:14px;font-weight:700;" id="prof_name2">Rajesh Kumar</span>
         </div>
       </div>
       <!-- Actions -->
-      <button onclick="logout()" style="width:100%;padding:14px;background:rgba(255,82,82,0.08);border:1.5px solid rgba(255,82,82,0.3);border-radius:12px;font-family:var(--font);font-size:15px;font-weight:700;color:var(--red);cursor:pointer;margin-bottom:10px;">
+      <button onclick="logout()" style="width:100%;padding:14px;background:rgba(255,82,82,0.08);border:1.5px solid rgba(255,82,82,0.3);border-radius:12px;font-family:'Segoe UI',Arial,sans-serif;font-size:15px;font-weight:700;color:#FF3B30;cursor:pointer;margin-bottom:10px;">
         🚪 Logout
       </button>
-      <div style="text-align:center;font-size:11px;color:var(--t3);margin-top:8px;">StationWise · GoGas · v2.0</div>
+      <div style="text-align:center;font-size:11px;color:#8696A0;margin-top:8px;">StationWise · GoGas · v2.0</div>
     </div>
   </div>
 </div>
@@ -358,9 +352,9 @@ function switchTab(tab){
   <div class="topbar">
     <div style="flex:1"><div class="tb-title">StationWise</div></div>
     <div style="display:flex;align-items:center;gap:8px;">
-      <button onclick="logout()" style="padding:6px 12px;background:rgba(255,82,82,0.12);border:1px solid rgba(255,82,82,0.3);border-radius:20px;font-family:var(--font);font-size:11px;font-weight:700;color:var(--red);cursor:pointer;">Logout</button>
-      <div style="cursor:pointer;color:var(--t3);font-size:20px;" onclick="goScreen('s_settings')" title="Settings">⚙</div>
-      <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--green2),var(--green));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#000;cursor:pointer;" id="home_av" onclick="showProfile()">S</div>
+      <button onclick="logout()" style="padding:6px 12px;background:rgba(255,82,82,0.12);border:1px solid rgba(255,82,82,0.3);border-radius:20px;font-family:'Segoe UI',Arial,sans-serif;font-size:11px;font-weight:700;color:#FF3B30;cursor:pointer;">Logout</button>
+      <div style="cursor:pointer;color:#8696A0;font-size:20px;" onclick="goScreen('s_settings')" title="Settings">⚙</div>
+      <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#25D366,#25D366);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#000;cursor:pointer;" id="home_av" onclick="showProfile()">S</div>
     </div>
   </div>
   <div class="scroll-body fadein">
@@ -382,30 +376,30 @@ function switchTab(tab){
         <div class="ts-title">Today's Activity</div>
         <div class="ts-stats">
           <div class="ts-stat"><div class="ts-val" id="st_sent">0</div><div class="ts-lbl">Shared</div></div>
-          <div class="ts-stat"><div class="ts-val" id="st_sync" style="color:var(--blue)">0</div><div class="ts-lbl">Synced</div></div>
-          <div class="ts-stat"><div class="ts-val" id="st_draft" style="color:var(--amber)">0</div><div class="ts-lbl">Drafts</div></div>
+          <div class="ts-stat"><div class="ts-val" id="st_sync" style="color:#0088CC">0</div><div class="ts-lbl">Synced</div></div>
+          <div class="ts-stat"><div class="ts-val" id="st_draft" style="color:#FF8C00">0</div><div class="ts-lbl">Drafts</div></div>
         </div>
       </div>
     </div>
 
     <div class="home-actions">
       <div class="action-card new" onclick="startNew()">
-        <div class="ac-icon new"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"/></svg></div>
+        <div class="ac-icon new"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#25D366" stroke-width="2.5" stroke-linecap="round"/></svg></div>
         <div><div class="ac-title">New Report</div><div class="ac-sub">Fill today's GOGAS daily report<br>and share to WhatsApp</div></div>
         <div class="ac-arrow">›</div>
       </div>
       <div class="action-card hist" onclick="goScreen('s_reports')">
-        <div class="ac-icon hist"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" stroke="var(--blue)" stroke-width="2"/><rect x="9" y="3" width="6" height="4" rx="1" stroke="var(--blue)" stroke-width="2"/><path d="M9 12h6M9 16h4" stroke="var(--blue)" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+        <div class="ac-icon hist"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" stroke="#0088CC" stroke-width="2"/><rect x="9" y="3" width="6" height="4" rx="1" stroke="#0088CC" stroke-width="2"/><path d="M9 12h6M9 16h4" stroke="#0088CC" stroke-width="1.8" stroke-linecap="round"/></svg></div>
         <div><div class="ac-title">My Reports</div><div class="ac-sub">View, edit and reshare<br>your saved reports</div></div>
         <div class="ac-arrow">›</div>
       </div>
       <div class="action-card remind" onclick="goScreen('s_settings')">
-        <div class="ac-icon remind"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="var(--purple)" stroke-width="2"/><path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="var(--purple)" stroke-width="2"/></svg></div>
+        <div class="ac-icon remind"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="#25D366" stroke-width="2"/><path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="#25D366" stroke-width="2"/></svg></div>
         <div><div class="ac-title">Reminders & Settings</div><div class="ac-sub">Set daily reminder times<br>Connect Google Sheet</div></div>
         <div class="ac-arrow">›</div>
       </div>
     </div>
-    <div style="padding:14px;text-align:right;"><span style="font-size:12px;color:var(--t3);cursor:pointer;" onclick="logout()">Change account →</span></div>
+    <div style="padding:14px;text-align:right;"><span style="font-size:12px;color:#8696A0;cursor:pointer;" onclick="logout()">Change account →</span></div>
   </div>
 </div>
 
@@ -432,24 +426,24 @@ function switchTab(tab){
         <div class="ffield" style="grid-column:1/-1;">
           <div class="fflbl">Shift(s) Being Reported <span class="req">*</span></div>
           <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;">
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:7px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--card2);font-size:14px;font-weight:700;transition:all 0.15s;" id="sl1">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:7px 14px;border-radius:10px;border:1.5px solid #E9EDEF;background:#F7F8FA;font-size:14px;font-weight:700;transition:all 0.15s;" id="sl1">
               <input type="checkbox" id="sh1_chk" onchange="onShiftChange()" style="display:none;"/>
-              <span id="sl1_dot" style="width:10px;height:10px;border-radius:50%;border:2px solid var(--t3);display:inline-block;transition:all 0.2s;"></span>Shift 1
+              <span id="sl1_dot" style="width:10px;height:10px;border-radius:50%;border:2px solid #8696A0;display:inline-block;transition:all 0.2s;"></span>Shift 1
             </label>
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:7px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--card2);font-size:14px;font-weight:700;transition:all 0.15s;" id="sl2">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:7px 14px;border-radius:10px;border:1.5px solid #E9EDEF;background:#F7F8FA;font-size:14px;font-weight:700;transition:all 0.15s;" id="sl2">
               <input type="checkbox" id="sh2_chk" onchange="onShiftChange()" style="display:none;"/>
-              <span id="sl2_dot" style="width:10px;height:10px;border-radius:50%;border:2px solid var(--t3);display:inline-block;transition:all 0.2s;"></span>Shift 2
+              <span id="sl2_dot" style="width:10px;height:10px;border-radius:50%;border:2px solid #8696A0;display:inline-block;transition:all 0.2s;"></span>Shift 2
             </label>
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:7px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--card2);font-size:14px;font-weight:700;transition:all 0.15s;" id="sl3">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:7px 14px;border-radius:10px;border:1.5px solid #E9EDEF;background:#F7F8FA;font-size:14px;font-weight:700;transition:all 0.15s;" id="sl3">
               <input type="checkbox" id="sh3_chk" onchange="onShiftChange()" style="display:none;"/>
-              <span id="sl3_dot" style="width:10px;height:10px;border-radius:50%;border:2px solid var(--t3);display:inline-block;transition:all 0.2s;"></span>Shift 3
+              <span id="sl3_dot" style="width:10px;height:10px;border-radius:50%;border:2px solid #8696A0;display:inline-block;transition:all 0.2s;"></span>Shift 3
             </label>
           </div>
         </div>
       </div>
-      <div class="frow" id="sh1_row" style="display:none;"><div class="ffield" style="grid-column:1/-1;background:rgba(0,230,118,0.03);"><div class="fflbl" style="color:var(--green);">Shift 1 Sales (Ltrs) <span class="req">*</span></div><input class="ffin" id="f_s1sale" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div></div>
-      <div class="frow" id="sh2_row" style="display:none;"><div class="ffield" style="grid-column:1/-1;background:rgba(0,230,118,0.03);"><div class="fflbl" style="color:var(--green);">Shift 2 Sales (Ltrs) <span class="req">*</span></div><input class="ffin" id="f_s2sale" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div></div>
-      <div class="frow" id="sh3_row" style="display:none;"><div class="ffield" style="grid-column:1/-1;background:rgba(0,230,118,0.03);"><div class="fflbl" style="color:var(--green);">Shift 3 Sales (Ltrs) <span class="req">*</span></div><input class="ffin" id="f_s3sale" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div></div>
+      <div class="frow" id="sh1_row" style="display:none;"><div class="ffield" style="grid-column:1/-1;background:rgba(0,230,118,0.03);"><div class="fflbl" style="color:#25D366;">Shift 1 Sales (Ltrs) <span class="req">*</span></div><input class="ffin" id="f_s1sale" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div></div>
+      <div class="frow" id="sh2_row" style="display:none;"><div class="ffield" style="grid-column:1/-1;background:rgba(0,230,118,0.03);"><div class="fflbl" style="color:#25D366;">Shift 2 Sales (Ltrs) <span class="req">*</span></div><input class="ffin" id="f_s2sale" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div></div>
+      <div class="frow" id="sh3_row" style="display:none;"><div class="ffield" style="grid-column:1/-1;background:rgba(0,230,118,0.03);"><div class="fflbl" style="color:#25D366;">Shift 3 Sales (Ltrs) <span class="req">*</span></div><input class="ffin" id="f_s3sale" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div></div>
     </div>
     <div class="sec-div">Date</div>
     <div class="fsec fadein">
@@ -548,17 +542,17 @@ function switchTab(tab){
     <div class="fsec fadein" style="margin:10px 14px 0;">
       <div class="fsec-head"><div class="fsec-title">📷 Upload DU Meter Reading Photo</div></div>
       <div style="padding:14px;">
-        <div style="font-size:11px;color:var(--t3);margin-bottom:10px;font-weight:600;">N1 · N2 · N3 · N4 meter readings — take one photo covering all</div>
+        <div style="font-size:11px;color:#8696A0;margin-bottom:10px;font-weight:600;">N1 · N2 · N3 · N4 meter readings — take one photo covering all</div>
         <div id="photo_preview_wrap" style="display:none;margin-bottom:10px;position:relative;">
-          <img id="photo_preview" style="width:100%;border-radius:10px;border:1.5px solid var(--border);max-height:200px;object-fit:cover;"/>
+          <img id="photo_preview" style="width:100%;border-radius:10px;border:1.5px solid #E9EDEF;max-height:200px;object-fit:cover;"/>
           <button onclick="removePhoto()" style="position:absolute;top:8px;right:8px;background:rgba(255,82,82,0.9);border:none;border-radius:50%;width:28px;height:28px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
           <div style="margin-top:8px;display:flex;gap:8px;">
-            <button onclick="retakePhoto()" style="flex:1;padding:9px;background:var(--card2);border:1px solid var(--border);border-radius:10px;font-family:var(--font);font-size:13px;font-weight:700;color:var(--t2);cursor:pointer;">📷 Retake</button>
-            <div id="upload_status" style="flex:1;padding:9px;border-radius:10px;font-size:12px;font-weight:700;text-align:center;background:rgba(0,230,118,0.07);color:var(--green);border:1px solid rgba(0,230,118,0.2);">Ready to submit</div>
+            <button onclick="retakePhoto()" style="flex:1;padding:9px;background:#F7F8FA;border:1px solid #E9EDEF;border-radius:10px;font-family:'Segoe UI',Arial,sans-serif;font-size:13px;font-weight:700;color:#54656F;cursor:pointer;">📷 Retake</button>
+            <div id="upload_status" style="flex:1;padding:9px;border-radius:10px;font-size:12px;font-weight:700;text-align:center;background:rgba(0,230,118,0.07);color:#25D366;border:1px solid rgba(0,230,118,0.2);">Ready to submit</div>
           </div>
         </div>
         <div id="photo_btn_wrap">
-          <button onclick="openCamera()" style="width:100%;padding:18px;background:var(--card2);border:2px dashed var(--border2);border-radius:12px;font-family:var(--font);font-size:15px;font-weight:700;color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:12px;">
+          <button onclick="openCamera()" style="width:100%;padding:18px;background:#F7F8FA;border:2px dashed #D1D7DB;border-radius:12px;font-family:'Segoe UI',Arial,sans-serif;font-size:15px;font-weight:700;color:#54656F;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:12px;">
             <span style="font-size:32px;">📷</span>
             <span>Click Photo of DU Meter</span>
           </button>
@@ -598,7 +592,7 @@ function switchTab(tab){
   </div>
   <div class="bottom-bar">
     <button class="btn-sec" onclick="goScreen('s_form')">← Edit</button>
-    <button class="btn-main" onclick="doSubmit()" style="flex:1;background:#1a6b3a;color:#fff;border:none;padding:0 16px;border-radius:13px;font-family:var(--font);font-size:14px;font-weight:800;cursor:pointer;">✅ Submit</button>
+    <button class="btn-main" onclick="doSubmit()" style="flex:1;background:#25D366;color:#fff;border:none;padding:0 16px;border-radius:13px;font-family:'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:800;cursor:pointer;">✅ Submit</button>
     <button class="btn-wa" onclick="doWA()" style="display:flex;align-items:center;justify-content:center;gap:8px;flex:1;">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" fill="white"/><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.875-1.478A9.96 9.96 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2z" stroke="white" stroke-width="1.5"/></svg>
       ✅ Submit & Share on WhatsApp
@@ -612,7 +606,7 @@ function switchTab(tab){
   <div class="topbar">
     <div class="tb-back" onclick="goHome()">←</div>
     <div class="tb-title">My Reports</div>
-    <div style="margin-left:auto;font-size:12px;color:var(--blue);font-weight:700;cursor:pointer;" onclick="syncAll()">↑ Sync All</div>
+    <div style="margin-left:auto;font-size:12px;color:#0088CC;font-weight:700;cursor:pointer;" onclick="syncAll()">↑ Sync All</div>
   </div>
   <div class="scroll-body"><div class="rep-list" id="rep_list"></div></div>
   <div class="bottom-bar"><button class="btn-main" onclick="startNew()">+ New Report</button></div>
@@ -636,11 +630,11 @@ function switchTab(tab){
         <button class="sbtn g" onclick="saveSheetUrl()">Save URL</button>
         <button class="sbtn s" onclick="testConnection()">Test Connection</button>
       </div>
-      <div id="conn_status" style="margin-top:10px;font-size:12px;color:var(--t3);display:none;"></div>
+      <div id="conn_status" style="margin-top:10px;font-size:12px;color:#8696A0;display:none;"></div>
     </div>
 
     <!-- REMINDER TIMES -->
-    <div style="margin:14px 14px 0;font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:0.5px;">⏰ Daily Reminders</div>
+    <div style="margin:14px 14px 0;font-size:11px;font-weight:700;color:#8696A0;text-transform:uppercase;letter-spacing:0.5px;">⏰ Daily Reminders</div>
     <div class="rem-section">
       <div class="rem-row">
         <div>
@@ -677,16 +671,16 @@ function switchTab(tab){
     <div id="notif_perm" class="notif-perm" onclick="requestNotifPerm()" style="display:none;">
       🔔 Tap here to allow notifications — required for reminders to work
     </div>
-    <div style="margin:10px 14px 0;padding:10px 14px;background:rgba(0,230,118,0.05);border:1px solid var(--border);border-radius:11px;font-size:12px;color:var(--t3);line-height:1.6;">
+    <div style="margin:10px 14px 0;padding:10px 14px;background:rgba(0,230,118,0.05);border:1px solid #E9EDEF;border-radius:11px;font-size:12px;color:#8696A0;line-height:1.6;">
       ⚡ Reminders fire at the set time every day. Keep the app added to your Home Screen for best results. Tap the bell to allow notifications when asked.
     </div>
 
     <!-- ACCOUNT -->
-    <div style="margin:14px 14px 0;font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:0.5px;">👤 Account</div>
+    <div style="margin:14px 14px 0;font-size:11px;font-weight:700;color:#8696A0;text-transform:uppercase;letter-spacing:0.5px;">👤 Account</div>
     <div class="rem-section">
       <div class="rem-row">
         <div><div class="rem-label" id="set_name">—</div><div class="rem-sub" id="set_station">—</div></div>
-        <button style="padding:8px 16px;background:rgba(255,82,82,0.1);border:1px solid rgba(255,82,82,0.2);color:var(--red);border-radius:9px;font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;" onclick="logout()">Logout</button>
+        <button style="padding:8px 16px;background:rgba(255,82,82,0.1);border:1px solid rgba(255,82,82,0.2);color:#FF3B30;border-radius:9px;font-family:'Segoe UI',Arial,sans-serif;font-size:12px;font-weight:700;cursor:pointer;" onclick="logout()">Logout</button>
       </div>
     </div>
     <div style="height:14px;"></div>
@@ -713,13 +707,13 @@ function switchTab(tab){
   var eb=document.getElementById('tab_erp'),ob=document.getElementById('tab_otp');
   var ec=document.getElementById('tab_erp_content'),oc=document.getElementById('tab_otp_content');
   if(tab==='erp'){
-    eb.style.background='var(--green)';eb.style.color='#000';
-    ob.style.background='transparent';ob.style.color='var(--t3)';
+    eb.style.background='#25D366';eb.style.color='#000';
+    ob.style.background='transparent';ob.style.color='#8696A0';
     ec.style.display='block';oc.style.display='none';
     setTimeout(function(){document.getElementById('li_erp').focus();},100);
   } else {
-    ob.style.background='var(--green)';ob.style.color='#000';
-    eb.style.background='transparent';eb.style.color='var(--t3)';
+    ob.style.background='#25D366';ob.style.color='#000';
+    eb.style.background='transparent';eb.style.color='#8696A0';
     ec.style.display='none';oc.style.display='block';
     setTimeout(function(){document.getElementById('li_mobile').focus();},100);
   }
@@ -894,8 +888,8 @@ function verifyOTP(){
     toast('Wrong OTP — please try again');
     ['otp1','otp2','otp3','otp4','otp5','otp6'].forEach(id=>{
       const el=document.getElementById(id);
-      el.style.borderColor='var(--red)';
-      setTimeout(()=>el.style.borderColor='var(--border)',1500);
+      el.style.borderColor='#FF3B30';
+      setTimeout(()=>el.style.borderColor='#E9EDEF',1500);
     });
   }
 }
@@ -1044,8 +1038,8 @@ function styleShiftLabel(lblId,dotId,active){
   const lbl=document.getElementById(lblId);
   const dot=document.getElementById(dotId);
   if(!lbl||!dot)return;
-  if(active){lbl.style.borderColor='var(--green)';lbl.style.background='rgba(0,230,118,0.08)';lbl.style.color='var(--green)';dot.style.background='var(--green)';dot.style.borderColor='var(--green)';}
-  else{lbl.style.borderColor='var(--border)';lbl.style.background='var(--card2)';lbl.style.color='var(--t1)';dot.style.background='transparent';dot.style.borderColor='var(--t3)';}
+  if(active){lbl.style.borderColor='#25D366';lbl.style.background='rgba(0,230,118,0.08)';lbl.style.color='#25D366';dot.style.background='#25D366';dot.style.borderColor='#25D366';}
+  else{lbl.style.borderColor='#E9EDEF';lbl.style.background='#F7F8FA';lbl.style.color='#E7F8EE';dot.style.background='transparent';dot.style.borderColor='#8696A0';}
 }
 function getSelectedShifts(){
   const s=[];
@@ -1129,9 +1123,46 @@ function saveRep(data){
 
 function saveDraft(){const d=buildData('draft');saveRep(d);editId=d.id;toast('Draft saved ✓');}
 
+function validateReport(){
+  const errors=[];
+  const oa1=parseFloat(document.getElementById('f_oa1')?.value||0);
+  const ca1=parseFloat(document.getElementById('f_ca1')?.value||0);
+  const ob1=parseFloat(document.getElementById('f_ob1')?.value||0);
+  const cb1=parseFloat(document.getElementById('f_cb1')?.value||0);
+  if(oa1>0&&ca1>0&&ca1>oa1) errors.push('A1 Closing ('+ca1+') cannot exceed Opening ('+oa1+')');
+  if(ob1>0&&cb1>0&&cb1>ob1) errors.push('B1 Closing ('+cb1+') cannot exceed Opening ('+ob1+')');
+  const ns=parseFloat(document.getElementById('f_ns')?.value||0);
+  if(ns<0) errors.push('Net Sale cannot be negative');
+  const cih=parseFloat(document.getElementById('f_cih')?.value||0);
+  if(cih<0) errors.push('Cash In Hand cannot be negative');
+  return errors.length>0?errors.join(', '):null;
+}
+
+function checkDuplicate(){
+  const today=new Date().toDateString();
+  return reports.find(r=>r.erp===user.erp&&r.status==='sent'&&new Date(r.savedAt).toDateString()===today)||null;
+}
+
 function doPreview(){
   const filled=REQ.filter(id=>{const e=document.getElementById(id);return e&&e.value.trim()&&e.value!=='0'&&e.value!=='0.00';}).length;
   if(filled<6){toast('Fill at least the key required fields first');return;}
+
+  // ── DUPLICATE CHECK ──
+  if(!editId){
+    const dup=checkDuplicate();
+    if(dup){
+      const timeStr=new Date(dup.savedAt).toLocaleTimeString();const proceed=confirm("Already submitted today at "+timeStr+". Submit another?");
+      if(!proceed)return;
+    }
+  }
+
+  // ── DATA VALIDATION ──
+  const validationError=validateReport();
+  if(validationError){
+    alert('Fix: '+validationError);
+    return;
+  }
+
   const d=buildData('draft');saveRep(d);editId=d.id;
   document.getElementById('prev_text').textContent=buildText();
   goScreen('s_preview');
@@ -1235,16 +1266,16 @@ async function testConnection(){
   const url=document.getElementById('sheet_url').value.trim();
   if(!url){toast('Enter the URL first');return;}
   const el=document.getElementById('conn_status');
-  el.style.display='block';el.style.color='var(--amber)';el.textContent='Verifying…';
+  el.style.display='block';el.style.color='#FF8C00';el.textContent='Verifying…';
   if(!url.includes('script.google.com')||!url.includes('/exec')){
-    el.style.color='var(--red)';el.textContent='✗ Invalid URL. Must be a Google Apps Script /exec URL.';return;
+    el.style.color='#FF3B30';el.textContent='✗ Invalid URL. Must be a Google Apps Script /exec URL.';return;
   }
   try{
     await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({type:'ping'})});
-    el.style.color='var(--green)';el.textContent='✓ Connected! Sheet is ready to receive reports.';
+    el.style.color='#25D366';el.textContent='✓ Connected! Sheet is ready to receive reports.';
   }catch(e){
-    if(!navigator.onLine){el.style.color='var(--amber)';el.textContent='⚠️ No internet. URL looks correct.';}
-    else{el.style.color='var(--red)';el.textContent='✗ Could not reach URL. Check and try again.';}
+    if(!navigator.onLine){el.style.color='#FF8C00';el.textContent='⚠️ No internet. URL looks correct.';}
+    else{el.style.color='#FF3B30';el.textContent='✗ Could not reach URL. Check and try again.';}
   }
 }
 
@@ -1566,7 +1597,7 @@ function onPhotoSelected(input){
     // Save photo to device gallery
     savePhotoToGallery(photoDataUrl, file.name||'DU_Meter_'+Date.now()+'.jpg');
     document.getElementById('upload_status').textContent='Photo ready ✓';
-    document.getElementById('upload_status').style.color='var(--green)';
+    document.getElementById('upload_status').style.color='#25D366';
   };
   reader.readAsDataURL(file);
 }
@@ -1605,7 +1636,7 @@ async function uploadPhotoToDrive(reportId){
     return 'Photo taken - ' + new Date().toLocaleString('en-IN');
   }catch(e){
     const statusEl=document.getElementById('upload_status');
-    if(statusEl){statusEl.textContent='Photo saved locally';statusEl.style.color='var(--amber)';}
+    if(statusEl){statusEl.textContent='Photo saved locally';statusEl.style.color='#FF8C00';}
   }
   return 'Photo taken - '+new Date().toLocaleString('en-IN');
 }
