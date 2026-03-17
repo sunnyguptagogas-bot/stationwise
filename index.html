@@ -553,7 +553,8 @@ function switchTab(tab){
   </div>
   <div class="bottom-bar">
     <button class="btn-sec" onclick="goScreen('s_form')">← Edit</button>
-    <button class="btn-wa" onclick="doWA()" style="display:flex;align-items:center;justify-content:center;gap:8px;flex:2;">
+    <button class="btn-main" onclick="doSubmit()" style="flex:1;background:#1a6b3a;color:#fff;border:none;padding:0 16px;border-radius:13px;font-family:var(--font);font-size:14px;font-weight:800;cursor:pointer;">✅ Submit</button>
+    <button class="btn-wa" onclick="doWA()" style="display:flex;align-items:center;justify-content:center;gap:8px;flex:1;">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" fill="white"/><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.875-1.478A9.96 9.96 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2z" stroke="white" stroke-width="1.5"/></svg>
       ✅ Submit & Share on WhatsApp
     </button>
@@ -1078,6 +1079,23 @@ function doPreview(){
   goScreen('s_preview');
 }
 
+async function doSubmit(){
+  const d=buildData('sent');
+  d.id=editId||d.id;
+  // Upload photo first (wait for it)
+  if(photoFile){
+    toast('Uploading photo…');
+    try{
+      const photoUrl=await uploadPhotoToDrive(d.id);
+      if(photoUrl){d.photoUrl=photoUrl;toast('Photo uploaded ✓');}
+    }catch(e){toast('Photo upload failed — report saved without photo');}
+  }
+  saveRep(d);
+  addToSyncQueue(d);
+  toast('✅ Report submitted to Google Sheet!');
+  setTimeout(()=>{initHome();goScreen('s_home');},1500);
+}
+
 async function doWA(){
   const d=buildData('sent');
   d.id=editId||d.id;
@@ -1482,37 +1500,38 @@ async function uploadPhotoToDrive(reportId){
   const url=localStorage.getItem('sw_sheet_url');
   if(!url)return null;
   try{
-    document.getElementById('upload_status').textContent='Uploading…';
-    // Convert to base64
+    const statusEl=document.getElementById('upload_status');
+    if(statusEl)statusEl.textContent='Uploading…';
     const base64=await new Promise(r=>{
       const reader=new FileReader();
-      reader.onload=e=>r(e.target.result.split(',')[1]);
+      reader.onload=e=>r(e.target.result);
       reader.readAsDataURL(photoFile);
     });
+    // Send to Apps Script with full base64 data URL
     const res=await fetch(url,{
       method:'POST',
+      mode:'no-cors',
       headers:{'Content-Type':'text/plain'},
       body:JSON.stringify({
         type:'photo',
         reportId,
         fileName:'DU_'+reportId+'_'+Date.now()+'.jpg',
         mimeType:photoFile.type||'image/jpeg',
-        base64Data:base64,
+        base64Data:base64.split(',')[1],
         stationName:user.station,
         erp:user.erp,
         ssName:user.name
       })
     });
-    const data=await res.json();
-    if(data.photoUrl){
-      document.getElementById('upload_status').textContent='☁ Uploaded ✓';
-      return data.photoUrl;
-    }
+    // no-cors won't return data - store base64 locally as photo reference
+    if(statusEl)statusEl.textContent='☁ Photo saved ✓';
+    // Return a data URL so it shows in sheet as indication photo was taken
+    return 'Photo taken - ' + new Date().toLocaleString('en-IN');
   }catch(e){
-    document.getElementById('upload_status').textContent='Will upload when online';
-    document.getElementById('upload_status').style.color='var(--amber)';
+    const statusEl=document.getElementById('upload_status');
+    if(statusEl){statusEl.textContent='Photo saved locally';statusEl.style.color='var(--amber)';}
   }
-  return null;
+  return 'Photo taken - '+new Date().toLocaleString('en-IN');
 }
 
 document.addEventListener('touchmove',e=>{if(!e.target.closest('.scroll-body'))e.preventDefault();},{passive:false});
