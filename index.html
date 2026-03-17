@@ -513,18 +513,11 @@ function switchTab(tab){
           </div>
         </div>
         <div id="photo_btn_wrap">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <button onclick="openCamera()" style="padding:14px;background:var(--card2);border:2px dashed var(--border2);border-radius:12px;font-family:var(--font);font-size:14px;font-weight:700;color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;flex-direction:column;">
-              <span style="font-size:28px;">📷</span>
-              <span>Camera</span>
-            </button>
-            <button onclick="openGallery()" style="padding:14px;background:var(--card2);border:2px dashed var(--border2);border-radius:12px;font-family:var(--font);font-size:14px;font-weight:700;color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;flex-direction:column;">
-              <span style="font-size:28px;">🖼️</span>
-              <span>Gallery / File</span>
-            </button>
-          </div>
+          <button onclick="openCamera()" style="width:100%;padding:18px;background:var(--card2);border:2px dashed var(--border2);border-radius:12px;font-family:var(--font);font-size:15px;font-weight:700;color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:12px;">
+            <span style="font-size:32px;">📷</span>
+            <span>Click Photo of DU Meter</span>
+          </button>
         </div>
-        <input type="file" id="photo_input" accept="image/*" style="display:none;" onchange="onPhotoSelected(this)"/>
         <input type="file" id="camera_input" accept="image/*" capture="environment" style="display:none;" onchange="onPhotoSelected(this)"/>
       </div>
     </div>
@@ -560,7 +553,7 @@ function switchTab(tab){
   </div>
   <div class="bottom-bar">
     <button class="btn-sec" onclick="goScreen('s_form')">← Edit</button>
-    <button class="btn-wa" onclick="doWA()">
+    <button class="btn-wa" onclick="doWA()" style="display:flex;align-items:center;justify-content:center;gap:8px;">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" fill="white"/><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.875-1.478A9.96 9.96 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2z" stroke="white" stroke-width="1.5"/></svg>
       Share on WhatsApp
     </button>
@@ -1090,16 +1083,29 @@ function doPreview(){
 async function doWA(){
   const d=buildData('sent');
   d.id=editId||d.id;
-  // Upload photo if available
-  if(photoFile){
-    const photoUrl=await uploadPhotoToDrive(d.id);
-    if(photoUrl)d.photoUrl=photoUrl;
-  }
+
+  // Save and sync FIRST — never block on photo
   saveRep(d);
   addToSyncQueue(d);
+
+  // Open WhatsApp immediately — don't wait for photo upload
   const txt=buildText();
   window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank');
-  toast('WhatsApp opening…');
+  toast('Submitting report…');
+
+  // Upload photo in background (non-blocking)
+  if(photoFile){
+    uploadPhotoToDrive(d.id).then(photoUrl=>{
+      if(photoUrl){
+        d.photoUrl=photoUrl;
+        saveRep(d);
+        toast('Photo uploaded ✓');
+      }
+    }).catch(()=>{
+      toast('Photo will sync when online');
+    });
+  }
+
   setTimeout(()=>{initHome();goScreen('s_home');},1800);
 }
 
@@ -1266,8 +1272,10 @@ function loadRemSettings(){
   [1,2,3].forEach(n=>{
     const r=s['rem'+n];
     if(r){
-      document.getElementById('rem'+n+'_time').value=r.time||['08:00','14:00','20:00'][n-1];
-      if(r.on){document.getElementById('rem'+n+'_tog').classList.add('on');scheduleReminder(n);}
+      const timeEl=document.getElementById('rem'+n+'_time');
+      const togEl=document.getElementById('rem'+n+'_tog');
+      if(timeEl)timeEl.value=r.time||['08:00','14:00','20:00'][n-1];
+      if(r.on&&togEl){togEl.classList.add('on');scheduleReminder(n);}
     }
   });
 }
@@ -1429,10 +1437,9 @@ window.addEventListener('load',()=>{
   if(!localStorage.getItem('sw_sheet_url')){
     localStorage.setItem('sw_sheet_url','https://script.google.com/macros/s/AKfycbxb9KV-1QxMWmEw5Wpe-huMA3Fr4f89k8HTxhtwr4G-cYwOEldMsD_ZnVQcyspiRq0/exec');
   }
-  // Always show login for fresh test
-  localStorage.removeItem('sw_user');
-  user = null;
-  goScreen('s_login');
+  user = JSON.parse(localStorage.getItem('sw_user')||'null');
+  if(user){ try{loadRemSettings();}catch(e){} initHome(); goScreen('s_home'); }
+  else { goScreen('s_login'); }
 });
 // ════ PHOTO FUNCTIONS ════
 let photoDataUrl = null;
@@ -1442,22 +1449,11 @@ function takePhoto(){
   document.getElementById('photo_input').click();
 }
 function openCamera(){
-  // On mobile: opens camera directly. On laptop: opens file picker
-  const isMobile=/Android|iPhone|iPad/i.test(navigator.userAgent);
-  if(isMobile){
-    document.getElementById('camera_input').click();
-  } else {
-    // On laptop — open file picker with image filter
-    document.getElementById('photo_input').click();
-  }
-}
-function openGallery(){
-  document.getElementById('photo_input').click();
+  // Always open camera directly — SS must take photo, not upload from gallery
+  document.getElementById('camera_input').click();
 }
 function retakePhoto(){
-  const isMobile=/Android|iPhone|iPad/i.test(navigator.userAgent);
-  if(isMobile) document.getElementById('camera_input').click();
-  else document.getElementById('photo_input').click();
+  document.getElementById('camera_input').click();
 }
 function removePhoto(){
   photoDataUrl=null;photoFile=null;
