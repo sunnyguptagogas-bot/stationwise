@@ -27,7 +27,7 @@
 }
 html,body{height:100%;background:var(--bg);}
 body{font-family:var(--font);color:var(--t1);height:100%;overflow:hidden;position:fixed;width:100%;}
-.screen{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--bg);overflow:hidden;transition:transform 0.3s cubic-bezier(.4,0,.2,1),opacity 0.3s;}
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;background:#f0f4f1;overflow:hidden;transition:transform 0.3s cubic-bezier(.4,0,.2,1),opacity 0.3s;}
 .screen.hidden{transform:translateX(100%);opacity:0;pointer-events:none;}
 .status-bar{height:calc(var(--safe-top)+6px);background:var(--card);flex-shrink:0;}
 .topbar{height:56px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0;}
@@ -553,9 +553,9 @@ function switchTab(tab){
   </div>
   <div class="bottom-bar">
     <button class="btn-sec" onclick="goScreen('s_form')">← Edit</button>
-    <button class="btn-wa" onclick="doWA()" style="display:flex;align-items:center;justify-content:center;gap:8px;">
+    <button class="btn-wa" onclick="doWA()" style="display:flex;align-items:center;justify-content:center;gap:8px;flex:2;">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" fill="white"/><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.875-1.478A9.96 9.96 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2z" stroke="white" stroke-width="1.5"/></svg>
-      Share on WhatsApp
+      ✅ Submit & Share on WhatsApp
     </button>
   </div>
 </div>
@@ -951,7 +951,7 @@ function startNew(){
   document.getElementById('fd_year').textContent=now.getFullYear();
   document.getElementById('form_sub').textContent=user.station+' · '+MONTHS_S[now.getMonth()]+' '+now.getFullYear();
   updateFill();goScreen('s_form');
-  setTimeout(()=>{document.getElementById('form_scroll').scrollTop=0;},50);
+  setTimeout(()=>{const fs=document.getElementById('form_scroll');if(fs)fs.scrollTop=0;},50);
 }
 
 function resetForm(){
@@ -1396,9 +1396,11 @@ function initSettings(){
 
 // ════════ NAVIGATION ════════
 function goScreen(id){
-  history.pushState(null,'',location.href);
+  try{history.pushState(null,'',location.href);}catch(e){}
   document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
-  document.getElementById(id).classList.remove('hidden');
+  const target=document.getElementById(id);
+  if(!target){console.error('Screen not found:',id);return;}
+  target.classList.remove('hidden');
   if(id==='s_reports')showReports();
   if(id==='s_home')initHome();
   if(id==='s_settings')initSettings();
