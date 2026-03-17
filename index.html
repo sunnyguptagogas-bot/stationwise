@@ -308,14 +308,59 @@ function switchTab(tab){
   </div>
 </div>
 
+<!-- ═══ PROFILE ═══ -->
+<div class="screen hidden" id="s_profile">
+  <div class="status-bar"></div>
+  <div class="topbar">
+    <div class="tb-back" onclick="goScreen('s_home')">←</div>
+    <div><div class="tb-title">My Profile</div></div>
+  </div>
+  <div class="scroll-body">
+    <div style="padding:24px;">
+      <!-- Avatar -->
+      <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:28px;">
+        <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--green2),var(--green));display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:800;color:#000;margin-bottom:14px;" id="prof_av">R</div>
+        <div style="font-size:22px;font-weight:800;color:var(--t1);" id="prof_name">Rajesh Kumar</div>
+        <div style="font-size:13px;color:var(--t3);margin-top:4px;" id="prof_station">Sangamner GoGas</div>
+        <div style="margin-top:8px;padding:5px 16px;background:var(--green-pale);border-radius:20px;font-size:12px;font-weight:700;color:var(--green);" id="prof_erp">AY001</div>
+      </div>
+      <!-- Details -->
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px;">
+        <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:12px;font-weight:700;color:var(--t3);text-transform:uppercase;">ERP Code</span>
+          <span style="font-size:14px;font-weight:800;font-family:var(--mono);color:var(--green);" id="prof_erp2">AY001</span>
+        </div>
+        <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:12px;font-weight:700;color:var(--t3);text-transform:uppercase;">Station</span>
+          <span style="font-size:14px;font-weight:700;" id="prof_station2">Sangamner GoGas</span>
+        </div>
+        <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:12px;font-weight:700;color:var(--t3);text-transform:uppercase;">State</span>
+          <span style="font-size:14px;font-weight:700;color:var(--blue);" id="prof_state">Maharashtra</span>
+        </div>
+        <div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:12px;font-weight:700;color:var(--t3);text-transform:uppercase;">Name</span>
+          <span style="font-size:14px;font-weight:700;" id="prof_name2">Rajesh Kumar</span>
+        </div>
+      </div>
+      <!-- Actions -->
+      <button onclick="logout()" style="width:100%;padding:14px;background:rgba(255,82,82,0.08);border:1.5px solid rgba(255,82,82,0.3);border-radius:12px;font-family:var(--font);font-size:15px;font-weight:700;color:var(--red);cursor:pointer;margin-bottom:10px;">
+        🚪 Logout
+      </button>
+      <div style="text-align:center;font-size:11px;color:var(--t3);margin-top:8px;">StationWise · GoGas · v2.0</div>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ HOME ═══ -->
 <div class="screen hidden" id="s_home">
   <div class="status-bar"></div>
   <div class="topbar">
     <div style="flex:1"><div class="tb-title">StationWise</div></div>
-    <div style="display:flex;align-items:center;gap:10px;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button onclick="logout()" style="padding:6px 12px;background:rgba(255,82,82,0.12);border:1px solid rgba(255,82,82,0.3);border-radius:20px;font-family:var(--font);font-size:11px;font-weight:700;color:var(--red);cursor:pointer;">Logout</button>
       <div style="cursor:pointer;color:var(--t3);font-size:20px;" onclick="goScreen('s_settings')" title="Settings">⚙</div>
-      <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--green2),var(--green));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#000;cursor:pointer;" id="home_av" onclick="logout()">S</div>
+      <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--green2),var(--green));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#000;cursor:pointer;" id="home_av" onclick="showProfile()">S</div>
     </div>
   </div>
   <div class="scroll-body fadein">
@@ -892,6 +937,19 @@ function doLogin(){
   initHome();goScreen('s_home');
 }
 
+function showProfile(){
+  if(!user) return;
+  document.getElementById('prof_av').textContent=user.name[0].toUpperCase();
+  document.getElementById('prof_name').textContent=user.name;
+  document.getElementById('prof_name2').textContent=user.name;
+  document.getElementById('prof_station').textContent=user.station;
+  document.getElementById('prof_station2').textContent=user.station;
+  document.getElementById('prof_erp').textContent=user.erp;
+  document.getElementById('prof_erp2').textContent=user.erp;
+  document.getElementById('prof_state').textContent=user.state;
+  goScreen('s_profile');
+}
+
 function logout(){
   if(!confirm('Logout? Your saved reports stay on this phone.'))return;
   user=null;
@@ -1028,7 +1086,7 @@ function buildText(){
   const yr=document.getElementById('fd_year').textContent;
   const cmt=document.getElementById('f_cmt').value.trim();
   const shiftLines=`Shift 1 sales Ltrs : ${shifts.includes('1')?g('f_s1sale'):'0.00'}\nShift 2  Sales Ltrs : ${shifts.includes('2')?g('f_s2sale'):'0.00'}\nShift 3 Sales Ltrs : ${shifts.includes('3')?g('f_s3sale'):'0.00'}`;
-  return `--------------------\n*GOGAS DAILY REPORT*\n--------------------\nERP Code : ${user.erp}\nStation name  : ${user.station}\n${shiftLines}\n--------------------\nDate (Change Daily) : ${gt('f_date')}\nMonth (Fixed)  - ${mon}\nYear - ${yr}\n--------------------\n*OPENING*\n--------------------\nA1 : ${g('f_oa1')}\nB1 : ${g('f_ob1')}\nA2 : ${gt('f_oa2')}\nB2 : ${gt('f_ob2')}\n--------------------\n*CLOSING*\n--------------------\nA1 : ${g('f_ca1')}\nB1 : ${g('f_cb1')}\nA2 : ${gt('f_ca2')}\nB2 : ${gt('f_cb2')}\n*SALES*\n--------------------\nTotal Sale : ${g('f_ts')}\nRtn Testing : ${g('f_rtn')}\nFree Sale : ${g('f_free')}\nNet Sale : ${g('f_ns')}\n--------------------\n*RATE*\n--------------------\nRSP \u2013 DU1  - N1 : ${g('f_r1')}\nRSP - DU1  - N2 : ${gt('f_r2')}\nRSP - DU 2 \u2013 N1 : ${gt('f_r3')}\nRSP - DU 2 \u2013 N2 : ${gt('f_r4')}\n--------------------\n*PAYMENTS*\nPrevious cash Balance : ${g('f_prev')}\nTotal Sales Amount : ${g('f_ta')}\nCard sale : ${g('f_card')}\nPaytm Sale : ${g('f_paytm')}\nFree sales Amt : ${g('f_famt')}\nCash Sale amt : ${g('f_csale')}\nBank Deposit : ${g('f_bank')}\nCash In Hand : ${g('f_cih')}\n--------------------\n*STOCK*\n--------------------\nDip Reading (mm) : ${g('f_dip')}\nStock in Ltrs : ${g('f_stk')}\n--------------------\n*DG METER*\n--------------------\nOpening DG : ${g('f_dgo')}\nClosing DG : ${g('f_dgc')}\nHours : ${g('f_dgh')}\n--------------------${cmt?'\n*COMMENTS*\n--------------------\n'+cmt+'\n--------------------':''}${photoDataUrl?'\n📷 DU Meter photo attached':''}`;
+  return `--------------------\n*GOGAS DAILY REPORT*\n--------------------\nERP Code : ${user.erp}\nStation name  : ${user.station}\n${shiftLines}\n--------------------\nDate (Change Daily) : ${gt('f_date')}\nMonth (Fixed)  - ${mon}\nYear - ${yr}\n--------------------\n*OPENING*\n--------------------\nA1 : ${g('f_oa1')}\nB1 : ${g('f_ob1')}\nA2 : ${gt('f_oa2')}\nB2 : ${gt('f_ob2')}\n--------------------\n*CLOSING*\n--------------------\nA1 : ${g('f_ca1')}\nB1 : ${g('f_cb1')}\nA2 : ${gt('f_ca2')}\nB2 : ${gt('f_cb2')}\n*SALES*\n--------------------\nTotal Sale : ${g('f_ts')}\nRtn Testing : ${g('f_rtn')}\nFree Sale : ${g('f_free')}\nNet Sale : ${g('f_ns')}\n--------------------\n*RATE*\n--------------------\nRSP \u2013 DU1  - N1 : ${g('f_r1')}\nRSP - DU1  - N2 : ${gt('f_r2')}\nRSP - DU 2 \u2013 N1 : ${gt('f_r3')}\nRSP - DU 2 \u2013 N2 : ${gt('f_r4')}\n--------------------\n*PAYMENTS*\nPrevious cash Balance : ${g('f_prev')}\nTotal Sales Amount : ${g('f_ta')}\nCard sale : ${g('f_card')}\nPaytm Sale : ${g('f_paytm')}\nFree sales Amt : ${g('f_famt')}\nCash Sale amt : ${g('f_csale')}\nBank Deposit : ${g('f_bank')}\nCash In Hand : ${g('f_cih')}\n--------------------\n*STOCK*\n--------------------\nDip Reading (mm) : ${g('f_dip')}\nStock in Ltrs : ${g('f_stk')}\n--------------------\n*DG METER*\n--------------------\nOpening DG : ${g('f_dgo')}\nClosing DG : ${g('f_dgc')}\nHours : ${g('f_dgh')}\n--------------------${cmt?'\n*COMMENTS*\n--------------------\n'+cmt+'\n--------------------':''}${photoDataUrl?'\n📷 DU Meter Photo: '+(window._lastPhotoUrl||'Taken')+'':''}`;
 }
 
 function buildData(status){
@@ -1480,6 +1538,21 @@ function removePhoto(){
   document.getElementById('photo_btn_wrap').style.display='block';
   const pi=document.getElementById('camera_input');if(pi)pi.value='';
 }
+function savePhotoToGallery(dataUrl, filename){
+  try{
+    // Create a download link to save to gallery
+    const a=document.createElement('a');
+    a.href=dataUrl;
+    a.download=filename;
+    a.style.display='none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }catch(e){
+    // Silently fail - not all browsers support this
+  }
+}
+
 function onPhotoSelected(input){
   const file=input.files[0];
   if(!file)return;
@@ -1490,6 +1563,8 @@ function onPhotoSelected(input){
     document.getElementById('photo_preview').src=photoDataUrl;
     document.getElementById('photo_preview_wrap').style.display='block';
     document.getElementById('photo_btn_wrap').style.display='none';
+    // Save photo to device gallery
+    savePhotoToGallery(photoDataUrl, file.name||'DU_Meter_'+Date.now()+'.jpg');
     document.getElementById('upload_status').textContent='Photo ready ✓';
     document.getElementById('upload_status').style.color='var(--green)';
   };
