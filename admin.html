@@ -13,7 +13,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F2F5;color:#111B21;mi
 /* LOGIN */
 #login_wrap{position:fixed;inset:0;background:#F0F2F5;display:flex;align-items:center;justify-content:center;z-index:9999;}
 .login-box{background:#fff;border:1px solid #E9EDEF;border-radius:20px;padding:36px 28px;max-width:360px;width:92%;box-shadow:0 8px 32px rgba(0,0,0,0.08);text-align:center;}
-.login-logo{width:64px;height:64px;border-radius:16px;background:#075E54;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:28px;color:#fff;}
+.login-logo{width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,#075E54,#128C7E);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
 .login-title{font-size:22px;font-weight:700;margin-bottom:4px;}
 .login-title span{color:#25D366;}
 .login-sub{font-size:13px;color:#8696A0;margin-bottom:24px;}
@@ -163,7 +163,15 @@ tr:hover td{background:#f8faf9;}
 <!-- LOGIN -->
 <div id="login_wrap">
   <div class="login-box">
-    <div class="login-logo"><i class="fa-solid fa-gas-pump"></i></div>
+    <div class="login-logo" style="background:linear-gradient(135deg,#075E54,#128C7E);box-shadow:0 8px 28px rgba(7,94,84,0.4);">
+      <svg width="38" height="38" viewBox="0 0 24 24" fill="none">
+        <rect x="3" y="9" width="9" height="12" rx="1.5" fill="white"/>
+        <rect x="4" y="10" width="7" height="3.5" rx="0.5" fill="rgba(0,0,0,0.15)"/>
+        <path d="M12 9.5L16 9.5L16 13.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        <rect x="14.5" y="13.5" width="3" height="2" rx="0.5" fill="#ffb300"/>
+        <path d="M18 7Q21 10.5 18 14" stroke="#ffb300" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+      </svg>
+    </div>
     <div class="login-title">StationWise <span>Admin</span></div>
     <div class="login-sub">GoGas · Secure Admin Panel</div>
     <div id="login_err" class="login-err">Wrong password. Please try again.</div>
