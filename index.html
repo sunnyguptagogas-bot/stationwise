@@ -1028,7 +1028,7 @@ function buildText(){
   const yr=document.getElementById('fd_year').textContent;
   const cmt=document.getElementById('f_cmt').value.trim();
   const shiftLines=`Shift 1 sales Ltrs : ${shifts.includes('1')?g('f_s1sale'):'0.00'}\nShift 2  Sales Ltrs : ${shifts.includes('2')?g('f_s2sale'):'0.00'}\nShift 3 Sales Ltrs : ${shifts.includes('3')?g('f_s3sale'):'0.00'}`;
-  return `--------------------\n*GOGAS DAILY REPORT*\n--------------------\nERP Code : ${user.erp}\nStation name  : ${user.station}\n${shiftLines}\n--------------------\nDate (Change Daily) : ${gt('f_date')}\nMonth (Fixed)  - ${mon}\nYear - ${yr}\n--------------------\n*OPENING*\n--------------------\nA1 : ${g('f_oa1')}\nB1 : ${g('f_ob1')}\nA2 : ${gt('f_oa2')}\nB2 : ${gt('f_ob2')}\n--------------------\n*CLOSING*\n--------------------\nA1 : ${g('f_ca1')}\nB1 : ${g('f_cb1')}\nA2 : ${gt('f_ca2')}\nB2 : ${gt('f_cb2')}\n*SALES*\n--------------------\nTotal Sale : ${g('f_ts')}\nRtn Testing : ${g('f_rtn')}\nFree Sale : ${g('f_free')}\nNet Sale : ${g('f_ns')}\n--------------------\n*RATE*\n--------------------\nRSP \u2013 DU1  - N1 : ${g('f_r1')}\nRSP - DU1  - N2 : ${gt('f_r2')}\nRSP - DU 2 \u2013 N1 : ${gt('f_r3')}\nRSP - DU 2 \u2013 N2 : ${gt('f_r4')}\n--------------------\n*PAYMENTS*\nPrevious cash Balance : ${g('f_prev')}\nTotal Sales Amount : ${g('f_ta')}\nCard sale : ${g('f_card')}\nPaytm Sale : ${g('f_paytm')}\nFree sales Amt : ${g('f_famt')}\nCash Sale amt : ${g('f_csale')}\nBank Deposit : ${g('f_bank')}\nCash In Hand : ${g('f_cih')}\n--------------------\n*STOCK*\n--------------------\nDip Reading (mm) : ${g('f_dip')}\nStock in Ltrs : ${g('f_stk')}\n--------------------\n*DG METER*\n--------------------\nOpening DG : ${g('f_dgo')}\nClosing DG : ${g('f_dgc')}\nHours : ${g('f_dgh')}\n--------------------${cmt?'\n*COMMENTS*\n--------------------\n'+cmt+'\n--------------------':''}`;
+  return `--------------------\n*GOGAS DAILY REPORT*\n--------------------\nERP Code : ${user.erp}\nStation name  : ${user.station}\n${shiftLines}\n--------------------\nDate (Change Daily) : ${gt('f_date')}\nMonth (Fixed)  - ${mon}\nYear - ${yr}\n--------------------\n*OPENING*\n--------------------\nA1 : ${g('f_oa1')}\nB1 : ${g('f_ob1')}\nA2 : ${gt('f_oa2')}\nB2 : ${gt('f_ob2')}\n--------------------\n*CLOSING*\n--------------------\nA1 : ${g('f_ca1')}\nB1 : ${g('f_cb1')}\nA2 : ${gt('f_ca2')}\nB2 : ${gt('f_cb2')}\n*SALES*\n--------------------\nTotal Sale : ${g('f_ts')}\nRtn Testing : ${g('f_rtn')}\nFree Sale : ${g('f_free')}\nNet Sale : ${g('f_ns')}\n--------------------\n*RATE*\n--------------------\nRSP \u2013 DU1  - N1 : ${g('f_r1')}\nRSP - DU1  - N2 : ${gt('f_r2')}\nRSP - DU 2 \u2013 N1 : ${gt('f_r3')}\nRSP - DU 2 \u2013 N2 : ${gt('f_r4')}\n--------------------\n*PAYMENTS*\nPrevious cash Balance : ${g('f_prev')}\nTotal Sales Amount : ${g('f_ta')}\nCard sale : ${g('f_card')}\nPaytm Sale : ${g('f_paytm')}\nFree sales Amt : ${g('f_famt')}\nCash Sale amt : ${g('f_csale')}\nBank Deposit : ${g('f_bank')}\nCash In Hand : ${g('f_cih')}\n--------------------\n*STOCK*\n--------------------\nDip Reading (mm) : ${g('f_dip')}\nStock in Ltrs : ${g('f_stk')}\n--------------------\n*DG METER*\n--------------------\nOpening DG : ${g('f_dgo')}\nClosing DG : ${g('f_dgc')}\nHours : ${g('f_dgh')}\n--------------------${cmt?'\n*COMMENTS*\n--------------------\n'+cmt+'\n--------------------':''}${photoDataUrl?'\n📷 DU Meter photo attached':''}`;
 }
 
 function buildData(status){
@@ -1100,29 +1100,30 @@ async function doWA(){
   const d=buildData('sent');
   d.id=editId||d.id;
 
-  // Save and sync FIRST — never block on photo
+  // Save and sync FIRST
   saveRep(d);
   addToSyncQueue(d);
 
-  // Open WhatsApp immediately — don't wait for photo upload
+  // Open WhatsApp with report text
   const txt=buildText();
   window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank');
-  toast('Submitting report…');
+  toast('Report shared on WhatsApp ✓');
 
-  // Upload photo in background (non-blocking)
-  if(photoFile){
-    uploadPhotoToDrive(d.id).then(photoUrl=>{
-      if(photoUrl){
-        d.photoUrl=photoUrl;
-        saveRep(d);
-        toast('Photo uploaded ✓');
-      }
-    }).catch(()=>{
-      toast('Photo will sync when online');
-    });
+  // If photo taken - prompt to share photo separately
+  if(photoDataUrl){
+    setTimeout(()=>{
+      toast('📷 Now share the DU meter photo on WhatsApp too');
+    },2000);
   }
 
-  setTimeout(()=>{initHome();goScreen('s_home');},1800);
+  // Upload photo in background
+  if(photoFile){
+    uploadPhotoToDrive(d.id).then(photoUrl=>{
+      if(photoUrl){d.photoUrl=photoUrl;saveRep(d);}
+    }).catch(()=>{});
+  }
+
+  setTimeout(()=>{initHome();goScreen('s_home');},2500);
 }
 
 // ════════ GOOGLE SHEET SYNC ════════
