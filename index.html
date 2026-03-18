@@ -366,9 +366,10 @@ function switchTab(tab){
     </div>
 
     <!-- SYNC STATUS -->
-    <div class="sync-banner sync-off" id="sync_banner">
+    <div class="sync-banner sync-off" id="sync_banner" onclick="syncPending()">
       <span id="sync_dot" class="status-dot dot-off"></span>
       <span id="sync_msg">Sheet not connected · Go to Settings to add URL</span>
+      <button id="sync_retry_btn" onclick="event.stopPropagation();syncPending();toast('Syncing...');" style="display:none;margin-left:8px;padding:3px 10px;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);border-radius:10px;font-size:11px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;">Retry</button>
     </div>
 
     <div style="padding:14px 14px 0;">
@@ -1087,6 +1088,14 @@ function buildData(status){
   const shifts=getSelectedShifts();
   const now=new Date();
   return{
+    editHistory:editId?(()=>{
+      const existing=reports.find(r=>r.id===editId);
+      const prev=existing?existing.editHistory||[]:[]; 
+      if(existing&&existing.status==='sent'){
+        prev.push({editedAt:new Date().toISOString(),editedBy:user.erp});
+      }
+      return prev;
+    })():[],
     id:editId||(()=>{
       const shifts=getSelectedShifts().join('');
       const dt=document.getElementById('f_date')?.value||new Date().getDate();
@@ -1242,7 +1251,7 @@ async function syncPending(){
       const res=await fetch(url,{
         method:'POST',
         headers:{'Content-Type':'text/plain'},
-        body:JSON.stringify({...item.data,reportId:item.id})
+        body:JSON.stringify({...item.data,reportId:item.id,editHistory:JSON.stringify(item.data.editHistory||[])})
       });
       if(res.ok){
         syncQueue=syncQueue.filter(q=>q.id!==item.id);
@@ -1531,7 +1540,7 @@ function toast(msg){
 
 // ════════ INIT ════════
 window.addEventListener('load',()=>{
-  if(!localStorage.getItem('sw_sheet_url')) localStorage.setItem('sw_sheet_url','https://script.google.com/macros/s/AKfycbxb9KV-1QxMWmEw5Wpe-huMA3Fr4f89k8HTxhtwr4G-cYwOEldMsD_ZnVQcyspiRq0/exec');
+  if(!localStorage.getItem('sw_sheet_url')) localStorage.setItem('sw_sheet_url','https://script.google.com/macros/s/AKfycbwqbg3UIvFOLtZS54BvQymdx_OjAkJ_gc8q9fSybqL6Rbw7QM8qE3_kY13hKUoCMqX8/exec');
   // Show install instructions after 2 seconds always
   setTimeout(()=>{
     // Check if already installed (standalone mode)
@@ -1549,7 +1558,7 @@ window.addEventListener('load',()=>{
   },2000);
   // Pre-set Google Sheet URL if not already set
   if(!localStorage.getItem('sw_sheet_url')){
-    localStorage.setItem('sw_sheet_url','https://script.google.com/macros/s/AKfycbxb9KV-1QxMWmEw5Wpe-huMA3Fr4f89k8HTxhtwr4G-cYwOEldMsD_ZnVQcyspiRq0/exec');
+    localStorage.setItem('sw_sheet_url','https://script.google.com/macros/s/AKfycbwqbg3UIvFOLtZS54BvQymdx_OjAkJ_gc8q9fSybqL6Rbw7QM8qE3_kY13hKUoCMqX8/exec');
   }
   user = JSON.parse(localStorage.getItem('sw_user')||'null');
   if(user){ try{loadRemSettings();}catch(e){} initHome(); goScreen('s_home'); }

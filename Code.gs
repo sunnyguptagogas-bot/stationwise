@@ -69,7 +69,7 @@ function doPost(e) {
       'Prev Cash','Total Sales Amt','Card Sale','Paytm',
       'Free Sales Amt','Cash Sale Amt','Bank Deposit','Cash In Hand',
       'Dip Reading','Stock Ltrs','DG Open','DG Close','DG Hours',
-      'Comments','Photo URL','Report ID','Status'
+      'Comments','Photo URL','Report ID','Status','Edit History'
     ]);
 
     const reportId = data.reportId || data.id || '';
@@ -92,6 +92,10 @@ function doPost(e) {
         if (reportId && rowId === reportId) {
           sheet.getRange(i+2,2).setValue(new Date().toLocaleString());
           if(data.photoUrl) sheet.getRange(i+2,42).setValue(data.photoUrl);
+          // Update audit trail
+          const existingHistory = row[44]||'';
+          const newHistory = existingHistory ? existingHistory+' | Edited:'+new Date().toLocaleString()+' by '+data.erp : 'Edited:'+new Date().toLocaleString()+' by '+data.erp;
+          sheet.getRange(i+2,45).setValue(newHistory);
           lock.releaseLock();
           return jsonResponse({status:'updated', message:'Report updated (same ID)'});
         }
@@ -130,7 +134,7 @@ function doPost(e) {
       data.bankDeposit||'0.00', data.cashInHand||'0.00',
       data.dipReading||'0', data.stockLtrs||'0.00',
       data.dgOpen||'0.00', data.dgClose||'0.00', data.dgHours||'0.00',
-      data.comments||'', data.photoUrl||'', reportId, 'Synced'
+      data.comments||'', data.photoUrl||'', reportId, 'Synced', data.editHistory||''
     ]);
 
     const newRow = sheet.getLastRow();

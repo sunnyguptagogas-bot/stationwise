@@ -194,12 +194,16 @@ tr:hover td{background:#f8faf9;}
   <div class="topbar">
     <div class="topbar-logo">Station<span>Wise</span><span class="topbar-badge">Admin</span></div>
     <div class="topbar-right">
-      <span class="live-dot"></span>
+      <span class="live-dot" id="live_dot_el"></span>
       <span class="live-txt" id="live_txt">Loading…</span>
+      <span id="refresh_countdown" style="font-size:10px;color:rgba(255,255,255,0.5);margin-left:2px;"></span>
       <button class="topbar-btn outline" onclick="refreshAll()"><i class="fa-solid fa-rotate"></i></button>
       <button class="topbar-btn white" onclick="doLogout()"><i class="fa-solid fa-right-from-bracket"></i></button>
     </div>
   </div>
+
+  <!-- LIVE NOTIFICATION BAR -->
+  <div id="live_notif" style="display:none;background:#25D366;color:#fff;text-align:center;padding:8px;font-size:13px;font-weight:700;position:sticky;top:56px;z-index:99;"></div>
 
   <!-- DASHBOARD PAGE -->
   <div class="page active" id="pg_dashboard">
@@ -367,7 +371,7 @@ tr:hover td{background:#f8faf9;}
 <div class="toast" id="toast_el"></div>
 
 <script>
-const SHEET_URL='https://script.google.com/macros/s/AKfycbxb9KV-1QxMWmEw5Wpe-huMA3Fr4f89k8HTxhtwr4G-cYwOEldMsD_ZnVQcyspiRq0/exec';
+const SHEET_URL='https://script.google.com/macros/s/AKfycbwqbg3UIvFOLtZS54BvQymdx_OjAkJ_gc8q9fSybqL6Rbw7QM8qE3_kY13hKUoCMqX8/exec';
 const STATES=['Maharashtra','Gujarat','Rajasthan','Karnataka','Tamil Nadu','Uttar Pradesh','Madhya Pradesh','Goa','Punjab','Haryana','Bihar','Andhra Pradesh','Telangana','Kerala'];
 const TODAY=new Date().toDateString();
 const NOW=new Date();
@@ -858,8 +862,43 @@ function toast(msg){
   setTimeout(function(){t.classList.remove('on');},2500);
 }
 
-// Auto-refresh
-setInterval(refreshAll,2*60*1000);
+// ── REAL-TIME UPDATES ──
+let lastReportCount = 0;
+let lastRefreshTime = null;
+let refreshTimer = null;
+
+// Countdown timer display
+setInterval(()=>{
+  if(!lastRefreshTime) return;
+  const elapsed = Math.floor((Date.now()-lastRefreshTime.getTime())/1000);
+  const remaining = Math.max(0, 30-elapsed);
+  const el = document.getElementById('refresh_countdown');
+  if(el) el.textContent = '('+remaining+'s)';
+}, 1000);
+
+function startAutoRefresh(){
+  if(refreshTimer) clearInterval(refreshTimer);
+  refreshTimer = setInterval(async()=>{
+    const prevCount = allReports.filter(r=>r['Timestamp']&&new Date(r['Timestamp']).toDateString()===new Date().toDateString()).length;
+    await refreshAll();
+    const newCount = allReports.filter(r=>r['Timestamp']&&new Date(r['Timestamp']).toDateString()===new Date().toDateString()).length;
+    if(newCount > prevCount){
+      const diff = newCount - prevCount;
+      showLiveNotification(diff+' new report'+(diff>1?'s':'')+' received!');
+    }
+    lastRefreshTime = new Date();
+  }, 30000);
+}
+
+function showLiveNotification(msg){
+  const n = document.getElementById('live_notif');
+  if(!n) return;
+  n.textContent = '🔔 '+msg;
+  n.style.display = 'block';
+  setTimeout(()=>{ n.style.display='none'; }, 5000);
+}
+
+startAutoRefresh();
 </script>
 </body>
 </html>
