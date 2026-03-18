@@ -1087,7 +1087,13 @@ function buildData(status){
   const shifts=getSelectedShifts();
   const now=new Date();
   return{
-    id:editId||'r'+Date.now(),
+    id:editId||(()=>{
+      const shifts=getSelectedShifts().join('');
+      const dt=document.getElementById('f_date')?.value||new Date().getDate();
+      const mon=document.getElementById('fd_month')?.textContent||'';
+      const yr=document.getElementById('fd_year')?.textContent||new Date().getFullYear();
+      return user.erp+'_'+dt+'_'+mon+'_'+yr+'_S'+shifts;
+    })(),
     erp:user.erp,stationName:user.station,state:user.state,ssName:user.name,
     shift:shifts.join('+'),date:gt('f_date'),
     month:document.getElementById('fd_month').textContent,
