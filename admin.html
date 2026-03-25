@@ -13,6 +13,7 @@
 <title>StationWise Admin</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F2F5;color:#111B21;min-height:100vh;}
@@ -29,6 +30,13 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F2F5;color:#111B21;mi
 .login-btn{width:100%;padding:14px;background:#075E54;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;}
 .login-btn:active{background:#128C7E;}
 .login-err{background:#FFF0EF;color:#FF3B30;border-radius:8px;padding:10px;font-size:13px;font-weight:600;margin-bottom:12px;display:none;}
+.role-select-row{display:flex;gap:8px;margin-bottom:14px;}
+.role-btn{flex:1;padding:10px 6px;border-radius:8px;font-size:12px;font-weight:700;border:2px solid #E9EDEF;background:#fafafa;cursor:pointer;font-family:inherit;color:#54656F;transition:all 0.2s;}
+.role-btn.sel{border-color:#075E54;background:#075E54;color:#fff;}
+.role-badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:6px;vertical-align:middle;}
+.role-badge.super{background:#E7F8EE;color:#25D366;}
+.role-badge.state{background:#FFF8E7;color:#FF8C00;}
+.role-badge.view{background:#E8F4FC;color:#0088CC;}
 
 /* APP */
 #app{display:none;min-height:100vh;padding-bottom:70px;}
@@ -44,6 +52,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F2F5;color:#111B21;mi
 .topbar-btn.white{background:#fff;color:#25D366;}
 .live-dot{width:8px;height:8px;border-radius:50%;background:#a8e6c0;display:inline-block;}
 .live-txt{font-size:11px;color:rgba(255,255,255,0.8);}
+.role-pill{font-size:10px;font-weight:700;padding:3px 9px;border-radius:10px;background:rgba(255,255,255,0.2);color:#fff;}
 
 /* BOTTOM NAV */
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #E9EDEF;display:flex;z-index:100;box-shadow:0 -2px 10px rgba(0,0,0,0.08);}
@@ -51,6 +60,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F2F5;color:#111B21;mi
 .bn-item i{font-size:18px;}
 .bn-item.active{color:#25D366;}
 .bn-item.active i{color:#25D366;}
+.bn-item.hidden{display:none;}
 
 /* PAGES */
 .page{display:none;padding:14px;}
@@ -99,6 +109,7 @@ tr:hover td{background:#f8faf9;}
 .pill{display:inline-block;font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;}
 .pill.ok{background:#E7F8EE;color:#25D366;}
 .pill.miss{background:#FFF0EF;color:#FF3B30;}
+.pill.late{background:#FFF8E7;color:#FF8C00;}
 .erp{font-family:'Courier New',monospace;font-size:11px;background:#E7F8EE;color:#25D366;padding:2px 7px;border-radius:5px;font-weight:700;}
 .time{font-family:'Courier New',monospace;font-size:11px;color:#54656F;}
 .action-btn{padding:5px 8px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;border:none;font-family:inherit;margin:1px;}
@@ -133,7 +144,7 @@ tr:hover td{background:#f8faf9;}
 
 /* EXPORT CARDS */
 .export-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.export-card{background:#fff;border:1px solid #E9EDEF;border-radius:12px;padding:20px;text-align:center;cursor:pointer;active:scale(0.98);}
+.export-card{background:#fff;border:1px solid #E9EDEF;border-radius:12px;padding:20px;text-align:center;cursor:pointer;}
 .export-card:active{background:#F0F2F5;}
 .export-icon{font-size:32px;margin-bottom:8px;}
 .export-title{font-size:13px;font-weight:700;margin-bottom:4px;}
@@ -163,6 +174,55 @@ tr:hover td{background:#f8faf9;}
 /* DATE FILTER */
 .date-row{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
 .date-row select{padding:8px 12px;border:1px solid #E9EDEF;border-radius:8px;font-size:13px;background:#fff;outline:none;font-family:inherit;}
+
+/* ── ANALYTICS ── */
+.analytics-tabs{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:2px;}
+.atab{padding:8px 16px;border-radius:20px;font-size:12px;font-weight:700;border:2px solid #E9EDEF;background:#fff;cursor:pointer;font-family:inherit;color:#54656F;white-space:nowrap;}
+.atab.active{background:#075E54;color:#fff;border-color:#075E54;}
+.analytics-section{display:none;}
+.analytics-section.active{display:block;}
+.chart-card{background:#fff;border:1px solid #E9EDEF;border-radius:12px;padding:16px;margin-bottom:14px;}
+.chart-title{font-size:13px;font-weight:700;margin-bottom:12px;color:#111B21;}
+.chart-wrap{position:relative;height:220px;}
+.compliance-bar{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.cb-label{font-size:12px;font-weight:600;min-width:100px;color:#111B21;}
+.cb-track{flex:1;height:20px;background:#E9EDEF;border-radius:10px;overflow:hidden;}
+.cb-fill{height:100%;border-radius:10px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;font-size:10px;font-weight:700;color:#fff;transition:width 0.5s;}
+.rank-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #E9EDEF;}
+.rank-item:last-child{border-bottom:none;}
+.rank-num{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;}
+.rank-num.gold{background:#FFD700;color:#7A5800;}
+.rank-num.silver{background:#C0C0C0;color:#444;}
+.rank-num.bronze{background:#CD7F32;color:#fff;}
+.rank-num.bad{background:#FFF0EF;color:#FF3B30;}
+.rank-num.plain{background:#F0F2F5;color:#54656F;}
+.rank-info{flex:1;}
+.rank-name{font-size:13px;font-weight:700;}
+.rank-sub{font-size:11px;color:#8696A0;margin-top:1px;}
+.rank-val{font-size:13px;font-weight:800;font-family:'Courier New',monospace;}
+
+/* ── TIME TRACKER ── */
+.time-legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px;}
+.tleg{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#54656F;}
+.tleg-dot{width:10px;height:10px;border-radius:50%;}
+.time-chip{display:inline-block;font-size:11px;font-weight:700;font-family:'Courier New',monospace;padding:2px 8px;border-radius:8px;}
+.time-chip.early{background:#E7F8EE;color:#25D366;}
+.time-chip.normal{background:#E8F4FC;color:#0088CC;}
+.time-chip.late{background:#FFF8E7;color:#FF8C00;}
+.time-chip.very-late{background:#FFF0EF;color:#FF3B30;}
+.time-chip.none{background:#F0F2F5;color:#8696A0;}
+
+/* ── ROLE ADMIN ── */
+.admin-users-grid{display:grid;gap:10px;margin-bottom:14px;}
+.admin-user-card{background:#fff;border:1px solid #E9EDEF;border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px;}
+.auc-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;flex-shrink:0;}
+.auc-info{flex:1;}
+.auc-name{font-size:14px;font-weight:700;}
+.auc-sub{font-size:11px;color:#8696A0;margin-top:2px;}
+.auc-actions{display:flex;gap:6px;}
+
+.info-banner{background:#E7F8EE;border:1px solid rgba(37,211,102,0.3);border-radius:10px;padding:12px;font-size:12px;color:#25D366;font-weight:600;margin-bottom:14px;}
+.warn-banner{background:#FFF8E7;border:1px solid rgba(255,140,0,0.3);border-radius:10px;padding:12px;font-size:12px;color:#FF8C00;font-weight:600;margin-bottom:14px;}
 </style>
 </head>
 <body>
@@ -182,9 +242,23 @@ tr:hover td{background:#f8faf9;}
     <div class="login-title">StationWise <span>Admin</span></div>
     <div class="login-sub">GoGas · Secure Admin Panel</div>
     <div id="login_err" class="login-err">Wrong password. Please try again.</div>
+    <div style="margin-bottom:10px;text-align:left;">
+      <div style="font-size:10px;font-weight:700;color:#8696A0;text-transform:uppercase;margin-bottom:6px;">Login as</div>
+      <div class="role-select-row">
+        <button class="role-btn sel" onclick="selectLoginRole('super')" id="rb_super">Super Admin</button>
+        <button class="role-btn" onclick="selectLoginRole('state')" id="rb_state">State Admin</button>
+        <button class="role-btn" onclick="selectLoginRole('view')" id="rb_view">View Only</button>
+      </div>
+      <div id="state_login_row" style="display:none;margin-bottom:10px;">
+        <div style="font-size:10px;font-weight:700;color:#8696A0;text-transform:uppercase;margin-bottom:4px;">Your State</div>
+        <select id="login_state_sel" class="login-input" style="margin-bottom:0;padding:10px 14px;">
+          <option value="">Select state…</option>
+        </select>
+      </div>
+    </div>
     <input class="login-input" id="pwd_input" type="password" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()"/>
     <button class="login-btn" onclick="doLogin()"><i class="fa-solid fa-arrow-right-to-bracket"></i> Login to Admin Panel</button>
-    <div style="margin-top:12px;font-size:11px;color:#8696A0;">Default: GoGas2026</div>
+    <div style="margin-top:10px;font-size:11px;color:#8696A0;">Super: GoGas2026 · State/View: set in Users page</div>
   </div>
 </div>
 
@@ -194,6 +268,7 @@ tr:hover td{background:#f8faf9;}
   <div class="topbar">
     <div class="topbar-logo">Station<span>Wise</span><span class="topbar-badge">Admin</span></div>
     <div class="topbar-right">
+      <span class="role-pill" id="role_pill_el">Super</span>
       <span class="live-dot" id="live_dot_el"></span>
       <span class="live-txt" id="live_txt">Loading…</span>
       <span id="refresh_countdown" style="font-size:10px;color:rgba(255,255,255,0.5);margin-left:2px;"></span>
@@ -223,9 +298,10 @@ tr:hover td{background:#f8faf9;}
       <div class="stat-card red"><div class="stat-val" style="color:#FF3B30" id="s_over">0</div><div class="stat-lbl">Overdue >4hrs</div><div class="stat-sub" style="color:#FF3B30">Need alert</div></div>
       <div class="stat-card blue"><div class="stat-val" style="color:#0088CC" id="s_states">0</div><div class="stat-lbl">States Active</div><div class="stat-sub" style="color:#0088CC" id="s_states_sub">of 7</div></div>
     </div>
+    <div id="state_banner" class="info-banner" style="display:none;"></div>
     <div class="sec-head">
       <div class="sec-title">State-wise Status</div>
-      <button class="bulk-btn" onclick="alertAll()"><i class="fa-solid fa-bell"></i> Alert All</button>
+      <button class="bulk-btn" id="alert_all_btn" onclick="alertAll()"><i class="fa-solid fa-bell"></i> Alert All</button>
     </div>
     <div id="state_grid"></div>
     <!-- SS Detail -->
@@ -233,7 +309,7 @@ tr:hover td{background:#f8faf9;}
       <div class="back-btn" onclick="closeSSDetail()"><i class="fa-solid fa-arrow-left"></i> Back</div>
       <div class="sec-head">
         <div class="sec-title" id="ss_detail_title">Stations</div>
-        <button class="bulk-btn" onclick="alertState()"><i class="fa-solid fa-bell"></i> Alert State</button>
+        <button class="bulk-btn" id="alert_state_btn" onclick="alertState()"><i class="fa-solid fa-bell"></i> Alert State</button>
       </div>
       <div class="table-wrap">
         <div class="table-head"><span class="table-title" id="ss_detail_count"></span></div>
@@ -246,7 +322,7 @@ tr:hover td{background:#f8faf9;}
   <div class="page" id="pg_stations">
     <div class="sec-head" style="margin-bottom:10px;">
       <div class="sec-title">All Stations</div>
-      <button class="bulk-btn" onclick="alertAll()"><i class="fa-solid fa-bell"></i> Alert All</button>
+      <button class="bulk-btn" id="alert_all_btn2" onclick="alertAll()"><i class="fa-solid fa-bell"></i> Alert All</button>
     </div>
     <div class="filter-bar">
       <select id="state_filter" onchange="renderStations()"><option value="">All States</option></select>
@@ -262,7 +338,7 @@ tr:hover td{background:#f8faf9;}
   <div class="page" id="pg_reports">
     <div class="sec-head" style="margin-bottom:10px;">
       <div class="sec-title">All Reports</div>
-      <button class="green-btn" onclick="doExcel()"><i class="fa-solid fa-file-excel"></i> Excel</button>
+      <button class="green-btn" id="excel_btn" onclick="doExcel()"><i class="fa-solid fa-file-excel"></i> Excel</button>
     </div>
     <div class="filter-bar">
       <input type="date" id="rep_date" onchange="renderReports()"/>
@@ -274,11 +350,133 @@ tr:hover td{background:#f8faf9;}
     </div>
   </div>
 
+  <!-- ANALYTICS PAGE -->
+  <div class="page" id="pg_analytics">
+    <div class="sec-head" style="margin-bottom:12px;">
+      <div class="sec-title">Analytics</div>
+      <div style="font-size:11px;color:#8696A0;" id="analytics_range_lbl">Last 30 days</div>
+    </div>
+    <div class="analytics-tabs">
+      <button class="atab active" onclick="showAtab('compliance')">Compliance</button>
+      <button class="atab" onclick="showAtab('trends')">Trends</button>
+      <button class="atab" onclick="showAtab('time')">Submit Time</button>
+      <button class="atab" onclick="showAtab('rankings')">Rankings</button>
+    </div>
+
+    <!-- COMPLIANCE TAB -->
+    <div class="analytics-section active" id="atab_compliance">
+      <div class="stats-grid" style="margin-bottom:14px;">
+        <div class="stat-card"><div class="stat-val" id="an_overall_pct">0%</div><div class="stat-lbl">Overall Compliance</div><div class="stat-sub" id="an_overall_sub">30 days</div></div>
+        <div class="stat-card amber"><div class="stat-val" style="color:#FF8C00" id="an_avg_time">—</div><div class="stat-lbl">Avg Submit Time</div><div class="stat-sub" style="color:#FF8C00">All stations</div></div>
+        <div class="stat-card red"><div class="stat-val" style="color:#FF3B30" id="an_late_pct">0%</div><div class="stat-lbl">Late Submissions</div><div class="stat-sub" style="color:#FF3B30">After 12:00 PM</div></div>
+        <div class="stat-card blue"><div class="stat-val" style="color:#0088CC" id="an_best_state">—</div><div class="stat-lbl">Best State</div><div class="stat-sub" style="color:#0088CC">Highest compliance</div></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">State-wise Compliance %</div>
+        <div id="compliance_bars"></div>
+      </div>
+    </div>
+
+    <!-- TRENDS TAB -->
+    <div class="analytics-section" id="atab_trends">
+      <div class="chart-card">
+        <div class="chart-title">Daily Submissions — Last 14 Days</div>
+        <div class="chart-wrap"><canvas id="trend_chart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Shift-wise Breakdown</div>
+        <div class="chart-wrap" style="height:180px;"><canvas id="shift_chart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- SUBMIT TIME TAB -->
+    <div class="analytics-section" id="atab_time">
+      <div class="time-legend">
+        <div class="tleg"><div class="tleg-dot" style="background:#25D366;"></div>Early (before 9 AM)</div>
+        <div class="tleg"><div class="tleg-dot" style="background:#0088CC;"></div>On-time (9 AM–12 PM)</div>
+        <div class="tleg"><div class="tleg-dot" style="background:#FF8C00;"></div>Late (12–5 PM)</div>
+        <div class="tleg"><div class="tleg-dot" style="background:#FF3B30;"></div>Very Late (after 5 PM)</div>
+      </div>
+      <div class="filter-bar" style="margin-bottom:10px;">
+        <select id="time_state_f" onchange="renderTimeTracker()"><option value="">All States</option></select>
+        <select id="time_sort_f" onchange="renderTimeTracker()">
+          <option value="avg">Sort: Avg Time</option>
+          <option value="late">Sort: Late Count</option>
+          <option value="name">Sort: Name</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <div class="table-head"><span class="table-title" id="time_count">0 stations</span></div>
+        <div class="tbl-scroll">
+          <table><thead><tr><th>#</th><th>Station</th><th>State</th><th>Avg Time</th><th>Early</th><th>On-time</th><th>Late</th><th>V.Late</th><th>Trend</th></tr></thead>
+          <tbody id="time_tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- RANKINGS TAB -->
+    <div class="analytics-section" id="atab_rankings">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="chart-card">
+          <div class="chart-title">🏆 Best Stations</div>
+          <div id="best_list"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">⚠️ Need Attention</div>
+          <div id="worst_list"></div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Consistently Late Stations (flagged)</div>
+        <div id="late_flags"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- USERS PAGE -->
   <div class="page" id="pg_users">
+    <!-- ADMIN ROLES SECTION (Super only) -->
+    <div id="admin_roles_section" style="display:none;">
+      <div class="sec-head" style="margin-bottom:10px;">
+        <div class="sec-title">Admin Accounts</div>
+        <button class="green-btn" onclick="showAddAdmin()"><i class="fa-solid fa-plus"></i> Add Admin</button>
+      </div>
+      <div id="admin_form_wrap" style="display:none;">
+        <div class="form-card">
+          <div class="form-card-title" id="admin_form_title">Add Admin Account</div>
+          <div class="form-row">
+            <div class="form-field"><label>Name *</label><input id="af_name" placeholder="Admin name"/></div>
+            <div class="form-field"><label>Role *</label>
+              <select id="af_role" onchange="toggleAdminStateField()">
+                <option value="super">Super Admin</option>
+                <option value="state">State Admin</option>
+                <option value="view">View Only</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row" id="af_state_row" style="display:none;">
+            <div class="form-field"><label>State (for State Admin)</label>
+              <select id="af_state"><option value="">Select…</option></select>
+            </div>
+            <div class="form-field"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-field"><label>Password *</label><input id="af_pwd" placeholder="Password"/></div>
+            <div class="form-field"></div>
+          </div>
+          <div class="btn-row">
+            <button class="green-btn" onclick="saveAdmin()"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+            <button class="ghost-btn" onclick="hideAddAdmin()">Cancel</button>
+          </div>
+        </div>
+      </div>
+      <div class="admin-users-grid" id="admin_users_list"></div>
+      <div style="height:1px;background:#E9EDEF;margin:14px 0;"></div>
+    </div>
+
     <div class="sec-head" style="margin-bottom:10px;">
-      <div class="sec-title">User Management</div>
-      <button class="green-btn" onclick="showAddUser()"><i class="fa-solid fa-plus"></i> Add SS</button>
+      <div class="sec-title">SS Accounts</div>
+      <button class="green-btn" id="add_ss_btn" onclick="showAddUser()"><i class="fa-solid fa-plus"></i> Add SS</button>
     </div>
     <div class="stats-badges">
       <div class="badge-card"><div class="badge-val" id="u_total">0</div><div class="badge-lbl">Total</div></div>
@@ -314,8 +512,8 @@ tr:hover td{background:#f8faf9;}
         <button class="ghost-btn" onclick="hideAddUser()">Cancel</button>
       </div>
     </div>
-    <!-- ADMIN PWD -->
-    <div class="form-card">
+    <!-- ADMIN PWD (Super only) -->
+    <div class="form-card" id="admin_pwd_section">
       <div class="form-card-title"><i class="fa-solid fa-lock"></i> Change Admin Password</div>
       <div style="display:flex;gap:8px;">
         <input id="new_admin_pwd" type="password" placeholder="New password" class="login-input" style="margin:0;flex:1;padding:10px 12px;"/>
@@ -350,8 +548,8 @@ tr:hover td{background:#f8faf9;}
     <button class="bn-item active" id="bn_dashboard" onclick="showPage('dashboard')"><i class="fa-solid fa-chart-pie"></i><span>Dashboard</span></button>
     <button class="bn-item" id="bn_stations" onclick="showPage('stations')"><i class="fa-solid fa-gas-pump"></i><span>Stations</span></button>
     <button class="bn-item" id="bn_reports" onclick="showPage('reports')"><i class="fa-solid fa-file-lines"></i><span>Reports</span></button>
+    <button class="bn-item" id="bn_analytics" onclick="showPage('analytics')"><i class="fa-solid fa-chart-line"></i><span>Analytics</span></button>
     <button class="bn-item" id="bn_users" onclick="showPage('users')"><i class="fa-solid fa-users"></i><span>Users</span></button>
-    <button class="bn-item" id="bn_export" onclick="showPage('export')"><i class="fa-solid fa-download"></i><span>Export</span></button>
   </div>
 </div>
 
@@ -371,7 +569,7 @@ tr:hover td{background:#f8faf9;}
 <div class="toast" id="toast_el"></div>
 
 <script>
-const SHEET_URL='https://script.google.com/macros/s/AKfycbwqbg3UIvFOLtZS54BvQymdx_OjAkJ_gc8q9fSybqL6Rbw7QM8qE3_kY13hKUoCMqX8/exec';
+const SHEET_URL='https://script.google.com/macros/s/AKfycbwHwXtXLa5vZ9z2fPOwcgBlAxpCZPHmXB5hRkEaoAI88cqeZqEENz-eBljYMAwVeOkF/exec';
 const STATES=['Maharashtra','Gujarat','Rajasthan','Karnataka','Tamil Nadu','Uttar Pradesh','Madhya Pradesh','Goa','Punjab','Haryana','Bihar','Andhra Pradesh','Telangana','Kerala'];
 const TODAY=new Date().toDateString();
 const NOW=new Date();
@@ -379,6 +577,24 @@ let allReports=[];
 let selectedState=null;
 let alertMsg='';
 let editErp=null;
+let editAdminId=null;
+let trendChart=null;
+let shiftChart=null;
+let currentAtab='compliance';
+
+// ─────────────────────────────────────────────
+// ROLE SYSTEM
+// ─────────────────────────────────────────────
+// currentRole: 'super' | 'state' | 'view'
+// currentStateScope: string (for state admins)
+let currentRole='super';
+let currentStateScope='';
+
+let adminAccounts=JSON.parse(localStorage.getItem('sw_admin_accounts')||'null')||[
+  {id:'super_main',name:'Super Admin',role:'super',state:'',password:'GoGas2026'}
+];
+function saveAdminAccounts(){localStorage.setItem('sw_admin_accounts',JSON.stringify(adminAccounts));}
+
 let ssCreds=JSON.parse(localStorage.getItem('sw_creds')||'null')||{
   'AY001':{name:'Rajesh Kumar',station:'Sangamner GoGas',state:'Maharashtra',password:'SW@1234',mobile:'9145024049',blocked:false},
   'AY002':{name:'Priya Patil',station:'Nashik GoGas',state:'Maharashtra',password:'SW@1234',mobile:'',blocked:false},
@@ -388,27 +604,51 @@ let ssCreds=JSON.parse(localStorage.getItem('sw_creds')||'null')||{
   'TN001':{name:'Meena Devi',station:'Chennai GoGas',state:'Tamil Nadu',password:'SW@1234',mobile:'',blocked:false},
 };
 
-// ── LOGIN ──
+// ─────────────────────────────────────────────
+// LOGIN
+// ─────────────────────────────────────────────
+let loginRoleChoice='super';
+
+function selectLoginRole(r){
+  loginRoleChoice=r;
+  ['super','state','view'].forEach(function(x){document.getElementById('rb_'+x).classList.toggle('sel',x===r);});
+  document.getElementById('state_login_row').style.display=(r==='state')?'block':'none';
+  document.getElementById('pwd_input').placeholder=r==='super'?'Super Admin password':'Password';
+}
+
 function doLogin(){
   const pwd=document.getElementById('pwd_input').value.trim();
-  const stored=localStorage.getItem('sw_admin_pwd')||'GoGas2026';
   const err=document.getElementById('login_err');
-  if(pwd===stored){
-    document.getElementById('login_wrap').style.display='none';
-    document.getElementById('app').style.display='block';
-    localStorage.setItem('sw_admin_ok','1');
-    initFilters();refreshAll();
-  } else {
-    err.style.display='block';
-    document.getElementById('pwd_input').value='';
-    document.getElementById('pwd_input').focus();
+  err.style.display='none';
+  let matched=null;
+  for(const ac of adminAccounts){
+    if(ac.role===loginRoleChoice && ac.password===pwd){
+      if(loginRoleChoice==='state'){
+        const sel=document.getElementById('login_state_sel').value;
+        if(!sel){err.textContent='Please select your state.';err.style.display='block';return;}
+        if(ac.state && ac.state!==sel){continue;}
+      }
+      matched=ac;break;
+    }
   }
+  if(!matched){err.textContent='Wrong password. Please try again.';err.style.display='block';document.getElementById('pwd_input').value='';document.getElementById('pwd_input').focus();return;}
+  currentRole=matched.role;
+  currentStateScope=(matched.role==='state')?(matched.state||document.getElementById('login_state_sel').value):'';
+  localStorage.setItem('sw_admin_ok','1');
+  localStorage.setItem('sw_admin_role',currentRole);
+  localStorage.setItem('sw_admin_scope',currentStateScope);
+  document.getElementById('login_wrap').style.display='none';
+  document.getElementById('app').style.display='block';
+  applyRoleUI();initFilters();refreshAll();
 }
 document.getElementById('pwd_input').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
 
 function doLogout(){
   if(!confirm('Logout?'))return;
   localStorage.removeItem('sw_admin_ok');
+  localStorage.removeItem('sw_admin_role');
+  localStorage.removeItem('sw_admin_scope');
+  currentRole='super';currentStateScope='';
   document.getElementById('login_wrap').style.display='flex';
   document.getElementById('app').style.display='none';
   document.getElementById('pwd_input').value='';
@@ -417,22 +657,166 @@ function doLogout(){
 function changeAdminPwd(){
   const p=document.getElementById('new_admin_pwd').value.trim();
   if(!p||p.length<4){toast('Min 4 characters');return;}
-  localStorage.setItem('sw_admin_pwd',p);
+  const idx=adminAccounts.findIndex(function(a){return a.id==='super_main';});
+  if(idx>=0)adminAccounts[idx].password=p;
+  saveAdminAccounts();
   document.getElementById('new_admin_pwd').value='';
   toast('Password updated ✓');
 }
 
 window.addEventListener('load',function(){
+  // populate login state dropdown
+  STATES.forEach(function(s){
+    const o=document.createElement('option');o.value=s;o.textContent=s;
+    document.getElementById('login_state_sel').appendChild(o);
+  });
   if(localStorage.getItem('sw_admin_ok')==='1'){
+    currentRole=localStorage.getItem('sw_admin_role')||'super';
+    currentStateScope=localStorage.getItem('sw_admin_scope')||'';
     document.getElementById('login_wrap').style.display='none';
     document.getElementById('app').style.display='block';
-    initFilters();refreshAll();
+    applyRoleUI();initFilters();refreshAll();
   } else {
     setTimeout(function(){document.getElementById('pwd_input').focus();},200);
   }
 });
 
-// ── NAV ──
+// ─────────────────────────────────────────────
+// ROLE UI RESTRICTIONS
+// ─────────────────────────────────────────────
+function applyRoleUI(){
+  const isSuper=currentRole==='super';
+  const isView=currentRole==='view';
+  const isState=currentRole==='state';
+
+  // Role pill in topbar
+  const pillEl=document.getElementById('role_pill_el');
+  if(pillEl){
+    pillEl.textContent=isSuper?'Super':isState?'State':'View';
+    pillEl.style.background=isSuper?'rgba(37,211,102,0.3)':isState?'rgba(255,140,0,0.3)':'rgba(0,136,204,0.3)';
+  }
+
+  // Alert buttons hidden for view-only
+  ['alert_all_btn','alert_all_btn2','alert_state_btn'].forEach(function(id){
+    const el=document.getElementById(id);
+    if(el)el.style.display=isView?'none':'';
+  });
+
+  // Export hidden for view-only
+  const eb=document.getElementById('excel_btn');
+  if(eb)eb.style.display=isView?'none':'';
+
+  // Users page: hide add SS + admin roles for non-super
+  const addSSBtn=document.getElementById('add_ss_btn');
+  if(addSSBtn)addSSBtn.style.display=isSuper?'':'none';
+  const adminRolesSection=document.getElementById('admin_roles_section');
+  if(adminRolesSection)adminRolesSection.style.display=isSuper?'block':'none';
+  const adminPwdSection=document.getElementById('admin_pwd_section');
+  if(adminPwdSection)adminPwdSection.style.display=isSuper?'block':'none';
+
+  // Export nav for view-only: hide
+  // (keep it accessible but export cards hidden)
+
+  // State banner
+  const banner=document.getElementById('state_banner');
+  if(banner){
+    if(isState && currentStateScope){
+      banner.style.display='block';
+      banner.textContent='You are viewing data for '+currentStateScope+' only.';
+    } else if(isView){
+      banner.style.display='block';
+      banner.textContent='View Only mode — alerts and exports are disabled.';
+      banner.style.background='#E8F4FC';banner.style.color='#0088CC';banner.style.borderColor='rgba(0,136,204,0.3)';
+    } else {
+      banner.style.display='none';
+    }
+  }
+
+  renderAdminUsers();
+}
+
+// ─────────────────────────────────────────────
+// ADMIN ACCOUNTS MANAGEMENT (Super only)
+// ─────────────────────────────────────────────
+function renderAdminUsers(){
+  const list=document.getElementById('admin_users_list');
+  if(!list)return;
+  list.innerHTML=adminAccounts.map(function(ac){
+    const roleColors={super:'#25D366',state:'#FF8C00',view:'#0088CC'};
+    const roleLabels={super:'Super Admin',state:'State Admin',view:'View Only'};
+    const avatarColors={super:'#E7F8EE',state:'#FFF8E7',view:'#E8F4FC'};
+    const initials=ac.name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
+    return '<div class="admin-user-card">'+
+      '<div class="auc-avatar" style="background:'+avatarColors[ac.role]+';color:'+roleColors[ac.role]+';">'+initials+'</div>'+
+      '<div class="auc-info">'+
+        '<div class="auc-name">'+ac.name+'<span class="role-badge '+ac.role+'" style="background:'+avatarColors[ac.role]+';color:'+roleColors[ac.role]+';">'+roleLabels[ac.role]+'</span></div>'+
+        '<div class="auc-sub">'+(ac.state?ac.state:'All States')+'</div>'+
+      '</div>'+
+      '<div class="auc-actions">'+
+        (ac.id!=='super_main'?'<button class="action-btn bl" onclick="editAdmin(\''+ac.id+'\')"><i class="fa-solid fa-pen"></i></button><button class="action-btn b" onclick="deleteAdmin(\''+ac.id+'\')"><i class="fa-solid fa-trash"></i></button>':'<span style="font-size:11px;color:#8696A0;">Protected</span>')+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+function showAddAdmin(){
+  editAdminId=null;
+  document.getElementById('admin_form_title').textContent='Add Admin Account';
+  ['af_name','af_pwd'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('af_role').value='state';
+  toggleAdminStateField();
+  // populate state select
+  const sel=document.getElementById('af_state');
+  sel.innerHTML='<option value="">Select…</option>';
+  STATES.forEach(function(s){const o=document.createElement('option');o.value=s;o.textContent=s;sel.appendChild(o);});
+  document.getElementById('admin_form_wrap').style.display='block';
+}
+
+function hideAddAdmin(){document.getElementById('admin_form_wrap').style.display='none';editAdminId=null;}
+
+function toggleAdminStateField(){
+  const role=document.getElementById('af_role').value;
+  document.getElementById('af_state_row').style.display=(role==='state')?'grid':'none';
+}
+
+function saveAdmin(){
+  const name=document.getElementById('af_name').value.trim();
+  const role=document.getElementById('af_role').value;
+  const state=role==='state'?document.getElementById('af_state').value:'';
+  const pwd=document.getElementById('af_pwd').value.trim();
+  if(!name||!pwd){toast('Fill all fields');return;}
+  if(role==='state'&&!state){toast('Select state for State Admin');return;}
+  if(editAdminId){
+    const idx=adminAccounts.findIndex(function(a){return a.id===editAdminId;});
+    if(idx>=0){adminAccounts[idx]={...adminAccounts[idx],name,role,state,password:pwd};}
+  } else {
+    adminAccounts.push({id:'adm_'+Date.now(),name,role,state,password:pwd});
+  }
+  saveAdminAccounts();renderAdminUsers();hideAddAdmin();toast('Admin saved ✓');
+}
+
+function editAdmin(id){
+  const ac=adminAccounts.find(function(a){return a.id===id;});
+  if(!ac)return;
+  editAdminId=id;
+  showAddAdmin();
+  document.getElementById('admin_form_title').textContent='Edit Admin';
+  document.getElementById('af_name').value=ac.name;
+  document.getElementById('af_role').value=ac.role;
+  document.getElementById('af_pwd').value=ac.password;
+  toggleAdminStateField();
+  if(ac.state)document.getElementById('af_state').value=ac.state;
+}
+
+function deleteAdmin(id){
+  if(!confirm('Delete this admin account?'))return;
+  adminAccounts=adminAccounts.filter(function(a){return a.id!==id;});
+  saveAdminAccounts();renderAdminUsers();toast('Admin deleted');
+}
+
+// ─────────────────────────────────────────────
+// NAV
+// ─────────────────────────────────────────────
 function showPage(name){
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
   document.querySelectorAll('.bn-item').forEach(function(b){b.classList.remove('active');});
@@ -441,9 +825,22 @@ function showPage(name){
   if(name==='users')renderUsers();
   if(name==='reports')renderReports();
   if(name==='stations')renderStations();
+  if(name==='analytics')renderAnalytics();
 }
 
-// ── DATA ──
+// ─────────────────────────────────────────────
+// SCOPE FILTER (applies state scope to reports)
+// ─────────────────────────────────────────────
+function scopeReports(reports){
+  if(currentRole==='state'&&currentStateScope){
+    return reports.filter(function(r){return r['State']===currentStateScope;});
+  }
+  return reports;
+}
+
+// ─────────────────────────────────────────────
+// DATA
+// ─────────────────────────────────────────────
 async function refreshAll(){
   document.getElementById('live_txt').textContent='Loading…';
   var demo=buildDemo();
@@ -466,9 +863,12 @@ async function refreshAll(){
   }
   document.getElementById('last_upd').textContent=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
   renderDashboard();renderStations();renderReports();
+  if(document.getElementById('pg_analytics').classList.contains('active'))renderAnalytics();
 }
 
-// ── DEMO DATA ──
+// ─────────────────────────────────────────────
+// DEMO DATA
+// ─────────────────────────────────────────────
 function buildDemo(){
   var rows=[];
   var stations=[
@@ -506,20 +906,35 @@ function buildDemo(){
     {erp:'GA001',name:'Fernandes D',station:'Panaji GoGas',state:'Goa'},
     {erp:'GA002',name:'Maria Pereira',station:'Margao GoGas',state:'Goa'},
   ];
+  // Assign deterministic but varied submit hours per station (for time tracker)
+  var submitHours={'MH001':7,'MH002':8,'MH003':9,'MH004':14,'MH005':10,'MH006':17,'MH007':8,'MH008':11,
+    'GJ001':8,'GJ002':9,'GJ003':13,'GJ004':7,'GJ005':10,'GJ006':16,
+    'RJ001':9,'RJ002':11,'RJ003':15,'RJ004':8,'RJ005':18,
+    'KA001':8,'KA002':10,'KA003':9,'KA004':14,'KA005':8,
+    'TN001':7,'TN002':9,'TN003':12,'TN004':16,
+    'UP001':10,'UP002':13,'UP003':17,
+    'GA001':8,'GA002':9};
   var submitted=new Set(['MH001','MH002','MH003','MH005','MH007','GJ001','GJ002','GJ004','GJ005','RJ001','RJ002','RJ005','KA001','KA002','KA003','KA004','TN001','TN002','UP001','GA001','GA002']);
   var now=new Date();
   stations.forEach(function(st,idx){
+    var baseH=submitHours[st.erp]||9;
     if(submitted.has(st.erp)){
-      var h=6+Math.floor(Math.random()*10);
-      var m=Math.floor(Math.random()*60);
+      var h=baseH;
+      var m=Math.floor(Math.random()*30);
       var ts=new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,m).toISOString();
       var ns=(Math.random()*600+150).toFixed(2);
       var ta=(parseFloat(ns)*80+Math.random()*5000).toFixed(2);
       rows.push({'Timestamp':ts,'ERP Code':st.erp,'Station Name':st.station,'State':st.state,'SS Name':st.name,'Shift':['1','2','1+2'][idx%3],'Date':now.getDate().toString(),'Month':now.toLocaleString('en-IN',{month:'long'}),'Year':now.getFullYear().toString(),'Net Sale (L)':ns,'Total Sales Amt':ta,'Cash In Hand':(parseFloat(ta)*0.1+500).toFixed(2),'Report ID':st.erp+'_'+now.toISOString().split('T')[0],'Status':'Synced'});
     }
-    for(var d=1;d<=7;d++){
+    for(var d=1;d<=30;d++){
       var pd=new Date();pd.setDate(pd.getDate()-d);
-      var pts=new Date(pd.getFullYear(),pd.getMonth(),pd.getDate(),8+Math.floor(Math.random()*8),Math.floor(Math.random()*60)).toISOString();
+      var varH=baseH+(d%3===0?2:d%3===1?-1:0);
+      varH=Math.max(6,Math.min(22,varH));
+      var pm=Math.floor(Math.random()*45);
+      var pts=new Date(pd.getFullYear(),pd.getMonth(),pd.getDate(),varH,pm).toISOString();
+      // Occasionally skip (to simulate non-compliance)
+      if(d===3&&['MH004','MH006','RJ003','UP003'].includes(st.erp))continue;
+      if(d===7&&['TN004','GJ003','RJ004'].includes(st.erp))continue;
       var pns=(Math.random()*600+150).toFixed(2);
       var pta=(parseFloat(pns)*80+Math.random()*5000).toFixed(2);
       rows.push({'Timestamp':pts,'ERP Code':st.erp,'Station Name':st.station,'State':st.state,'SS Name':st.name,'Shift':['1','2','3'][d%3],'Date':pd.getDate().toString(),'Month':pd.toLocaleString('en-IN',{month:'long'}),'Year':pd.getFullYear().toString(),'Net Sale (L)':pns,'Total Sales Amt':pta,'Cash In Hand':(parseFloat(pta)*0.1+500).toFixed(2),'Report ID':st.erp+'_'+pd.toISOString().split('T')[0],'Status':'Synced'});
@@ -528,10 +943,18 @@ function buildDemo(){
   return rows;
 }
 
-// ── DASHBOARD ──
-function getTodayRows(){return allReports.filter(function(r){return r['Timestamp']&&new Date(r['Timestamp']).toDateString()===TODAY;});}
-function getUniqueStations(){return Object.values(allReports.reduce(function(m,r){if(r['ERP Code']&&!m[r['ERP Code']])m[r['ERP Code']]=r;return m;},{}));}
-function getUniqueStates(){return [...new Set(allReports.map(function(r){return r['State'];}).filter(Boolean))];}
+// ─────────────────────────────────────────────
+// DASHBOARD
+// ─────────────────────────────────────────────
+function getTodayRows(){
+  return scopeReports(allReports.filter(function(r){return r['Timestamp']&&new Date(r['Timestamp']).toDateString()===TODAY;}));
+}
+function getUniqueStations(){
+  return Object.values(scopeReports(allReports).reduce(function(m,r){if(r['ERP Code']&&!m[r['ERP Code']])m[r['ERP Code']]=r;return m;},{}));
+}
+function getUniqueStates(){
+  return [...new Set(scopeReports(allReports).map(function(r){return r['State'];}).filter(Boolean))];
+}
 
 function renderDashboard(){
   var today=getTodayRows();
@@ -552,7 +975,7 @@ function renderStateGrid(){
   var states=getUniqueStates();
   var today=getTodayRows();
   document.getElementById('state_grid').innerHTML=states.map(function(state){
-    var all=allReports.filter(function(r){return r['State']===state;});
+    var all=scopeReports(allReports).filter(function(r){return r['State']===state;});
     var total=new Set(all.map(function(r){return r['ERP Code'];})).size;
     var sub=today.filter(function(r){return r['State']===state&&(r['Shift']||r['Net Sale (L)']);}).length;
     var pend=Math.max(0,total-sub);
@@ -560,6 +983,7 @@ function renderStateGrid(){
     var pctCls=pct>=80?'':pct>=50?' amber':' red';
     var barColor=pct>=80?'#25D366':pct>=50?'#FF8C00':'#FF3B30';
     var isSel=selectedState===state;
+    var canAlert=currentRole!=='view';
     return '<div class="state-card" onclick="selectState(\''+state+'\')" style="'+(isSel?'border:2px solid #25D366;':'')+'">'+
       '<div class="sc-header">'+
         '<div>'+
@@ -578,8 +1002,8 @@ function renderStateGrid(){
       '</div>'+
       '<div class="sc-footer">'+
         '<span style="font-size:11px;color:#8696A0;font-weight:600;">'+total+' stations</span>'+
-        (pend>0?'<button class="alert-btn" onclick="event.stopPropagation();openStateAlert(\''+state+'\')"><i class="fa-solid fa-bell"></i> Alert '+pend+'</button>':
-        '<span style="font-size:11px;color:#25D366;font-weight:700;"><i class="fa-solid fa-check"></i> All done!</span>')+
+        (pend>0&&canAlert?'<button class="alert-btn" onclick="event.stopPropagation();openStateAlert(\''+state+'\')"><i class="fa-solid fa-bell"></i> Alert '+pend+'</button>':
+        pend===0?'<span style="font-size:11px;color:#25D366;font-weight:700;"><i class="fa-solid fa-check"></i> All done!</span>':'<span></span>')+
       '</div>'+
     '</div>';
   }).join('');
@@ -589,20 +1013,21 @@ function selectState(state){
   selectedState=state;
   renderStateGrid();
   var today=getTodayRows().filter(function(r){return r['State']===state;});
-  var all=allReports.filter(function(r){return r['State']===state;});
+  var all=scopeReports(allReports).filter(function(r){return r['State']===state;});
   var stationMap={};
   all.forEach(function(r){if(!stationMap[r['ERP Code']])stationMap[r['ERP Code']]={erp:r['ERP Code'],name:r['SS Name'],station:r['Station Name'],state:state,sub:false,report:null};});
   today.forEach(function(r){if(stationMap[r['ERP Code']]){stationMap[r['ERP Code']].sub=true;stationMap[r['ERP Code']].report=r;}});
   var list=Object.values(stationMap);
   document.getElementById('ss_detail_title').textContent=state+' — Station Status';
   document.getElementById('ss_detail_count').textContent=list.length+' stations';
+  var canAlert=currentRole!=='view';
   document.getElementById('ss_tbody').innerHTML=list.map(function(s){
     var r=s.report;
     var time=r&&r['Timestamp']?new Date(r['Timestamp']).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}):'—';
     return '<tr><td><strong>'+s.name+'</strong></td><td><span class="erp">'+s.erp+'</span></td>'+
       '<td><span class="pill '+(s.sub?'ok':'miss')+'">'+(s.sub?'✓ Done':'✗ Pending')+'</span></td>'+
       '<td><span class="time">'+time+'</span></td>'+
-      '<td>'+((!s.sub)?'<button class="action-btn a" onclick="openAlertSS(\''+s.erp+'\',\''+s.name+'\',\''+s.station+'\',\''+state+'\')"><i class="fa-solid fa-bell"></i></button>':'—')+'</td></tr>';
+      '<td>'+((!s.sub&&canAlert)?'<button class="action-btn a" onclick="openAlertSS(\''+s.erp+'\',\''+s.name+'\',\''+s.station+'\',\''+state+'\')"><i class="fa-solid fa-bell"></i></button>':'—')+'</td></tr>';
   }).join('');
   document.getElementById('ss_detail').classList.add('open');
   document.getElementById('ss_detail').scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -614,18 +1039,21 @@ function closeSSDetail(){
   renderStateGrid();
 }
 
-// ── STATIONS ──
+// ─────────────────────────────────────────────
+// STATIONS
+// ─────────────────────────────────────────────
 function renderStations(){
   var sf=document.getElementById('state_filter').value;
   var stf=document.getElementById('status_filter').value;
   var today=getTodayRows();
   var map={};
-  allReports.forEach(function(r){if(!map[r['ERP Code']])map[r['ERP Code']]={erp:r['ERP Code'],name:r['SS Name'],station:r['Station Name'],state:r['State'],sub:false,report:null};});
+  scopeReports(allReports).forEach(function(r){if(!map[r['ERP Code']])map[r['ERP Code']]={erp:r['ERP Code'],name:r['SS Name'],station:r['Station Name'],state:r['State'],sub:false,report:null};});
   today.forEach(function(r){if(map[r['ERP Code']]){map[r['ERP Code']].sub=true;map[r['ERP Code']].report=r;}});
   var list=Object.values(map);
   if(sf)list=list.filter(function(s){return s.state===sf;});
   if(stf==='ok')list=list.filter(function(s){return s.sub;});
   if(stf==='pending')list=list.filter(function(s){return !s.sub;});
+  var canAlert=currentRole!=='view';
   document.getElementById('stations_count').textContent=list.length+' stations';
   document.getElementById('stations_tbody').innerHTML=list.map(function(s){
     var r=s.report;
@@ -635,16 +1063,18 @@ function renderStations(){
       '<td style="font-size:11px;color:#0088CC;font-weight:700;">'+s.state+'</td>'+
       '<td><span class="pill '+(s.sub?'ok':'miss')+'">'+(s.sub?'✓':'✗')+'</span></td>'+
       '<td><span class="time">'+time+'</span></td>'+
-      '<td>'+((!s.sub)?'<button class="action-btn a" onclick="openAlertSS(\''+s.erp+'\',\''+s.name+'\',\''+s.station+'\',\''+s.state+'\')"><i class="fa-solid fa-bell"></i></button>':'—')+'</td></tr>';
+      '<td>'+((!s.sub&&canAlert)?'<button class="action-btn a" onclick="openAlertSS(\''+s.erp+'\',\''+s.name+'\',\''+s.station+'\',\''+s.state+'\')"><i class="fa-solid fa-bell"></i></button>':'—')+'</td></tr>';
   }).join('');
 }
 
-// ── REPORTS ──
+// ─────────────────────────────────────────────
+// REPORTS
+// ─────────────────────────────────────────────
 function renderReports(){
   var df=document.getElementById('rep_date').value;
   var sf=document.getElementById('rep_state').value;
-  var rows=allReports.filter(function(r){return r['Shift']||r['Net Sale (L)'];});
-  if(df){var d=new Date(df);rows=rows.filter(function(r){return r['Timestamp']&&new Date(r['Timestamp']).toDateString()===d.toDateString();});}
+  var rows=scopeReports(allReports).filter(function(r){return r['Shift']||r['Net Sale (L)'];});
+  if(df){var d=new Date(df);rows=rows.filter(function(r){return r['Timestamp']&&new Date(r['Timestamp']).toDateString()===d.toDateString();})}
   if(sf)rows=rows.filter(function(r){return r['State']===sf;});
   rows.sort(function(a,b){return new Date(b['Timestamp']||0)-new Date(a['Timestamp']||0);});
   document.getElementById('rep_count').textContent=rows.length+' reports';
@@ -659,7 +1089,9 @@ function renderReports(){
   }).join('');
 }
 
-// ── USERS ──
+// ─────────────────────────────────────────────
+// USERS
+// ─────────────────────────────────────────────
 function saveCreds(){localStorage.setItem('sw_creds',JSON.stringify(ssCreds));}
 
 function renderUsers(){
@@ -667,6 +1099,8 @@ function renderUsers(){
   var sf=document.getElementById('user_state_f').value;
   var stf=document.getElementById('user_status_f').value;
   var entries=Object.entries(ssCreds);
+  // State admins see only their state's users
+  if(currentRole==='state'&&currentStateScope)entries=entries.filter(function(e){return e[1].state===currentStateScope;});
   if(search)entries=entries.filter(function(e){return (e[0]+e[1].name+e[1].station).toLowerCase().includes(search);});
   if(sf)entries=entries.filter(function(e){return e[1].state===sf;});
   if(stf==='active')entries=entries.filter(function(e){return !e[1].blocked;});
@@ -677,6 +1111,7 @@ function renderUsers(){
   document.getElementById('u_blocked').textContent=all.filter(function(c){return c.blocked;}).length;
   document.getElementById('u_states').textContent=new Set(all.map(function(c){return c.state;})).size;
   document.getElementById('users_count').textContent=entries.length+' accounts';
+  var isSuper=currentRole==='super';
   document.getElementById('users_tbody').innerHTML=entries.map(function(e){
     var erp=e[0],c=e[1];
     return '<tr style="'+(c.blocked?'opacity:0.6;':'')+'">'+
@@ -686,13 +1121,13 @@ function renderUsers(){
       '<td class="time">'+(c.mobile||'<span style="color:#FF3B30">—</span>')+'</td>'+
       '<td><span class="pill '+(c.blocked?'miss':'ok')+'">'+(c.blocked?'Blocked':'Active')+'</span></td>'+
       '<td><div style="display:flex;gap:3px;">'+
-        '<button class="action-btn bl" onclick="editUser(\''+erp+'\')" title="Edit"><i class="fa-solid fa-pen"></i></button>'+
-        '<button class="action-btn a" onclick="resetPwd(\''+erp+'\')" title="Reset PWD"><i class="fa-solid fa-key"></i></button>'+
-        (!c.blocked?'<button class="action-btn b" onclick="blockUser(\''+erp+'\',true)" title="Block"><i class="fa-solid fa-ban"></i></button>':
-                   '<button class="action-btn g" onclick="blockUser(\''+erp+'\',false)" title="Unblock"><i class="fa-solid fa-check"></i></button>')+
-        '<button class="action-btn b" onclick="deleteUser(\''+erp+'\')" title="Delete"><i class="fa-solid fa-trash"></i></button>'+
+        (isSuper?'<button class="action-btn bl" onclick="editUser(\''+erp+'\')" title="Edit"><i class="fa-solid fa-pen"></i></button>':'')  +
+        (isSuper?'<button class="action-btn a" onclick="resetPwd(\''+erp+'\')" title="Reset PWD"><i class="fa-solid fa-key"></i></button>':'')  +
+        (isSuper?(!c.blocked?'<button class="action-btn b" onclick="blockUser(\''+erp+'\',true)" title="Block"><i class="fa-solid fa-ban"></i></button>':'<button class="action-btn g" onclick="blockUser(\''+erp+'\',false)" title="Unblock"><i class="fa-solid fa-check"></i></button>'):'')  +
+        (isSuper?'<button class="action-btn b" onclick="deleteUser(\''+erp+'\')" title="Delete"><i class="fa-solid fa-trash"></i></button>':'<span style="font-size:11px;color:#8696A0;">View only</span>')+
       '</div></td></tr>';
   }).join('');
+  renderAdminUsers();
 }
 
 function showAddUser(){
@@ -704,7 +1139,6 @@ function showAddUser(){
   document.getElementById('user_form').style.display='block';
   document.getElementById('f_erp').focus();
 }
-
 function hideAddUser(){document.getElementById('user_form').style.display='none';editErp=null;}
 
 function saveUser(){
@@ -751,10 +1185,244 @@ function deleteUser(erp){
   toast('Deleted '+erp);
 }
 
-// ── ALERTS ──
+// ─────────────────────────────────────────────
+// ANALYTICS ENGINE
+// ─────────────────────────────────────────────
+function getTimeCategory(hour){
+  if(hour<9)return 'early';
+  if(hour<12)return 'normal';
+  if(hour<17)return 'late';
+  return 'very-late';
+}
+function getTimeCategoryLabel(hour){
+  return hour<9?'Early':hour<12?'On-time':hour<17?'Late':'Very Late';
+}
+function fmtHour(h,m){
+  var ampm=h>=12?'PM':'AM';
+  var hh=h>12?h-12:h===0?12:h;
+  return hh+':'+(m<10?'0':'')+m+' '+ampm;
+}
+
+// Station-level time stats from reports
+function buildStationTimeStats(){
+  var scopedAll=scopeReports(allReports);
+  var map={};
+  scopedAll.forEach(function(r){
+    var erp=r['ERP Code'];
+    if(!erp)return;
+    var ts=r['Timestamp'];
+    if(!ts)return;
+    var d=new Date(ts);
+    var h=d.getHours(),m=d.getMinutes();
+    if(!map[erp])map[erp]={erp:erp,name:r['SS Name'],station:r['Station Name'],state:r['State'],hours:[],early:0,normal:0,late:0,veryLate:0,totalMinutes:0,count:0};
+    map[erp].hours.push(h*60+m);
+    var cat=getTimeCategory(h);
+    if(cat==='early')map[erp].early++;
+    else if(cat==='normal')map[erp].normal++;
+    else if(cat==='late')map[erp].late++;
+    else map[erp].veryLate++;
+    map[erp].totalMinutes+=h*60+m;
+    map[erp].count++;
+  });
+  return Object.values(map).map(function(s){
+    s.avgMinutes=s.count>0?Math.round(s.totalMinutes/s.count):0;
+    s.avgH=Math.floor(s.avgMinutes/60);
+    s.avgM=s.avgMinutes%60;
+    s.avgLabel=s.count>0?fmtHour(s.avgH,s.avgM):'—';
+    s.lateRate=s.count>0?Math.round((s.late+s.veryLate)/s.count*100):0;
+    s.compliance=0;// filled below
+    return s;
+  });
+}
+
+function buildStateCompliance(days){
+  var scopedAll=scopeReports(allReports);
+  var cutoff=new Date();cutoff.setDate(cutoff.getDate()-days);
+  var inRange=scopedAll.filter(function(r){return r['Timestamp']&&new Date(r['Timestamp'])>=cutoff;});
+  var states=getUniqueStates();
+  return states.map(function(state){
+    var allState=scopedAll.filter(function(r){return r['State']===state;});
+    var totalStations=new Set(allState.map(function(r){return r['ERP Code'];})).size;
+    var inRangeState=inRange.filter(function(r){return r['State']===state;});
+    var submittedDays=new Set(inRangeState.map(function(r){return r['ERP Code']+'_'+r['Date']+'_'+r['Month']+'_'+r['Year'];})).size;
+    var possible=totalStations*days;
+    var pct=possible>0?Math.round(submittedDays/possible*100):0;
+    return {state:state,pct:pct,submitted:submittedDays,possible:possible,total:totalStations};
+  }).sort(function(a,b){return b.pct-a.pct;});
+}
+
+function buildDailyTrend(days){
+  var scopedAll=scopeReports(allReports);
+  var result=[];
+  for(var d=days-1;d>=0;d--){
+    var dt=new Date();dt.setDate(dt.getDate()-d);
+    var ds=dt.toDateString();
+    var count=scopedAll.filter(function(r){return r['Timestamp']&&new Date(r['Timestamp']).toDateString()===ds;}).length;
+    result.push({date:dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short'}),count:count});
+  }
+  return result;
+}
+
+function renderAnalytics(){
+  var days=30;
+  document.getElementById('analytics_range_lbl').textContent='Last '+days+' days';
+  renderComplianceTab(days);
+  renderTrendsTab();
+  renderTimeTracker();
+  renderRankingsTab(days);
+}
+
+function showAtab(name){
+  currentAtab=name;
+  document.querySelectorAll('.atab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('.analytics-section').forEach(function(s){s.classList.remove('active');});
+  event.target.classList.add('active');
+  document.getElementById('atab_'+name).classList.add('active');
+  if(name==='trends')renderTrendsTab();
+  if(name==='time')renderTimeTracker();
+  if(name==='rankings')renderRankingsTab(30);
+}
+
+function renderComplianceTab(days){
+  var comp=buildStateCompliance(days);
+  var scopedAll=scopeReports(allReports);
+  var cutoff=new Date();cutoff.setDate(cutoff.getDate()-days);
+  var inRange=scopedAll.filter(function(r){return r['Timestamp']&&new Date(r['Timestamp'])>=cutoff;});
+  // Overall
+  var totalPossible=0,totalSub=0;
+  comp.forEach(function(c){totalPossible+=c.possible;totalSub+=c.submitted;});
+  var overallPct=totalPossible>0?Math.round(totalSub/totalPossible*100):0;
+  document.getElementById('an_overall_pct').textContent=overallPct+'%';
+  document.getElementById('an_overall_sub').textContent=totalSub+' of '+totalPossible+' expected';
+  // Best state
+  document.getElementById('an_best_state').textContent=comp.length?comp[0].state.split(' ')[0]:'—';
+  // Avg submit time
+  var withTs=inRange.filter(function(r){return r['Timestamp'];});
+  var avgMin=withTs.length?Math.round(withTs.reduce(function(s,r){return s+new Date(r['Timestamp']).getHours()*60+new Date(r['Timestamp']).getMinutes();},0)/withTs.length):0;
+  document.getElementById('an_avg_time').textContent=withTs.length?fmtHour(Math.floor(avgMin/60),avgMin%60):'—';
+  // Late %
+  var lateCount=inRange.filter(function(r){return r['Timestamp']&&new Date(r['Timestamp']).getHours()>=12;}).length;
+  document.getElementById('an_late_pct').textContent=inRange.length?Math.round(lateCount/inRange.length*100)+'%':'0%';
+  // Compliance bars
+  document.getElementById('compliance_bars').innerHTML=comp.map(function(c){
+    var color=c.pct>=80?'#25D366':c.pct>=50?'#FF8C00':'#FF3B30';
+    return '<div class="compliance-bar">'+
+      '<div class="cb-label">'+c.state+'</div>'+
+      '<div class="cb-track"><div class="cb-fill" style="width:'+Math.max(c.pct,4)+'%;background:'+color+';">'+c.pct+'%</div></div>'+
+    '</div>';
+  }).join('');
+}
+
+function renderTrendsTab(){
+  var trend=buildDailyTrend(14);
+  var labels=trend.map(function(t){return t.date;});
+  var data=trend.map(function(t){return t.count;});
+  // Trend chart
+  if(trendChart)trendChart.destroy();
+  var ctx=document.getElementById('trend_chart').getContext('2d');
+  trendChart=new Chart(ctx,{
+    type:'bar',
+    data:{labels:labels,datasets:[{label:'Reports',data:data,backgroundColor:'rgba(37,211,102,0.7)',borderColor:'#25D366',borderWidth:1,borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:5}},x:{ticks:{font:{size:9}}}}}
+  });
+  // Shift chart
+  var scopedAll=scopeReports(allReports);
+  var s1=scopedAll.filter(function(r){return r['Shift']==='1';}).length;
+  var s2=scopedAll.filter(function(r){return r['Shift']==='2';}).length;
+  var s3=scopedAll.filter(function(r){return r['Shift']==='3';}).length;
+  var s12=scopedAll.filter(function(r){return r['Shift']==='1+2'||r['Shift']==='1+2+3';}).length;
+  if(shiftChart)shiftChart.destroy();
+  var ctx2=document.getElementById('shift_chart').getContext('2d');
+  shiftChart=new Chart(ctx2,{
+    type:'doughnut',
+    data:{labels:['Shift 1','Shift 2','Shift 3','Combined'],datasets:[{data:[s1,s2,s3,s12],backgroundColor:['#25D366','#0088CC','#FF8C00','#8696A0'],borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12}}}}
+  });
+}
+
+function renderTimeTracker(){
+  var tf=document.getElementById('time_state_f').value;
+  var sf=document.getElementById('time_sort_f').value;
+  var stats=buildStationTimeStats();
+  if(tf)stats=stats.filter(function(s){return s.state===tf;});
+  if(sf==='avg')stats.sort(function(a,b){return a.avgMinutes-b.avgMinutes;});
+  else if(sf==='late')stats.sort(function(a,b){return (b.late+b.veryLate)-(a.late+a.veryLate);});
+  else stats.sort(function(a,b){return a.name.localeCompare(b.name);});
+  document.getElementById('time_count').textContent=stats.length+' stations';
+  document.getElementById('time_tbody').innerHTML=stats.map(function(s,i){
+    var cat=s.count>0?getTimeCategory(s.avgH):'none';
+    var trend='';
+    var late=s.late+s.veryLate;
+    var lateRatePct=s.count>0?Math.round(late/s.count*100):0;
+    if(lateRatePct>50)trend='<span style="color:#FF3B30;font-weight:700;">↑ Often late</span>';
+    else if(s.early/Math.max(s.count,1)>0.5)trend='<span style="color:#25D366;font-weight:700;">★ Consistent</span>';
+    else trend='<span style="color:#8696A0;">Normal</span>';
+    return '<tr>'+
+      '<td style="font-weight:700;color:#8696A0;">'+(i+1)+'</td>'+
+      '<td><strong>'+s.name+'</strong><br><span style="font-size:10px;color:#8696A0;">'+s.station+'</span></td>'+
+      '<td style="font-size:11px;color:#0088CC;font-weight:700;">'+s.state+'</td>'+
+      '<td><span class="time-chip '+cat+'">'+s.avgLabel+'</span></td>'+
+      '<td style="font-family:Courier New,monospace;font-size:11px;color:#25D366;font-weight:700;">'+s.early+'</td>'+
+      '<td style="font-family:Courier New,monospace;font-size:11px;color:#0088CC;font-weight:700;">'+s.normal+'</td>'+
+      '<td style="font-family:Courier New,monospace;font-size:11px;color:#FF8C00;font-weight:700;">'+s.late+'</td>'+
+      '<td style="font-family:Courier New,monospace;font-size:11px;color:#FF3B30;font-weight:700;">'+s.veryLate+'</td>'+
+      '<td>'+trend+'</td>'+
+    '</tr>';
+  }).join('');
+}
+
+function renderRankingsTab(days){
+  var comp=buildStateCompliance(days);
+  var timeStats=buildStationTimeStats();
+  // Best: highest compliance pct + avg early time
+  var best=timeStats.filter(function(s){return s.count>0;}).sort(function(a,b){
+    var scoreA=(1-(a.late+a.veryLate)/Math.max(a.count,1))*100+a.early;
+    var scoreB=(1-(b.late+b.veryLate)/Math.max(b.count,1))*100+b.early;
+    return scoreB-scoreA;
+  }).slice(0,5);
+  var worst=timeStats.filter(function(s){return s.count>0;}).sort(function(a,b){
+    return (b.late+b.veryLate)-(a.late+a.veryLate);
+  }).slice(0,5);
+  // Late flags: >50% late rate
+  var flagged=timeStats.filter(function(s){return s.count>0&&(s.late+s.veryLate)/s.count>0.5;});
+
+  var numClass=['gold','silver','bronze','plain','plain'];
+  document.getElementById('best_list').innerHTML=best.map(function(s,i){
+    return '<div class="rank-item">'+
+      '<div class="rank-num '+numClass[i]+'">'+(i+1)+'</div>'+
+      '<div class="rank-info"><div class="rank-name">'+s.name+'</div><div class="rank-sub">'+s.station+'</div></div>'+
+      '<div class="rank-val" style="color:#25D366;">'+s.early+' early</div>'+
+    '</div>';
+  }).join('')||'<div style="padding:14px;font-size:12px;color:#8696A0;">No data yet</div>';
+
+  document.getElementById('worst_list').innerHTML=worst.map(function(s,i){
+    var late=s.late+s.veryLate;
+    return '<div class="rank-item">'+
+      '<div class="rank-num bad">'+(i+1)+'</div>'+
+      '<div class="rank-info"><div class="rank-name">'+s.name+'</div><div class="rank-sub">'+s.station+'</div></div>'+
+      '<div class="rank-val" style="color:#FF3B30;">'+late+' late</div>'+
+    '</div>';
+  }).join('')||'<div style="padding:14px;font-size:12px;color:#8696A0;">No data yet</div>';
+
+  document.getElementById('late_flags').innerHTML=flagged.length?
+    flagged.map(function(s){
+      var lateRate=Math.round((s.late+s.veryLate)/s.count*100);
+      return '<div class="rank-item">'+
+        '<div class="rank-num bad"><i class="fa-solid fa-flag" style="font-size:10px;"></i></div>'+
+        '<div class="rank-info"><div class="rank-name">'+s.name+' <span class="erp">'+s.erp+'</span></div>'+
+        '<div class="rank-sub">'+s.station+' · '+s.state+'</div></div>'+
+        '<div class="rank-val" style="color:#FF3B30;">'+lateRate+'% late</div>'+
+      '</div>';
+    }).join(''):
+    '<div style="padding:14px;font-size:12px;color:#25D366;font-weight:600;"><i class="fa-solid fa-check"></i> No consistently late stations!</div>';
+}
+
+// ─────────────────────────────────────────────
+// ALERTS
+// ─────────────────────────────────────────────
 function getStatePending(state){
   var today=getTodayRows().filter(function(r){return r['State']===state;});
-  var all=allReports.filter(function(r){return r['State']===state;});
+  var all=scopeReports(allReports).filter(function(r){return r['State']===state;});
   var subErps=new Set(today.map(function(r){return r['ERP Code'];}));
   var map={};all.forEach(function(r){if(!map[r['ERP Code']])map[r['ERP Code']]=r;});
   return Object.values(map).filter(function(r){return !subErps.has(r['ERP Code']);}).map(function(r){return {erp:r['ERP Code'],name:r['SS Name'],station:r['Station Name'],state:state};});
@@ -768,14 +1436,15 @@ function buildMsg(stations,state){
   var now=new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
   if(stations.length===1){
     var s=stations[0];
-    return '⚠️ *StationWise REMINDER*\n\nDear '+s.name+',\n\nYour GOGAS report for *'+s.station+'* has NOT been submitted today.\n\n📅 '+new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'})+'\n⏰ Alert at: '+now+'\n\nPlease submit immediately on StationWise app.\n\n_GoGas StationWise Admin_';
+    return 'Warning *StationWise REMINDER*\n\nDear '+s.name+',\n\nYour GOGAS report for *'+s.station+'* has NOT been submitted today.\n\nDate: '+new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'})+'\nAlert at: '+now+'\n\nPlease submit immediately on StationWise app.\n\n_GoGas StationWise Admin_';
   }
-  var list=stations.slice(0,10).map(function(s,i){return (i+1)+'. '+s.name+' — '+s.station;}).join('\n');
+  var list=stations.slice(0,10).map(function(s,i){return (i+1)+'. '+s.name+' - '+s.station;}).join('\n');
   var more=stations.length>10?'\n...and '+(stations.length-10)+' more':'';
-  return '⚠️ *StationWise — PENDING ALERT*'+(state?'\n*'+state+'*':'')+'\n\n*'+stations.length+' stations not submitted today:*\n\n'+list+more+'\n\n📅 '+new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'})+'\n⏰ '+now+'\n\nPlease submit GOGAS reports immediately.\n\n_StationWise Admin_';
+  return 'Warning *StationWise - PENDING ALERT*'+(state?'\n*'+state+'*':'')+'\n\n*'+stations.length+' stations not submitted today:*\n\n'+list+more+'\n\nDate: '+new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'})+'\nTime: '+now+'\n\nPlease submit GOGAS reports immediately.\n\n_StationWise Admin_';
 }
 
 function openStateAlert(state){
+  if(currentRole==='view')return;
   var p=getStatePending(state);
   if(!p.length){toast('No pending in '+state);return;}
   alertMsg=buildMsg(p,state);
@@ -785,17 +1454,19 @@ function openStateAlert(state){
 }
 
 function openAlertSS(erp,name,station,state){
+  if(currentRole==='view')return;
   alertMsg=buildMsg([{erp:erp,name:name,station:station,state:state}],state);
   document.getElementById('alert_sub').textContent='Alert: '+name;
   document.getElementById('alert_preview').textContent=alertMsg;
   document.getElementById('alert_modal').classList.add('open');
 }
 
-function alertState(){if(selectedState)openStateAlert(selectedState);}
+function alertState(){if(currentRole!=='view'&&selectedState)openStateAlert(selectedState);}
 
 function alertAll(){
+  if(currentRole==='view'){toast('View-only: alerts disabled');return;}
   var p=getAllPending();
-  if(!p.length){toast('All stations submitted! 🎉');return;}
+  if(!p.length){toast('All stations submitted! ');return;}
   alertMsg=buildMsg(p,'');
   document.getElementById('alert_sub').textContent='Alert all '+p.length+' pending stations';
   document.getElementById('alert_preview').textContent=alertMsg;
@@ -805,34 +1476,41 @@ function alertAll(){
 function sendWA(){window.open('https://wa.me/?text='+encodeURIComponent(alertMsg),'_blank');closeModal();toast('WhatsApp opened');}
 function closeModal(){document.getElementById('alert_modal').classList.remove('open');}
 
-// ── EXPORT ──
+// ─────────────────────────────────────────────
+// EXPORT
+// ─────────────────────────────────────────────
 function fmtD(){var d=new Date();return d.getFullYear()+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2);}
 
 function doExcel(){
-  if(!allReports.length){toast('No data');return;}
+  if(currentRole==='view'){toast('View-only: export disabled');return;}
+  var rows=scopeReports(allReports);
+  if(!rows.length){toast('No data');return;}
   var wb=XLSX.utils.book_new();
-  var h=Object.keys(allReports[0]);
-  var ws=XLSX.utils.aoa_to_sheet([h,...allReports.map(function(r){return h.map(function(k){return r[k]||'';});})]);
+  var h=Object.keys(rows[0]);
+  var ws=XLSX.utils.aoa_to_sheet([h,...rows.map(function(r){return h.map(function(k){return r[k]||'';});})]);
   XLSX.utils.book_append_sheet(wb,ws,'All Reports');
   getUniqueStates().forEach(function(st){
-    var rows=allReports.filter(function(r){return r['State']===st;});
-    if(!rows.length)return;
-    var ws2=XLSX.utils.aoa_to_sheet([h,...rows.map(function(r){return h.map(function(k){return r[k]||'';});})]);
+    var r2=rows.filter(function(r){return r['State']===st;});
+    if(!r2.length)return;
+    var ws2=XLSX.utils.aoa_to_sheet([h,...r2.map(function(r){return h.map(function(k){return r[k]||'';});})]);
     XLSX.utils.book_append_sheet(wb,ws2,st.substring(0,31));
   });
   XLSX.writeFile(wb,'StationWise_'+fmtD()+'.xlsx');
-  toast('Excel downloaded ✓');
+  toast('Excel downloaded');
 }
 
 function doCSV(){
-  if(!allReports.length){toast('No data');return;}
-  var h=Object.keys(allReports[0]);
-  var csv=[h,...allReports.map(function(r){return h.map(function(k){return '"'+(r[k]||'').toString().replace(/"/g,'""')+'"';});})].map(function(r){return Array.isArray(r)?r.join(','):r;}).join('\n');
+  if(currentRole==='view'){toast('View-only: export disabled');return;}
+  var rows=scopeReports(allReports);
+  if(!rows.length){toast('No data');return;}
+  var h=Object.keys(rows[0]);
+  var csv=[h,...rows.map(function(r){return h.map(function(k){return '"'+(r[k]||'').toString().replace(/"/g,'""')+'"';});})].map(function(r){return Array.isArray(r)?r.join(','):r;}).join('\n');
   var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='StationWise_'+fmtD()+'.csv';a.click();
-  toast('CSV downloaded ✓');
+  toast('CSV downloaded');
 }
 
 function doTodayExcel(){
+  if(currentRole==='view'){toast('View-only: export disabled');return;}
   var today=getTodayRows();
   if(!today.length){toast('No reports today');return;}
   var wb=XLSX.utils.book_new();
@@ -840,62 +1518,74 @@ function doTodayExcel(){
   var ws=XLSX.utils.aoa_to_sheet([h,...today.map(function(r){return h.map(function(k){return r[k]||'';});})]);
   XLSX.utils.book_append_sheet(wb,ws,'Today');
   XLSX.writeFile(wb,'StationWise_Today_'+fmtD()+'.xlsx');
-  toast("Today's report downloaded ✓");
+  toast("Today's report downloaded");
 }
 
-// ── INIT FILTERS ──
+// ─────────────────────────────────────────────
+// INIT FILTERS
+// ─────────────────────────────────────────────
 function initFilters(){
-  STATES.forEach(function(s){
-    ['state_filter','rep_state','user_state_f'].forEach(function(id){
+  var statesToShow=(currentRole==='state'&&currentStateScope)?[currentStateScope]:STATES;
+  statesToShow.forEach(function(s){
+    ['state_filter','rep_state','user_state_f','time_state_f'].forEach(function(id){
       var el=document.getElementById(id);
       if(el&&!el.querySelector('option[value="'+s+'"]')){
         var o=document.createElement('option');o.value=s;o.textContent=s;el.appendChild(o);
       }
     });
   });
+  // Pre-select state scope in filters for state admins
+  if(currentRole==='state'&&currentStateScope){
+    ['state_filter','rep_state','user_state_f','time_state_f'].forEach(function(id){
+      var el=document.getElementById(id);
+      if(el)el.value=currentStateScope;
+    });
+  }
 }
 
-// ── TOAST ──
+// ─────────────────────────────────────────────
+// TOAST
+// ─────────────────────────────────────────────
 function toast(msg){
   var t=document.getElementById('toast_el');
   t.textContent=msg;t.classList.add('on');
   setTimeout(function(){t.classList.remove('on');},2500);
 }
 
-// ── REAL-TIME UPDATES ──
-let lastReportCount = 0;
-let lastRefreshTime = null;
-let refreshTimer = null;
+// ─────────────────────────────────────────────
+// REAL-TIME REFRESH
+// ─────────────────────────────────────────────
+let lastRefreshTime=null;
+let refreshTimer=null;
 
-// Countdown timer display
-setInterval(()=>{
-  if(!lastRefreshTime) return;
-  const elapsed = Math.floor((Date.now()-lastRefreshTime.getTime())/1000);
-  const remaining = Math.max(0, 30-elapsed);
-  const el = document.getElementById('refresh_countdown');
-  if(el) el.textContent = '('+remaining+'s)';
-}, 1000);
+setInterval(function(){
+  if(!lastRefreshTime)return;
+  var elapsed=Math.floor((Date.now()-lastRefreshTime.getTime())/1000);
+  var remaining=Math.max(0,30-elapsed);
+  var el=document.getElementById('refresh_countdown');
+  if(el)el.textContent='('+remaining+'s)';
+},1000);
 
 function startAutoRefresh(){
-  if(refreshTimer) clearInterval(refreshTimer);
-  refreshTimer = setInterval(async()=>{
-    const prevCount = allReports.filter(r=>r['Timestamp']&&new Date(r['Timestamp']).toDateString()===new Date().toDateString()).length;
+  if(refreshTimer)clearInterval(refreshTimer);
+  refreshTimer=setInterval(async function(){
+    var prevCount=scopeReports(allReports).filter(function(r){return r['Timestamp']&&new Date(r['Timestamp']).toDateString()===new Date().toDateString();}).length;
     await refreshAll();
-    const newCount = allReports.filter(r=>r['Timestamp']&&new Date(r['Timestamp']).toDateString()===new Date().toDateString()).length;
-    if(newCount > prevCount){
-      const diff = newCount - prevCount;
+    var newCount=scopeReports(allReports).filter(function(r){return r['Timestamp']&&new Date(r['Timestamp']).toDateString()===new Date().toDateString();}).length;
+    if(newCount>prevCount){
+      var diff=newCount-prevCount;
       showLiveNotification(diff+' new report'+(diff>1?'s':'')+' received!');
     }
-    lastRefreshTime = new Date();
-  }, 30000);
+    lastRefreshTime=new Date();
+  },30000);
 }
 
 function showLiveNotification(msg){
-  const n = document.getElementById('live_notif');
-  if(!n) return;
-  n.textContent = '🔔 '+msg;
-  n.style.display = 'block';
-  setTimeout(()=>{ n.style.display='none'; }, 5000);
+  var n=document.getElementById('live_notif');
+  if(!n)return;
+  n.textContent='🔔 '+msg;
+  n.style.display='block';
+  setTimeout(function(){n.style.display='none';},5000);
 }
 
 startAutoRefresh();
