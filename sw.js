@@ -1,4 +1,4 @@
-const CACHE='stationwise-v1';
+const CACHE='station-reporting-v2';
 const FILES=['./','/stationwise/','/stationwise/index.html'];
 self.addEventListener('install',e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).catch(()=>{}));
@@ -9,5 +9,6 @@ self.addEventListener('activate',e=>{
   self.clients.claim();
 });
 self.addEventListener('fetch',e=>{
+  // network-first so new versions always win; fall back to cache offline
   e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));
 });

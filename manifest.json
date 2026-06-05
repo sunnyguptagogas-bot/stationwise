@@ -1,13 +1,13 @@
 {
-  "name": "StationWise",
-  "short_name": "StationWise",
-  "description": "GoGas SS Daily Report App",
+  "name": "Station Reporting",
+  "short_name": "Reporting",
+  "description": "GOGAS Daily Station Reporting App",
   "start_url": "/stationwise/",
   "scope": "/stationwise/",
   "display": "standalone",
-  "background_color": "#075E54",
-  "theme_color": "#075E54",
   "orientation": "portrait",
+  "background_color": "#2B2F36",
+  "theme_color": "#E8541E",
   "icons": [
     {
       "src": "icon.png",
