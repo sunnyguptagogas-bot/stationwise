@@ -1,0 +1,2277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="theme-color" content="#2B2F36"/>
+<link rel="manifest" href="manifest.json"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Station Reporting"/>
+<link rel="apple-touch-icon" href="icon.png"/>
+<title>Station Reporting</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}input,select,textarea{color:#111B21 !important;}
+:root{}
+html,body{height:100%;background:#F0F2F5;}
+body{font-family:'Segoe UI',Arial,sans-serif;color:#111B21;height:100%;overflow:hidden;position:fixed;width:100%;}
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;background:#F0F2F5;overflow:hidden;transition:transform 0.3s cubic-bezier(.4,0,.2,1),opacity 0.3s;}
+.screen.hidden{transform:translateX(100%);opacity:0;pointer-events:none;}
+.status-bar{height:calc(var(--safe-top)+6px);background:#FFFFFF;flex-shrink:0;}
+.topbar{height:56px;background:#FFFFFF;border-bottom:1px solid #E9EDEF;display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0;}
+.tb-back{width:36px;height:36px;border-radius:50%;background:#F7F8FA;border:1px solid #E9EDEF;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:#54656F;}
+.tb-title{font-size:17px;font-weight:800;color:#111B21;flex:1;}
+.tb-sub{font-size:11px;color:#8696A0;font-weight:600;}
+.scroll-body{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:calc(88px + var(--safe-bot));}
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;padding:10px 16px calc(10px + var(--safe-bot));background:linear-gradient(to top,#FFFFFF 80%,transparent);display:flex;gap:10px;z-index:50;}
+.btn-main{flex:1;padding:16px;background:linear-gradient(135deg,#E8541E,#E8541E);border:none;border-radius:16px;font-family:'Segoe UI',Arial,sans-serif;font-size:16px;font-weight:800;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 20px rgba(232,84,30,0.32);transition:transform 0.15s;}
+.btn-main:active{transform:scale(0.97);}
+.btn-sec{padding:16px 20px;background:#F7F8FA;border:1px solid #D1D7DB;border-radius:16px;font-family:'Segoe UI',Arial,sans-serif;font-size:15px;font-weight:700;color:#54656F;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:transform 0.15s;}
+.btn-sec:active{transform:scale(0.97);}
+.btn-wa{flex:1;padding:16px;background:linear-gradient(135deg,#C0381A,#25d366);border:none;border-radius:16px;font-family:'Segoe UI',Arial,sans-serif;font-size:16px;font-weight:800;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 20px rgba(232,84,30,0.35);transition:transform 0.15s;}
+.btn-wa:active{transform:scale(0.97);}
+
+/* LOGIN */
+#s_login .scroll-body{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;min-height:100%;}
+.login-logomark{width:76px;height:76px;border-radius:22px;background:linear-gradient(135deg,#2B2F36,#C0381A);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;box-shadow:0 8px 28px rgba(43,47,54,0.4);}
+.login-appname{font-size:28px;font-weight:900;letter-spacing:-0.6px;text-align:center;margin-bottom:4px;color:#111B21;}
+.login-appname span{color:#E8541E;}
+.login-tag{font-size:12px;color:#8696A0;text-align:center;margin-bottom:32px;}
+.login-card{width:100%;max-width:380px;background:#FFFFFF;border:1px solid #D1D7DB;border-radius:22px;padding:26px 22px;}
+.lc-h{font-size:19px;font-weight:800;margin-bottom:3px;}
+.lc-s{font-size:13px;color:#54656F;margin-bottom:20px;}
+.lf{margin-bottom:14px;}
+.lf label{display:block;font-size:11px;font-weight:700;color:#8696A0;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;}
+.lf input,.lf select{width:100%;padding:13px 15px;background:#F0F2F5;border:1.5px solid #E9EDEF;border-radius:11px;font-family:'Segoe UI',Arial,sans-serif;font-size:15px;color:#111B21;outline:none;-webkit-appearance:none;transition:border-color 0.2s;}
+.lf input:focus,.lf select:focus{border-color:#E8541E;}
+.lf input::placeholder{color:#8696A0;}
+.lf select option{background:#F7F8FA;color:#111B21;}
+.login-btn{width:100%;padding:15px;margin-top:6px;background:linear-gradient(135deg,#E8541E,#E8541E);border:none;border-radius:13px;font-family:'Segoe UI',Arial,sans-serif;font-size:16px;font-weight:800;color:#fff;cursor:pointer;box-shadow:0 4px 18px rgba(232,84,30,0.3);}
+.login-note{text-align:center;font-size:11px;color:#8696A0;margin-top:12px;}
+
+/* HOME */
+.user-hero{background:linear-gradient(135deg,#FFFFFF,#F7F8FA);padding:18px 16px 22px;border-bottom:1px solid #E9EDEF;}
+.uh-greet{font-size:12px;color:#8696A0;font-weight:600;margin-bottom:2px;}
+.uh-name{font-size:21px;font-weight:900;letter-spacing:-0.3px;}
+.uh-badge{display:inline-flex;align-items:center;gap:5px;margin-top:7px;background:rgba(232,84,30,0.08);border:1px solid #D1D7DB;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;color:#E8541E;}
+.uh-date{font-size:12px;color:#8696A0;margin-top:7px;font-weight:600;}
+.today-strip{margin:14px 14px 0;background:#FFFFFF;border:1px solid #E9EDEF;border-radius:14px;padding:14px;}
+.ts-title{font-size:10px;font-weight:700;color:#8696A0;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;}
+.ts-stats{display:grid;grid-template-columns:repeat(3,1fr);}
+.ts-stat{text-align:center;padding:2px 0;}
+.ts-stat:not(:last-child){border-right:1px solid #E9EDEF;}
+.ts-val{font-size:24px;font-weight:900;font-family:'Courier New',monospace;color:#E8541E;}
+.ts-lbl{font-size:10px;color:#8696A0;font-weight:600;text-transform:uppercase;}
+.home-actions{padding:14px 14px 0;}
+.action-card{background:#FFFFFF;border:1px solid #E9EDEF;border-radius:18px;padding:18px;margin-bottom:10px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:transform 0.15s;position:relative;overflow:hidden;}
+.action-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.action-card.new::before{background:linear-gradient(90deg,#E8541E,#E8541E);}
+.action-card.hist::before{background:linear-gradient(90deg,#0288d1,#0088CC);}
+.action-card.remind::before{background:linear-gradient(90deg,#7b1fa2,#E8541E);}
+.action-card:active{transform:scale(0.98);}
+.ac-icon{width:50px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ac-icon.new{background:rgba(232,84,30,0.1);}
+.ac-icon.hist{background:rgba(64,196,255,0.1);}
+.ac-icon.remind{background:rgba(206,147,216,0.1);}
+.ac-title{font-size:16px;font-weight:800;}
+.ac-sub{font-size:12px;color:#8696A0;margin-top:2px;line-height:1.4;}
+.ac-arrow{margin-left:auto;font-size:22px;color:#8696A0;}
+
+/* SYNC STATUS BANNER */
+.sync-banner{margin:10px 14px 0;border-radius:11px;padding:10px 14px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;}
+.sync-ok{background:rgba(232,84,30,0.07);border:1px solid rgba(232,84,30,0.18);color:#E8541E;}
+.sync-pend{background:rgba(255,179,0,0.07);border:1px solid rgba(255,179,0,0.18);color:#FF8C00;}
+.sync-off{background:rgba(255,82,82,0.07);border:1px solid rgba(255,82,82,0.18);color:#FF3B30;}
+
+/* FORM */
+.fill-bar-wrap{margin:12px 14px 0;background:#FFFFFF;border:1px solid #E9EDEF;border-radius:11px;padding:11px 14px;display:flex;align-items:center;gap:12px;}
+.fb-bg{flex:1;height:5px;background:#EBEBEB;border-radius:3px;overflow:hidden;}
+.fb-fill{height:5px;background:linear-gradient(90deg,#E8541E,#E8541E);border-radius:3px;transition:width 0.4s;}
+.fb-txt{font-size:11px;font-weight:700;color:#54656F;white-space:nowrap;}
+.sec-div{margin:14px 14px 0;font-size:10px;font-weight:700;color:#8696A0;text-transform:uppercase;letter-spacing:0.8px;display:flex;align-items:center;gap:8px;}
+.sec-div::after{content:'';flex:1;height:1px;background:#E9EDEF;}
+.fsec{margin:10px 14px 0;background:#FFFFFF;border:1px solid #E9EDEF;border-radius:14px;overflow:hidden;}
+.fsec-head{padding:11px 14px;background:#F7F8FA;border-bottom:1px solid #E9EDEF;display:flex;align-items:center;gap:8px;}
+.fsec-title{font-size:12px;font-weight:800;color:#111B21;letter-spacing:0.3px;}
+.fsec-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;background:rgba(232,84,30,0.1);color:#E8541E;margin-left:auto;}
+.frow{display:grid;border-bottom:1px solid #E9EDEF;}
+.frow:last-child{border-bottom:none;}
+.frow.two{grid-template-columns:1fr 1fr;}
+.ffield{padding:11px 13px;border-right:1px solid #E9EDEF;position:relative;}
+.ffield:last-child{border-right:none;}
+.ffield:focus-within{background:rgba(232,84,30,0.03);}
+.ffield:focus-within .fflbl{color:#E8541E;}
+.fflbl{font-size:9px;font-weight:700;color:#8696A0;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;display:flex;align-items:center;gap:3px;}
+.fflbl .req{color:#FF3B30;font-size:11px;}
+.fflocked{font-size:14px;font-weight:700;color:#54656F;}
+.ffin{width:100%;border:none;background:transparent;font-family:'Courier New',monospace;font-size:14px;font-weight:500;color:#111B21;outline:none;padding:0;-webkit-appearance:none;}
+.ffin::placeholder{color:#8696A0;font-size:12px;font-family:'Segoe UI',Arial,sans-serif;}
+.ffin:focus{color:#E8541E;}
+.ffsel{width:100%;border:none;background:transparent;font-family:'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:600;color:#111B21;outline:none;padding:0;-webkit-appearance:none;appearance:none;}
+.ffsel option{background:#F7F8FA;}
+.comment-wrap{margin:10px 14px 0;}
+.cmt-lbl{font-size:10px;font-weight:700;color:#8696A0;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
+.cmt-box{width:100%;min-height:80px;background:#FFFFFF;border:1.5px solid #E9EDEF;border-radius:13px;padding:13px;font-family:'Segoe UI',Arial,sans-serif;font-size:15px;color:#111B21;outline:none;resize:none;-webkit-appearance:none;transition:border-color 0.2s;}
+.cmt-box:focus{border-color:#E8541E;}
+.cmt-box::placeholder{color:#8696A0;}
+.val-strip{margin:12px 14px 0;padding:11px 14px;border-radius:11px;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;}
+.val-ok{background:rgba(232,84,30,0.07);border:1px solid rgba(232,84,30,0.18);color:#E8541E;}
+.val-err{background:rgba(255,82,82,0.07);border:1px solid rgba(255,82,82,0.18);color:#FF3B30;}
+.val-pend{background:#FFFFFF;border:1px solid #E9EDEF;color:#8696A0;}
+
+/* PREVIEW */
+.preview-wrap{padding:14px;}
+.prev-note{padding:11px 14px;background:rgba(255,179,0,0.07);border:1px solid rgba(255,179,0,0.18);border-radius:10px;font-size:12px;color:#FF8C00;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.prev-box{background:#FFFFFF;border:1.5px solid #D1D7DB;border-radius:14px;padding:16px;font-family:'Courier New',monospace;font-size:12.5px;color:#54656F;line-height:1.9;white-space:pre-wrap;word-break:break-word;}
+
+/* REPORTS LIST */
+.rep-list{padding:14px;}
+.rep-card{background:#FFFFFF;border:1px solid #E9EDEF;border-radius:14px;margin-bottom:10px;overflow:hidden;}
+.rc-head{padding:13px 14px;display:flex;align-items:center;gap:11px;cursor:pointer;}
+.rc-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.rc-dot.sent{background:#E8541E;}
+.rc-dot.synced{background:#0088CC;}
+.rc-dot.draft{background:#FF8C00;}
+.rc-info{flex:1;min-width:0;}
+.rc-date{font-size:13px;font-weight:700;}
+.rc-meta{font-size:11px;color:#8696A0;margin-top:2px;}
+.rc-chips{display:flex;flex-direction:column;align-items:flex-end;gap:3px;}
+.rc-chip{font-size:9px;font-weight:700;padding:3px 9px;border-radius:9px;text-transform:uppercase;letter-spacing:0.4px;white-space:nowrap;}
+.rc-chip.sent{background:rgba(232,84,30,0.1);color:#E8541E;}
+.rc-chip.draft{background:rgba(255,179,0,0.1);color:#FF8C00;}
+.rc-chip.synced{background:rgba(64,196,255,0.1);color:#0088CC;}
+.rc-chip.pending{background:rgba(255,179,0,0.1);color:#FF8C00;}
+.rc-acts{padding:0 14px 13px;display:none;gap:7px;flex-wrap:wrap;}
+.rc-acts.open{display:flex;}
+.rcb{padding:9px 14px;border-radius:9px;font-family:'Segoe UI',Arial,sans-serif;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;border:none;}
+.rcb.wa{background:#25d366;color:#fff;flex:1;}
+.rcb.view{background:#F7F8FA;border:1px solid #E9EDEF;color:#54656F;}
+.rcb.sync{background:rgba(64,196,255,0.1);border:1px solid rgba(64,196,255,0.2);color:#0088CC;}
+.rcb.del{background:rgba(255,82,82,0.08);border:1px solid rgba(255,82,82,0.18);color:#FF3B30;}
+.empty-st{text-align:center;padding:56px 24px;color:#8696A0;}
+.empty-ic{font-size:44px;margin-bottom:10px;}
+.empty-t{font-size:15px;font-weight:700;color:#54656F;margin-bottom:5px;}
+.empty-s{font-size:13px;line-height:1.5;}
+
+/* REMINDER SETTINGS SCREEN */
+.rem-section{margin:14px 14px 0;background:#FFFFFF;border:1px solid #E9EDEF;border-radius:14px;overflow:hidden;}
+.rem-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #E9EDEF;}
+.rem-row:last-child{border-bottom:none;}
+.rem-label{font-size:14px;font-weight:700;}
+.rem-sub{font-size:11px;color:#8696A0;margin-top:2px;}
+.rem-time{font-family:'Courier New',monospace;font-size:15px;font-weight:700;color:#E8541E;background:#F7F8FA;border:1px solid #E9EDEF;border-radius:8px;padding:7px 12px;width:110px;text-align:center;outline:none;color:#111B21;}
+.rem-time:focus{border-color:#E8541E;}
+.toggle-wrap{display:flex;align-items:center;}
+.toggle{width:44px;height:24px;border-radius:12px;background:#F7F8FA;border:1px solid #E9EDEF;cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0;}
+.toggle.on{background:#E8541E;}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform 0.2s;}
+.toggle.on::after{transform:translateX(20px);}
+.notif-perm{margin:10px 14px 0;padding:12px 14px;background:rgba(255,179,0,0.07);border:1px solid rgba(255,179,0,0.18);border-radius:11px;font-size:12px;color:#FF8C00;font-weight:600;display:flex;align-items:center;gap:8px;cursor:pointer;}
+
+/* GOOGLE SHEET SETUP */
+.setup-card{margin:14px 14px 0;background:#FFFFFF;border:1px solid #E9EDEF;border-radius:14px;padding:16px;}
+.setup-title{font-size:14px;font-weight:800;margin-bottom:8px;}
+.setup-sub{font-size:12px;color:#8696A0;line-height:1.6;margin-bottom:12px;}
+.url-input{width:100%;padding:11px 13px;background:#F0F2F5;border:1.5px solid #E9EDEF;border-radius:10px;font-family:'Courier New',monospace;font-size:12px;color:#111B21;outline:none;transition:border-color 0.2s;}
+.url-input:focus{border-color:#E8541E;}
+.url-input::placeholder{color:#8696A0;font-family:'Segoe UI',Arial,sans-serif;font-size:12px;}
+.setup-btns{display:flex;gap:8px;margin-top:10px;}
+.sbtn{flex:1;padding:11px;border-radius:10px;font-family:'Segoe UI',Arial,sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:none;display:flex;align-items:center;justify-content:center;gap:6px;}
+.sbtn.g{background:linear-gradient(135deg,#E8541E,#E8541E);color:#000;}
+.sbtn.s{background:#F7F8FA;border:1px solid #E9EDEF;color:#54656F;}
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.dot-ok{background:#E8541E;}
+.dot-warn{background:#FF8C00;}
+.dot-off{background:#FF3B30;}
+
+.toast{position:fixed;bottom:calc(92px + var(--safe-bot));left:50%;transform:translateX(-50%);background:#2B2F36;color:#fff;padding:12px 20px;border-radius:14px;font-size:13px;font-weight:600;z-index:9999;opacity:0;pointer-events:none;transition:opacity 0.25s;white-space:normal;max-width:86%;width:max-content;text-align:center;line-height:1.4;border:1px solid #2B2F36;box-shadow:0 8px 24px rgba(0,0,0,0.35);}
+.toast.on{opacity:1;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.fadein{animation:fadeUp 0.3s ease forwards;}
+</style>
+</head>
+<body>
+
+<!-- ═══ OTP VERIFY ═══ -->
+<div class="screen hidden" id="s_otp">
+  <div class="status-bar"></div>
+  <div class="scroll-body">
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;min-height:100%;">
+      <div class="login-logomark"><svg width="44" height="44" viewBox="-130 -150 260 320" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="-95" y="-130" width="150" height="270" rx="20" fill="#FF6A2C" stroke="#fff" stroke-width="11" stroke-linejoin="round"/><rect x="-95" y="-130" width="150" height="34" rx="16" fill="#FFB020"/><rect x="-72" y="-78" width="104" height="62" rx="10" fill="#fff"/><rect x="-60" y="-66" width="64" height="9" rx="4" fill="#E8541E"/><rect x="-60" y="-48" width="44" height="9" rx="4" fill="#E8541E" opacity="0.6"/><circle cx="-44" cy="29" r="7" fill="#fff"/><circle cx="-16" cy="29" r="7" fill="#fff"/><circle cx="12" cy="29" r="7" fill="#fff"/><path d="M55 -70 C120 -70 120 30 96 90" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/><rect x="78" y="86" width="40" height="58" rx="9" fill="#FFB020" stroke="#fff" stroke-width="8" stroke-linejoin="round"/><rect x="90" y="74" width="16" height="22" rx="5" fill="#fff"/></svg></div>
+      <div class="login-appname">Station<span>Reporting</span></div>
+      <div class="login-tag" style="margin-bottom:28px;">Verify your identity</div>
+      <div class="login-card fadein" style="max-width:340px;">
+        <div class="lc-h" id="otp_title">Enter OTP</div>
+        <div class="lc-s" id="otp_sub">Enter the 6-digit OTP sent to your WhatsApp</div>
+        <div style="display:flex;gap:8px;justify-content:center;margin:20px 0;">
+          <input id="otp1" type="number" inputmode="numeric" maxlength="1" style="width:44px;height:52px;text-align:center;background:#F0F2F5;border:1.5px solid #E9EDEF;border-radius:10px;font-family:'Courier New',monospace;font-size:22px;font-weight:700;color:#E7F8EE;outline:none;" oninput="otpNext(this,'otp2')" onkeydown="otpBack(event,'','otp1')"/>
+          <input id="otp2" type="number" inputmode="numeric" maxlength="1" style="width:44px;height:52px;text-align:center;background:#F0F2F5;border:1.5px solid #E9EDEF;border-radius:10px;font-family:'Courier New',monospace;font-size:22px;font-weight:700;color:#E7F8EE;outline:none;" oninput="otpNext(this,'otp3')" onkeydown="otpBack(event,'otp1','otp2')"/>
+          <input id="otp3" type="number" inputmode="numeric" maxlength="1" style="width:44px;height:52px;text-align:center;background:#F0F2F5;border:1.5px solid #E9EDEF;border-radius:10px;font-family:'Courier New',monospace;font-size:22px;font-weight:700;color:#E7F8EE;outline:none;" oninput="otpNext(this,'otp4')" onkeydown="otpBack(event,'otp2','otp3')"/>
+          <input id="otp4" type="number" inputmode="numeric" maxlength="1" style="width:44px;height:52px;text-align:center;background:#F0F2F5;border:1.5px solid #E9EDEF;border-radius:10px;font-family:'Courier New',monospace;font-size:22px;font-weight:700;color:#E7F8EE;outline:none;" oninput="otpNext(this,'otp5')" onkeydown="otpBack(event,'otp3','otp4')"/>
+          <input id="otp5" type="number" inputmode="numeric" maxlength="1" style="width:44px;height:52px;text-align:center;background:#F0F2F5;border:1.5px solid #E9EDEF;border-radius:10px;font-family:'Courier New',monospace;font-size:22px;font-weight:700;color:#E7F8EE;outline:none;" oninput="otpNext(this,'otp6')" onkeydown="otpBack(event,'otp4','otp5')"/>
+          <input id="otp6" type="number" inputmode="numeric" maxlength="1" style="width:44px;height:52px;text-align:center;background:#F0F2F5;border:1.5px solid #E9EDEF;border-radius:10px;font-family:'Courier New',monospace;font-size:22px;font-weight:700;color:#E7F8EE;outline:none;" oninput="otpNext(this,null)" onkeydown="otpBack(event,'otp5','otp6')"/>
+        </div>
+        <button class="login-btn" onclick="verifyOTP()">Verify & Login →</button>
+        <div style="text-align:center;margin-top:14px;">
+          <span style="font-size:12px;color:#8696A0;" id="otp_resend_lbl">Didn't receive OTP?</span>
+          <span style="font-size:12px;color:#E8541E;font-weight:700;cursor:pointer;margin-left:6px;" onclick="resendOTP()" id="otp_resend_btn">Resend via WhatsApp</span>
+        </div>
+        <div style="text-align:center;margin-top:8px;">
+          <span style="font-size:12px;color:#8696A0;cursor:pointer;" onclick="goScreen('s_login')">← Back to details</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(tab){
+  var eb=document.getElementById('tab_erp');
+  var ob=document.getElementById('tab_otp');
+  var ec=document.getElementById('tab_erp_content');
+  var oc=document.getElementById('tab_otp_content');
+  if(!eb||!ob||!ec||!oc)return;
+  if(tab==='erp'){
+    eb.style.background='#E8541E';eb.style.color='#000';
+    ob.style.background='transparent';ob.style.color='#8696A0';
+    ec.style.display='block';oc.style.display='none';
+    setTimeout(function(){var e=document.getElementById('li_erp');if(e)e.focus();},100);
+  } else {
+    ob.style.background='#E8541E';ob.style.color='#000';
+    eb.style.background='transparent';eb.style.color='#8696A0';
+    ec.style.display='none';oc.style.display='block';
+    setTimeout(function(){var e=document.getElementById('li_mobile');if(e)e.focus();},100);
+  }
+}
+</script>
+<!-- ═══ PROFILE SETUP (forced first login) ═══ -->
+<div class="screen hidden" id="s_setup">
+  <div class="status-bar"></div>
+  <div class="scroll-body">
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;min-height:100%;">
+      <div class="login-logomark"><span style="font-size:32px;">👤</span></div>
+      <div class="login-appname">Complete Your <span>Profile</span></div>
+      <div class="login-tag">Please enter your name and mobile number to continue. This is required once.</div>
+      <div class="login-card">
+        <div class="lc-h">Your Details</div>
+        <div class="lc-s" id="setup_station">Station</div>
+        <div class="lf"><label>Your Full Name</label><input id="su_name" type="text" placeholder="e.g. Rajesh Kumar" autocomplete="name"/></div>
+        <div class="lf"><label>Mobile Number (WhatsApp)</label><input id="su_mobile" type="tel" inputmode="numeric" maxlength="10" placeholder="10-digit mobile"/></div>
+        <div id="setup_err" style="display:none;color:#FF3B30;font-size:12px;font-weight:700;margin-bottom:8px;"></div>
+        <button class="login-btn" onclick="saveSetupProfile()">Save &amp; Continue →</button>
+        <div class="login-note">Your name &amp; mobile are saved to the central GoGas master.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ LOGIN ═══ -->
+<div class="screen" id="s_login">
+  <div class="status-bar"></div>
+  <div class="scroll-body">
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;min-height:100%;">
+      <div class="login-logomark"><svg width="44" height="44" viewBox="-130 -150 260 320" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="-95" y="-130" width="150" height="270" rx="20" fill="#FF6A2C" stroke="#fff" stroke-width="11" stroke-linejoin="round"/><rect x="-95" y="-130" width="150" height="34" rx="16" fill="#FFB020"/><rect x="-72" y="-78" width="104" height="62" rx="10" fill="#fff"/><rect x="-60" y="-66" width="64" height="9" rx="4" fill="#E8541E"/><rect x="-60" y="-48" width="44" height="9" rx="4" fill="#E8541E" opacity="0.6"/><circle cx="-44" cy="29" r="7" fill="#fff"/><circle cx="-16" cy="29" r="7" fill="#fff"/><circle cx="12" cy="29" r="7" fill="#fff"/><path d="M55 -70 C120 -70 120 30 96 90" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/><rect x="78" y="86" width="40" height="58" rx="9" fill="#FFB020" stroke="#fff" stroke-width="8" stroke-linejoin="round"/><rect x="90" y="74" width="16" height="22" rx="5" fill="#fff"/></svg></div>
+      <div class="login-appname">Station<span>Reporting</span></div>
+      <div class="login-tag">SS Daily Report App</div>
+      <div class="login-card fadein">
+        <!-- TAB SWITCHER -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;background:#EBEBEB;border-radius:10px;padding:3px;margin-bottom:18px;">
+          <button id="tab_erp" onclick="switchTab('erp')" style="padding:9px;border:none;border-radius:8px;font-family:'Segoe UI',Arial,sans-serif;font-size:13px;font-weight:800;cursor:pointer;background:#E8541E;color:#000;">ERP Login</button>
+          <button id="tab_otp" onclick="switchTab('otp')" style="padding:9px;border:none;border-radius:8px;font-family:'Segoe UI',Arial,sans-serif;font-size:13px;font-weight:800;cursor:pointer;background:transparent;color:#8696A0;">📱 Mobile OTP</button>
+        </div>
+        <!-- ERP TAB -->
+        <div id="tab_erp_content">
+          <div class="lf"><label>ERP Code *</label><input id="li_erp" placeholder="e.g. AY084" style="text-transform:uppercase" onkeydown="if(event.key==='Enter')document.getElementById('li_pwd').focus()"/></div>
+          <div class="lf"><label>Password *</label>
+            <div style="position:relative;">
+              <input id="li_pwd" type="password" placeholder="Enter password" style="width:100%;padding:13px 44px 13px 15px;background:#F0F2F5;border:1.5px solid #E9EDEF;border-radius:11px;font-family:'Segoe UI',Arial,sans-serif;font-size:15px;color:#E7F8EE;outline:none;" onkeydown="if(event.key==='Enter')doLogin()"/>
+              <span onclick="var i=document.getElementById('li_pwd');i.type=i.type==='password'?'text':'password'" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:20px;color:#E8541E;">👁</span>
+            </div>
+          </div>
+          <div id="login_err" style="display:none;background:rgba(255,82,82,0.08);border:1px solid rgba(255,82,82,0.2);border-radius:10px;padding:10px;font-size:12px;color:#FF3B30;font-weight:600;margin-bottom:8px;"></div>
+          <button class="login-btn" onclick="doLogin()" style="margin-top:6px;">Login →</button>
+        </div>
+        <!-- MOBILE OTP TAB -->
+        <div id="tab_otp_content" style="display:none;">
+          <div class="lf"><label>Mobile Number (WhatsApp) *</label>
+            <input id="li_mobile" type="tel" inputmode="numeric" maxlength="10" placeholder="Enter 10-digit number" style="width:100%;padding:13px 15px;background:#F0F2F5;border:1.5px solid #E9EDEF;border-radius:11px;font-family:'Courier New',monospace;font-size:16px;color:#E7F8EE;outline:none;letter-spacing:2px;" onkeydown="if(event.key==='Enter')sendMobileOTP()"/>
+          </div>
+          <div id="otp_err" style="display:none;background:rgba(255,82,82,0.08);border:1px solid rgba(255,82,82,0.2);border-radius:10px;padding:10px;font-size:12px;color:#FF3B30;font-weight:600;margin-bottom:8px;"></div>
+          <button onclick="sendMobileOTP()" style="width:100%;padding:14px;background:linear-gradient(135deg,#C0381A,#25d366);border:none;border-radius:13px;font-family:'Segoe UI',Arial,sans-serif;font-size:15px;font-weight:800;color:#fff;cursor:pointer;">📲 Send OTP on WhatsApp</button>
+        </div>
+        <div class="login-note">Your details are saved on this phone only</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PROFILE ═══ -->
+<div class="screen hidden" id="s_profile">
+  <div class="status-bar"></div>
+  <div class="topbar">
+    <div class="tb-back" onclick="goScreen('s_home')">←</div>
+    <div><div class="tb-title">My Profile</div></div>
+  </div>
+  <div class="scroll-body">
+    <div style="padding:24px;">
+      <!-- Avatar -->
+      <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:28px;">
+        <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#E8541E,#E8541E);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:800;color:#000;margin-bottom:14px;" id="prof_av">R</div>
+        <div style="font-size:22px;font-weight:800;color:#E7F8EE;" id="prof_name">Rajesh Kumar</div>
+        <div style="font-size:13px;color:#8696A0;margin-top:4px;" id="prof_station">Sangamner GoGas</div>
+        <div style="margin-top:8px;padding:5px 16px;background:#E7F8EE;border-radius:20px;font-size:12px;font-weight:700;color:#E8541E;" id="prof_erp">AY001</div>
+      </div>
+      <!-- Details -->
+      <div style="background:#FFFFFF;border:1px solid #E9EDEF;border-radius:14px;overflow:hidden;margin-bottom:16px;">
+        <div style="padding:14px 16px;border-bottom:1px solid #E9EDEF;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:12px;font-weight:700;color:#8696A0;text-transform:uppercase;">ERP Code</span>
+          <span style="font-size:14px;font-weight:800;font-family:'Courier New',monospace;color:#E8541E;" id="prof_erp2">AY001</span>
+        </div>
+        <div style="padding:14px 16px;border-bottom:1px solid #E9EDEF;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:12px;font-weight:700;color:#8696A0;text-transform:uppercase;">Station</span>
+          <span style="font-size:14px;font-weight:700;" id="prof_station2">Sangamner GoGas</span>
+        </div>
+        <div style="padding:14px 16px;border-bottom:1px solid #E9EDEF;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:12px;font-weight:700;color:#8696A0;text-transform:uppercase;">State</span>
+          <span style="font-size:14px;font-weight:700;color:#0088CC;" id="prof_state">Maharashtra</span>
+        </div>
+        <div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:12px;font-weight:700;color:#8696A0;text-transform:uppercase;">Name</span>
+          <span style="font-size:14px;font-weight:700;" id="prof_name2">Rajesh Kumar</span>
+        </div>
+      </div>
+      <!-- Actions -->
+      <button onclick="editProfile()" style="width:100%;padding:14px;background:rgba(232,84,30,0.1);border:1.5px solid rgba(232,84,30,0.4);border-radius:12px;font-family:'Segoe UI',Arial,sans-serif;font-size:15px;font-weight:700;color:#C0381A;cursor:pointer;margin-bottom:10px;">
+        ✏️ Edit Name &amp; Mobile
+      </button>
+      <button onclick="logout()" style="width:100%;padding:14px;background:rgba(255,82,82,0.08);border:1.5px solid rgba(255,82,82,0.3);border-radius:12px;font-family:'Segoe UI',Arial,sans-serif;font-size:15px;font-weight:700;color:#FF3B30;cursor:pointer;margin-bottom:10px;">
+        🚪 Logout
+      </button>
+      <div style="text-align:center;font-size:11px;color:#8696A0;margin-top:8px;">Station Reporting · GoGas · v2.0</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ HOME ═══ -->
+<div class="screen hidden" id="s_home">
+  <div class="status-bar"></div>
+  <div class="topbar">
+    <div style="flex:1"><div class="tb-title">Station Reporting</div></div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button onclick="logout()" style="padding:6px 12px;background:rgba(255,82,82,0.12);border:1px solid rgba(255,82,82,0.3);border-radius:20px;font-family:'Segoe UI',Arial,sans-serif;font-size:11px;font-weight:700;color:#FF3B30;cursor:pointer;">Logout</button>
+      <div style="cursor:pointer;color:#8696A0;font-size:20px;" onclick="goScreen('s_settings')" title="Settings">⚙</div>
+      <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#E8541E,#E8541E);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#000;cursor:pointer;" id="home_av" onclick="showProfile()">S</div>
+    </div>
+  </div>
+  <div class="scroll-body fadein">
+    <div class="user-hero">
+      <div class="uh-greet" id="h_greet">Good morning,</div>
+      <div class="uh-name" id="h_name">Supervisor</div>
+      <div class="uh-badge" id="h_badge">● Station</div>
+      <div class="uh-date" id="h_date">Today</div>
+    </div>
+
+    <!-- SYNC STATUS -->
+    <div class="sync-banner sync-off" id="sync_banner" onclick="syncPending()">
+      <span id="sync_dot" class="status-dot dot-off"></span>
+      <span id="sync_msg">Sheet not connected · Go to Settings to add URL</span>
+      <button id="sync_retry_btn" onclick="event.stopPropagation();syncPending();toast('Syncing...');" style="display:none;margin-left:8px;padding:3px 10px;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);border-radius:10px;font-size:11px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;">Retry</button>
+    </div>
+
+    <div style="padding:14px 14px 0;">
+      <div class="today-strip">
+        <div class="ts-title">Today's Activity</div>
+        <div class="ts-stats">
+          <div class="ts-stat"><div class="ts-val" id="st_sent">0</div><div class="ts-lbl">Shared</div></div>
+          <div class="ts-stat"><div class="ts-val" id="st_sync" style="color:#0088CC">0</div><div class="ts-lbl">Synced</div></div>
+          <div class="ts-stat"><div class="ts-val" id="st_draft" style="color:#FF8C00">0</div><div class="ts-lbl">Drafts</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="home-actions">
+      <div class="action-card new" onclick="startNew()">
+        <div class="ac-icon new"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#E8541E" stroke-width="2.5" stroke-linecap="round"/></svg></div>
+        <div><div class="ac-title">New Report</div><div class="ac-sub">Fill today's GOGAS daily report<br>and share to WhatsApp</div></div>
+        <div class="ac-arrow">›</div>
+      </div>
+      <div class="action-card hist" onclick="goScreen('s_reports')">
+        <div class="ac-icon hist"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" stroke="#0088CC" stroke-width="2"/><rect x="9" y="3" width="6" height="4" rx="1" stroke="#0088CC" stroke-width="2"/><path d="M9 12h6M9 16h4" stroke="#0088CC" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+        <div><div class="ac-title">My Reports</div><div class="ac-sub">View, edit and reshare<br>your saved reports</div></div>
+        <div class="ac-arrow">›</div>
+      </div>
+      <div class="action-card remind" onclick="goScreen('s_settings')">
+        <div class="ac-icon remind"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="#E8541E" stroke-width="2"/><path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="#E8541E" stroke-width="2"/></svg></div>
+        <div><div class="ac-title">Reminders & Settings</div><div class="ac-sub">Set daily reminder times<br>Connect Google Sheet</div></div>
+        <div class="ac-arrow">›</div>
+      </div>
+    </div>
+    <div style="padding:14px;text-align:right;"><span style="font-size:12px;color:#8696A0;cursor:pointer;" onclick="logout()">Change account →</span></div>
+  </div>
+</div>
+
+<!-- ═══ FORM ═══ -->
+<div class="screen hidden" id="s_form">
+  <div class="status-bar"></div>
+  <div class="topbar">
+    <div class="tb-back" onclick="goHome()">←</div>
+    <div><div class="tb-title">New Report</div><div class="tb-sub" id="form_sub">GOGAS Daily Report</div></div>
+  </div>
+  <div class="scroll-body" id="form_scroll">
+    <div class="fill-bar-wrap fadein">
+      <div class="fb-bg"><div class="fb-fill" id="fb_fill" style="width:0%"></div></div>
+      <div class="fb-txt" id="fb_txt">0 / 12 required</div>
+    </div>
+    <div class="sec-div" style="margin-top:14px;">Station Info</div>
+    <div class="fsec fadein">
+      <div class="fsec-head"><div class="fsec-title">★ GOGAS DAILY REPORT</div><div class="fsec-badge">Locked</div></div>
+      <div class="frow two">
+        <div class="ffield"><div class="fflbl">ERP Code</div><div class="fflocked" id="fd_erp">—</div></div>
+        <div class="ffield"><div class="fflbl">Station Name</div><div class="fflocked" id="fd_stn">—</div></div>
+      </div>
+      <div class="frow">
+        <div class="ffield" style="grid-column:1/-1;">
+          <div class="fflbl">Shift(s) Being Reported <span class="req">*</span></div>
+          <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:7px 14px;border-radius:10px;border:1.5px solid #E9EDEF;background:#F7F8FA;font-size:14px;font-weight:700;transition:all 0.15s;" id="sl1">
+              <input type="checkbox" id="sh1_chk" onchange="onShiftChange()" style="display:none;"/>
+              <span id="sl1_dot" style="width:10px;height:10px;border-radius:50%;border:2px solid #8696A0;display:inline-block;transition:all 0.2s;"></span>Shift 1
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:7px 14px;border-radius:10px;border:1.5px solid #E9EDEF;background:#F7F8FA;font-size:14px;font-weight:700;transition:all 0.15s;" id="sl2">
+              <input type="checkbox" id="sh2_chk" onchange="onShiftChange()" style="display:none;"/>
+              <span id="sl2_dot" style="width:10px;height:10px;border-radius:50%;border:2px solid #8696A0;display:inline-block;transition:all 0.2s;"></span>Shift 2
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:7px 14px;border-radius:10px;border:1.5px solid #E9EDEF;background:#F7F8FA;font-size:14px;font-weight:700;transition:all 0.15s;" id="sl3">
+              <input type="checkbox" id="sh3_chk" onchange="onShiftChange()" style="display:none;"/>
+              <span id="sl3_dot" style="width:10px;height:10px;border-radius:50%;border:2px solid #8696A0;display:inline-block;transition:all 0.2s;"></span>Shift 3
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="frow" id="sh1_row" style="display:none;"><div class="ffield" style="grid-column:1/-1;background:rgba(232,84,30,0.03);"><div class="fflbl" style="color:#E8541E;">Shift 1 Sales (Ltrs) <span class="req">*</span></div><input class="ffin" id="f_s1sale" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div></div>
+      <div class="frow" id="sh2_row" style="display:none;"><div class="ffield" style="grid-column:1/-1;background:rgba(232,84,30,0.03);"><div class="fflbl" style="color:#E8541E;">Shift 2 Sales (Ltrs) <span class="req">*</span></div><input class="ffin" id="f_s2sale" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div></div>
+      <div class="frow" id="sh3_row" style="display:none;"><div class="ffield" style="grid-column:1/-1;background:rgba(232,84,30,0.03);"><div class="fflbl" style="color:#E8541E;">Shift 3 Sales (Ltrs) <span class="req">*</span></div><input class="ffin" id="f_s3sale" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div></div>
+    </div>
+    <div class="sec-div">Date</div>
+    <div class="fsec fadein">
+      <div class="frow two">
+        <div class="ffield"><div class="fflbl">Date <span class="req">*</span></div><input class="ffin" id="f_date" type="number" inputmode="numeric" placeholder="14" min="1" max="31" oninput="updateFill()"/></div>
+        <div class="ffield"><div class="fflbl">Month (Fixed)</div><div class="fflocked" id="fd_month">—</div></div>
+      </div>
+      <div class="frow"><div class="ffield"><div class="fflbl">Year</div><div class="fflocked" id="fd_year">—</div></div></div>
+    </div>
+    <div class="sec-div">Opening</div>
+    <div class="fsec fadein">
+      <div class="fsec-head"><div class="fsec-title">★ OPENING</div></div>
+      <div class="frow two">
+        <div class="ffield"><div class="fflbl">A1 <span class="req">*</span></div><input class="ffin" id="f_oa1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div>
+        <div class="ffield"><div class="fflbl">B1 <span class="req">*</span></div><input class="ffin" id="f_ob1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div>
+      </div>
+      <div class="frow two">
+        <div class="ffield"><div class="fflbl">A2</div><input class="ffin" id="f_oa2" type="text" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();"/></div>
+        <div class="ffield"><div class="fflbl">B2</div><input class="ffin" id="f_ob2" type="text" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();"/></div>
+      </div>
+    </div>
+    <div class="sec-div">Closing</div>
+    <div class="fsec fadein">
+      <div class="fsec-head"><div class="fsec-title">★ CLOSING</div></div>
+      <div class="frow two">
+        <div class="ffield"><div class="fflbl">A1 <span class="req">*</span></div><input class="ffin" id="f_ca1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div>
+        <div class="ffield"><div class="fflbl">B1 <span class="req">*</span></div><input class="ffin" id="f_cb1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div>
+      </div>
+      <div class="frow two">
+        <div class="ffield"><div class="fflbl">A2</div><input class="ffin" id="f_ca2" type="text" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();"/></div>
+        <div class="ffield"><div class="fflbl">B2</div><input class="ffin" id="f_cb2" type="text" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();"/></div>
+      </div>
+    </div>
+    <div class="sec-div">Sales</div>
+    <div class="fsec fadein">
+      <div class="fsec-head"><div class="fsec-title">★ SALES</div></div>
+      <div class="frow two">
+        <div class="ffield"><div class="fflbl">Total Sale <span class="req">*</span></div><input class="ffin" id="f_ts" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill();calcNS()"/></div>
+        <div class="ffield"><div class="fflbl">Rtn Testing</div><input class="ffin" id="f_rtn" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00" oninput="calcNS()"/></div>
+      </div>
+      <div class="frow two">
+        <div class="ffield"><div class="fflbl">Free Sale</div><input class="ffin" id="f_free" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00" oninput="calcNS()"/></div>
+        <div class="ffield"><div class="fflbl">Net Sale <span class="req">*</span></div><input class="ffin" id="f_ns" type="number" inputmode="decimal" step="0.01" placeholder="Auto" oninput="updateFill()"/></div>
+      </div>
+    </div>
+    <div class="sec-div">Rate</div>
+    <div class="fsec fadein">
+      <div class="fsec-head"><div class="fsec-title">★ RATE</div></div>
+      <div class="frow two">
+        <div class="ffield"><div class="fflbl">RSP DU1-N1</div><input class="ffin" id="f_r1" type="number" inputmode="decimal" step="0.01" placeholder="0.00"/></div>
+        <div class="ffield"><div class="fflbl">RSP DU1-N2</div><input class="ffin" id="f_r2" type="text" placeholder="NA" value="NA"/></div>
+      </div>
+      <div class="frow two">
+        <div class="ffield"><div class="fflbl">RSP DU2-N1</div><input class="ffin" id="f_r3" type="text" placeholder="NA" value="NA"/></div>
+        <div class="ffield"><div class="fflbl">RSP DU2-N2</div><input class="ffin" id="f_r4" type="text" placeholder="NA" value="NA"/></div>
+      </div>
+      <div id="rsp_add_wrap" style="margin-top:12px;">
+        <button type="button" onclick="toggleRSPChange()" id="rsp_add_btn" style="width:100%;padding:13px;background:#F7F8FA;border:2px dashed #E8541E;border-radius:12px;font-family:'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:800;color:#C0381A;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+          <span style="font-size:20px;">➕</span><span>Add RSP Change (rate changed mid-day)</span>
+        </button>
+        <div style="font-size:10px;color:#8696A0;margin-top:6px;text-align:center;font-weight:600;">Tap only if the selling rate changed during the day</div>
+      </div>
+      <div id="rsp_change_box" style="display:none;margin-top:12px;padding:14px;background:rgba(232,84,30,0.06);border:1.5px solid rgba(232,84,30,0.3);border-radius:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div style="font-size:13px;font-weight:800;color:#C0381A;">🔄 RSP Change Details</div>
+          <button type="button" onclick="toggleRSPChange()" style="background:rgba(255,82,82,0.12);border:none;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;color:#FF3B30;cursor:pointer;">Remove</button>
+        </div>
+        <div class="frow two">
+          <div class="ffield"><div class="fflbl">New RSP Rate</div><input class="ffin" id="f_rsp_new" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcRSPSplit()"/></div>
+          <div class="ffield"><div class="fflbl">Meter Reading at Change</div><input class="ffin" id="f_rsp_read" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcRSPSplit()"/></div>
+        </div>
+        <div class="frow two" style="margin-top:8px;">
+          <div class="ffield"><div class="fflbl">Ltrs at OLD rate</div><input class="ffin" id="f_rsp_lb" type="text" placeholder="auto" readonly style="background:#EEF1F3;"/></div>
+          <div class="ffield"><div class="fflbl">Ltrs at NEW rate</div><input class="ffin" id="f_rsp_la" type="text" placeholder="auto" readonly style="background:#EEF1F3;"/></div>
+        </div>
+        <div class="frow two" style="margin-top:8px;">
+          <div class="ffield"><div class="fflbl">Amount OLD rate</div><input class="ffin" id="f_rsp_ab" type="text" placeholder="auto" readonly style="background:#EEF1F3;"/></div>
+          <div class="ffield"><div class="fflbl">Amount NEW rate</div><input class="ffin" id="f_rsp_aa" type="text" placeholder="auto" readonly style="background:#EEF1F3;"/></div>
+        </div>
+        <div style="font-size:10px;color:#8696A0;margin-top:8px;font-weight:600;">Ltrs at old rate = (change reading − opening A1). Ltrs at new rate = (closing A1 − change reading). Both roll into your total.</div>
+        <div id="rsp_photo_slot" style="margin-top:10px;"></div>
+      </div>
+    </div>
+    <div class="sec-div">Payments</div>
+    <div class="fsec fadein">
+      <div class="fsec-head"><div class="fsec-title">★ PAYMENTS</div></div>
+      <div class="frow two">
+        <div class="ffield"><div class="fflbl">Prev Cash Bal</div><input class="ffin" id="f_prev" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div>
+        <div class="ffield"><div class="fflbl">Total Sales Amt <span class="req">*</span></div><input class="ffin" id="f_ta" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div>
+      </div>
+      <div class="frow two">
+        <div class="ffield"><div class="fflbl">Card Sale</div><input class="ffin" id="f_card" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div>
+        <div class="ffield"><div class="fflbl">Paytm Sale</div><input class="ffin" id="f_paytm" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div>
+      </div>
+      <div class="frow two">
+        <div class="ffield"><div class="fflbl">Free Sales Amt</div><input class="ffin" id="f_famt" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div>
+        <div class="ffield"><div class="fflbl">Cash Sale Amt</div><input class="ffin" id="f_csale" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div>
+      </div>
+      <div class="frow two">
+        <div class="ffield"><div class="fflbl">Bank Deposit</div><input class="ffin" id="f_bank" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div>
+        <div class="ffield"><div class="fflbl">Cash In Hand <span class="req">*</span></div><input class="ffin" id="f_cih" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div>
+      </div>
+    </div>
+    <div class="sec-div">Stock</div>
+    <div class="fsec fadein">
+      <div class="fsec-head"><div class="fsec-title">★ STOCK</div></div>
+      <div class="frow two">
+        <div class="ffield"><div class="fflbl">Dip Reading (mm) <span class="req">*</span></div><input class="ffin" id="f_dip" type="number" inputmode="numeric" placeholder="0" oninput="updateFill()"/></div>
+        <div class="ffield"><div class="fflbl">Stock in Ltrs <span class="req">*</span></div><input class="ffin" id="f_stk" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div>
+      </div>
+    </div>
+    <div class="sec-div">DG Meter</div>
+    <div class="fsec fadein">
+      <div class="fsec-head"><div class="fsec-title">★ DG METER</div></div>
+      <div class="frow two">
+        <div class="ffield"><div class="fflbl">Opening DG</div><input class="ffin" id="f_dgo" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div>
+        <div class="ffield"><div class="fflbl">Closing DG</div><input class="ffin" id="f_dgc" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div>
+      </div>
+      <div class="frow"><div class="ffield"><div class="fflbl">Hours</div><input class="ffin" id="f_dgh" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div></div>
+    </div>
+    <div class="sec-div">Photos</div>
+    <div class="fsec fadein" style="margin:10px 14px 0;">
+      <div class="fsec-head"><div class="fsec-title">📷 Required & Supporting Photos</div></div>
+      <div style="padding:14px;">
+        <div style="font-size:11px;color:#8696A0;margin-bottom:12px;font-weight:600;">DU meter photos are required. ROTO / DIP / RADAR are optional. You can take a photo or upload from gallery.</div>
+        <div id="photo_slots"></div>
+        <input type="file" id="photo_file_input" accept="image/*" style="display:none;" onchange="onSlotFile(this)"/>
+        <div id="photo_req_note" style="margin-top:6px;font-size:11px;font-weight:700;color:#FF8C00;"></div>
+      </div>
+    </div>
+
+    <div class="sec-div">Comments</div>
+    <div class="comment-wrap fadein">
+      <div class="cmt-lbl">Additional Comments (Optional)</div>
+      <textarea class="cmt-box" id="f_cmt" placeholder="Any extra info, issues, or notes…" rows="3"></textarea>
+    </div>
+    <div class="val-strip val-pend" id="val_strip">
+      <span id="val_ic">○</span><span id="val_msg">Fill required fields to preview</span>
+    </div>
+    <div style="height:14px;"></div>
+  </div>
+  <div class="bottom-bar">
+    <button class="btn-sec" onclick="saveDraft()">Save Draft</button>
+    <button class="btn-main" onclick="doPreview()">Preview →</button>
+  </div>
+</div>
+
+<!-- ═══ PREVIEW ═══ -->
+<div class="screen hidden" id="s_preview">
+  <div class="status-bar"></div>
+  <div class="topbar">
+    <div class="tb-back" onclick="goScreen('s_form')">←</div>
+    <div><div class="tb-title">Preview Report</div><div class="tb-sub">Review before sharing</div></div>
+  </div>
+  <div class="scroll-body">
+    <div class="preview-wrap">
+      <div class="prev-note">✏️ Tap ← to go back and edit any field</div>
+      <pre class="prev-box" id="prev_text"></pre>
+    </div>
+  </div>
+  <div class="bottom-bar">
+    <button class="btn-sec" onclick="goScreen('s_form')">← Edit</button>
+    <button class="btn-main" onclick="doSubmit()" style="flex:1;background:#E8541E;color:#fff;border:none;padding:0 16px;border-radius:13px;font-family:'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:800;cursor:pointer;">✅ Submit</button>
+    <button class="btn-wa" onclick="doWA()" style="display:flex;align-items:center;justify-content:center;gap:8px;flex:1;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" fill="white"/><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.875-1.478A9.96 9.96 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2z" stroke="white" stroke-width="1.5"/></svg>
+      ✅ Submit & Share on WhatsApp
+    </button>
+  </div>
+</div>
+
+<!-- ═══ REPORTS ═══ -->
+<div class="screen hidden" id="s_reports">
+  <div class="status-bar"></div>
+  <div class="topbar">
+    <div class="tb-back" onclick="goHome()">←</div>
+    <div class="tb-title">My Reports</div>
+    <div style="margin-left:auto;font-size:12px;color:#0088CC;font-weight:700;cursor:pointer;" onclick="syncAll()">↑ Sync All</div>
+  </div>
+  <div class="scroll-body"><div class="rep-list" id="rep_list"></div></div>
+  <div class="bottom-bar"><button class="btn-main" onclick="startNew()">+ New Report</button></div>
+</div>
+
+<!-- ═══ SETTINGS ═══ -->
+<div class="screen hidden" id="s_settings">
+  <div class="status-bar"></div>
+  <div class="topbar">
+    <div class="tb-back" onclick="goHome()">←</div>
+    <div class="tb-title">Settings</div>
+  </div>
+  <div class="scroll-body fadein">
+
+    <!-- GOOGLE SHEET -->
+    <div class="setup-card" style="margin-top:14px;">
+      <div class="setup-title">🔗 Google Sheet Connection</div>
+      <div class="setup-sub">Paste your Google Apps Script URL here. Reports will auto-sync when internet is available. Offline reports sync automatically when connection returns.</div>
+      <input class="url-input" id="sheet_url" placeholder="https://script.google.com/macros/s/.../exec" type="url"/>
+      <div class="setup-btns">
+        <button class="sbtn g" onclick="saveSheetUrl()">Save URL</button>
+        <button class="sbtn s" onclick="testConnection()">Test Connection</button>
+      </div>
+      <div id="conn_status" style="margin-top:10px;font-size:12px;color:#8696A0;display:none;"></div>
+    </div>
+
+    <!-- REMINDER TIMES -->
+    <div style="margin:14px 14px 0;font-size:11px;font-weight:700;color:#8696A0;text-transform:uppercase;letter-spacing:0.5px;">⏰ Daily Reminders</div>
+    <div class="rem-section">
+      <div class="rem-row">
+        <div>
+          <div class="rem-label">Reminder 1</div>
+          <div class="rem-sub">Morning shift reminder</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <input type="time" class="rem-time" id="rem1_time" value="08:00"/>
+          <div class="toggle" id="rem1_tog" onclick="toggleReminder(1)"></div>
+        </div>
+      </div>
+      <div class="rem-row">
+        <div>
+          <div class="rem-label">Reminder 2</div>
+          <div class="rem-sub">Afternoon shift reminder</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <input type="time" class="rem-time" id="rem2_time" value="14:00"/>
+          <div class="toggle" id="rem2_tog" onclick="toggleReminder(2)"></div>
+        </div>
+      </div>
+      <div class="rem-row">
+        <div>
+          <div class="rem-label">Reminder 3</div>
+          <div class="rem-sub">Evening shift reminder</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <input type="time" class="rem-time" id="rem3_time" value="20:00"/>
+          <div class="toggle" id="rem3_tog" onclick="toggleReminder(3)"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="notif_perm" class="notif-perm" onclick="requestNotifPerm()" style="display:none;">
+      🔔 Tap here to allow notifications — required for reminders to work
+    </div>
+    <div style="margin:10px 14px 0;padding:10px 14px;background:rgba(232,84,30,0.05);border:1px solid #E9EDEF;border-radius:11px;font-size:12px;color:#8696A0;line-height:1.6;">
+      ⚡ Reminders fire at the set time every day. Keep the app added to your Home Screen for best results. Tap the bell to allow notifications when asked.
+    </div>
+
+    <!-- ACCOUNT -->
+    <div style="margin:14px 14px 0;font-size:11px;font-weight:700;color:#8696A0;text-transform:uppercase;letter-spacing:0.5px;">👤 Account</div>
+    <div class="rem-section">
+      <div class="rem-row">
+        <div><div class="rem-label" id="set_name">—</div><div class="rem-sub" id="set_station">—</div></div>
+        <button style="padding:8px 16px;background:rgba(255,82,82,0.1);border:1px solid rgba(255,82,82,0.2);color:#FF3B30;border-radius:9px;font-family:'Segoe UI',Arial,sans-serif;font-size:12px;font-weight:700;cursor:pointer;" onclick="logout()">Logout</button>
+      </div>
+    </div>
+    <div style="height:14px;"></div>
+  </div>
+  <div class="bottom-bar">
+    <button class="btn-main" onclick="saveAllSettings()">Save Settings</button>
+  </div>
+</div>
+
+<div class="toast" id="toast_el"></div>
+
+<script>
+// ── CREDENTIALS ──
+// doLogin uses SS_CREDENTIALS defined above
+const SS_CREDENTIALS = JSON.parse(localStorage.getItem('sw_ss_creds')||'null') || {
+  'AA004':{name:'',station:'Chennai Aminjikarai',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AA005':{name:'',station:'Chennai Alapakkam',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AA007':{name:'',station:'Chennai Ambatur',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AA011':{name:'',station:'Chennai Andanguppam',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AB015':{name:'',station:'Belukuruchi',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AC004':{name:'',station:'Coimbatore Thadagam',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AC005':{name:'',station:'Coimbatore Veeranpandi',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AD003':{name:'',station:'Dindigul',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AE001':{name:'',station:'Erode Bhavani',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AE002':{name:'',station:'Chennai Ernaavur',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AG005':{name:'',station:'Chennai Gerugambakkam',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AG006':{name:'',station:'Gujiliamparai',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AJ002':{name:'',station:'Jollarpet',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AK004':{name:'',station:'Kangeyam',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AK005':{name:'',station:'Kancheepuram',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AK006':{name:'',station:'Chennai Kolathur -1',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AK008':{name:'',station:'Chennai Kallikuppam',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AK009':{name:'',station:'Chennai Kovalbakkam',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AK010':{name:'',station:'Chennai Kundrathur',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AK011':{name:'',station:'Kinathakadavu',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AK012':{name:'',station:'Kallipatti',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AK013':{name:'',station:'Kumarapallayam',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AK014':{name:'',station:'Chennai Kovilpathagai',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AK015':{name:'',station:'Chennai Kovalam',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AK021':{name:'',station:'Kondichetipatti',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AM008':{name:'',station:'Chennai Madurvoyal',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AM010':{name:'',station:'Melur',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AM011':{name:'',station:'Chennai Menjur',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AN006':{name:'',station:'Madurai (New)',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AN008':{name:'',station:'Chennai Nungambakkam',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AN009':{name:'',station:'Satyamangalam New',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AN015':{name:'',station:'Chennai Alwarpet New',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AN016':{name:'',station:'Akkiyampattti',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AO002':{name:'',station:'Odaipatti',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AP004':{name:'',station:'Peramballur',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AP006':{name:'',station:'Chennai Pattabhiram',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AP010':{name:'',station:'Chennai Padappai',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AP012':{name:'',station:'Chennai Perumbakkam',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AP014':{name:'',station:'Trichy Panjapur',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AR004':{name:'',station:'Pollachie Rasakapalayam',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AS009':{name:'',station:'Coimbatore Sanganoor',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AS010':{name:'',station:'Chennai Saidapet',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AS011':{name:'',station:'Chennai Seenerikuppam',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AS012':{name:'',station:'Chennai St.Thomas',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AS013':{name:'',station:'Chennai Sivabhootam',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AS100':{name:'',station:'Satyamangalam',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AT005':{name:'',station:'Chennai TH Road',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AT006':{name:'',station:'Chennai Thiruvallur',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AT007':{name:'',station:'Trichy',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AT009':{name:'',station:'Chennai Thondiarpet',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AT010':{name:'',station:'Chennai Thirumullavoyal',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AT013':{name:'',station:'Thiruthani',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AT014':{name:'',station:'Thiruvannamalai-7',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AT016':{name:'',station:'Chennai Thiruninruvur',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AU002':{name:'',station:'Chennai Urapakkam',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AV002':{name:'',station:'Chennai Villivakam',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AV003':{name:'',station:'Chennai Vepampattu',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AV004':{name:'',station:'Chennai Vinayakapuram',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY008':{name:'',station:'Dharapuram',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY010':{name:'',station:'Kolapalur JOCO',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY011':{name:'',station:'Alukulli JOCO',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY014':{name:'',station:'Vilsarampatti LOCO',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY015':{name:'',station:'Sivanamalai LOCO',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY020':{name:'',station:'Kemmyampatti- Erode - Henry',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY021':{name:'',station:'Chennai Tambaram Mudichur Road',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY022':{name:'',station:'Chennai Sithalapakkam-',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY023':{name:'',station:'Chennai Nenudungudram-',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY024':{name:'',station:'Chennai Saligramam-',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY025':{name:'',station:'Anthiyur New',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY028':{name:'',station:'Erode Avalapoondarai',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY029':{name:'',station:'Chennai Pallavaram -',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY035':{name:'',station:'Chennai Thiruverkadu',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY039':{name:'',station:'Chithode - Erode LOCO',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY040':{name:'',station:'Chennai Madipakkam',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY042':{name:'',station:'Chennai Vandalur',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY044':{name:'',station:'Muthampalayam - Chennimalai Road',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY045':{name:'',station:'Chennai Perangalatur',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY046':{name:'',station:'Chennai Addambakkam',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY047':{name:'',station:'Chennai Perungudi Kottivakkam',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY048':{name:'',station:'Chennai T Nagar',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY055':{name:'',station:'Thadaperumpakkam',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY056':{name:'',station:'Chennai Nerukundram Madurvoyal',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY062':{name:'',station:'Chennai Madhavaram Meenambal',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY063':{name:'',station:'Chennai Pammal Tambaram',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY065':{name:'',station:'Chennai Ennore locl Express',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY067':{name:'',station:'Chennai Kayrembedu',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY068':{name:'',station:'Thoraiyur Trichy',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY078':{name:'',station:'Chennai Thiruvottiyur - Jeevanlal Nagar',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY079':{name:'',station:'Chennai Vardharajapuram',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY080':{name:'',station:'Chennai Arcot Road - Vadapalni',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY083':{name:'',station:'Veerappalayam Edapaddi- Selam Dist',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY085':{name:'',station:'Chennai Shollinganallur',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY086':{name:'',station:'Chennai Thirumudivakkam',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY089':{name:'',station:'Chennai Egmore',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY091':{name:'',station:'Chennai Greenways',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY092':{name:'',station:'Chennai GNT Road',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY093':{name:'',station:'Elumuthur Moodakurchi',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY094':{name:'',station:'Kumarapallayam - Agraharam',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY101':{name:'',station:'Chennai Theerthagariyampattu',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY106':{name:'',station:'Pottyreddypatti',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY122':{name:'',station:'Malasamundram',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY128':{name:'',station:'Kalipalayam Avinashi-TIRUPUR',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY140':{name:'',station:'Chenna- Ambattur Red hills',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY142':{name:'',station:'Chennai Pulicat Chinnakavanam',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AY144':{name:'',station:'Illayankudi',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'DODO1':{name:'',station:'Thiravator DODO',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'DODO16':{name:'',station:'Gobichettypalayam DODO',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'DODO18':{name:'',station:'Makkinancombai - DODO',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'DODO2':{name:'',station:'Mkb Nagar DODO',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'DODO3':{name:'',station:'Moolakadai DODO',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'DODO4':{name:'',station:'Chennai Madhavaram Puzal - DODO',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'DODO5':{name:'',station:'Kavindapadi DODO',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'DODO6':{name:'',station:'Madhuthapalayam DODO',state:'Tamil Nadu',password:'SW@1234',mobile:''},
+  'AA002':{name:'',station:'Arsikere',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AB010':{name:'',station:'Bang Banaswadi',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AB017':{name:'',station:'Bhadrawati',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AB019':{name:'',station:'Bengarpet',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AB021':{name:'',station:'Harpanahalli',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AB100':{name:'',station:'Bellary',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AC003':{name:'',station:'Chikamaglur',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AC007':{name:'',station:'Channaraypatna',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AC009':{name:'',station:'Channagiri',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AD002':{name:'',station:'Davangere',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AD004':{name:'',station:'Dharwad',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AD005':{name:'',station:'Bang Devanahalli',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AD006':{name:'',station:'Dodaballapur',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AG001':{name:'',station:'Gadag',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AG004':{name:'',station:'Gulbarga Ring Road',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AG008':{name:'',station:'Gubbi',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AH004':{name:'',station:'Hubbali Old',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AH005':{name:'',station:'Hassan',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AH006':{name:'',station:'Haveri',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AH010':{name:'',station:'Hosdurga',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AH011':{name:'',station:'Harihara',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AH012':{name:'',station:'Hubbali Anand Nagar',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AH013':{name:'',station:'Hangal',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AJ003':{name:'',station:'Bang JP Nagar',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AK017':{name:'',station:'Koppal',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AK019':{name:'',station:'Karwar',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AK020':{name:'',station:'KGF',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AL001':{name:'',station:'Bang Lalbaugh',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AM002':{name:'',station:'Mysore Nie',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AM003':{name:'',station:'Madhugiri',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AM004':{name:'',station:'Mangalore',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AM006':{name:'',station:'Mulbagal',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AM009':{name:'',station:'Malavalli',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AN007':{name:'',station:'Nanjangud',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AN011':{name:'',station:'Bang Nayandahalli',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AN012':{name:'',station:'Bang Neelamangala',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AN014':{name:'',station:'Nippani',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AP011':{name:'',station:'Puttur',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AR001':{name:'',station:'Raichur',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AR005':{name:'',station:'Ranebennur',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AS004':{name:'',station:'Shimoga',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AS005':{name:'',station:'Sira',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AS006':{name:'',station:'Sirsi',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AS015':{name:'',station:'Sastana',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AS016':{name:'',station:'Sagara',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AT002':{name:'',station:'Tumkur',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AT004':{name:'',station:'Tiptur',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AT011':{name:'',station:'Teerathali',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AT017':{name:'',station:'T Narsipura',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AV006':{name:'',station:'Vitla',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY003':{name:'',station:'Bang Yellahanka',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY005':{name:'',station:'Sindhanoor',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY012':{name:'',station:'Lakshmeshwar',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY016':{name:'',station:'Hosepet',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY026':{name:'',station:'Dharwad - New',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY031':{name:'',station:'Bang Nandidurga',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY034':{name:'',station:'Rayee',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY036':{name:'',station:'Chikaballapur',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY041':{name:'',station:'Ankola',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY043':{name:'',station:'Bang Mahadevpura',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY050':{name:'',station:'Kinnigoli',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY051':{name:'',station:'Udupi - 2 New',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY052':{name:'',station:'Belgavi JOCO',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY054':{name:'',station:'Kanakapura LOCO',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY057':{name:'',station:'Hassan 2 New',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY066':{name:'',station:'Hebri - JOCO',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY081':{name:'',station:'Bang Kariyanpalayam - (Lingarajpura)',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY082':{name:'',station:'Bang Yeshwantpura',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY090':{name:'',station:'Bhatkal',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY095':{name:'',station:'K R Pete',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY097':{name:'',station:'Kumta',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY098':{name:'',station:'Bellary 2',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY102':{name:'',station:'Gulbarga Fort',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY103':{name:'',station:'Aland JOCO',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY107':{name:'',station:'Belur',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY109':{name:'',station:'Mudipu',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY110':{name:'',station:'Gangawati',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY112':{name:'',station:'SINDAGI',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY113':{name:'',station:'Kumbra',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY117':{name:'',station:'Bidar',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY118':{name:'',station:'Bang Channasandra',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY119':{name:'',station:'Gadag New',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY121':{name:'',station:'Bajpe',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY123':{name:'',station:'Bang Whitefield',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY124':{name:'',station:'Shimoga Bommankatte',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY129':{name:'',station:'Bang Konankunte',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY130':{name:'',station:'Jangamkotte',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY132':{name:'',station:'Bailhongla',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY133':{name:'',station:'Savnoor Puttur',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY134':{name:'',station:'Kalladka',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY139':{name:'',station:'Tumkur-2',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY141':{name:'',station:'Suratkal',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY145':{name:'',station:'Siddapura',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY146':{name:'',station:'Tumkur 3',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY147':{name:'',station:'Challakare',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AY148':{name:'',station:'Yedthady',state:'Karnataka',password:'SW@1234',mobile:''},
+  'DODO10':{name:'',station:'Kar Bagalkot DODO',state:'Karnataka',password:'SW@1234',mobile:''},
+  'DODO11':{name:'',station:'Bijapur DODO',state:'Karnataka',password:'SW@1234',mobile:''},
+  'DODO12':{name:'',station:'Kunigal DODO',state:'Karnataka',password:'SW@1234',mobile:''},
+  'DODO13':{name:'',station:'Ramnagar DODO',state:'Karnataka',password:'SW@1234',mobile:''},
+  'DODO17':{name:'',station:'YADGIR',state:'Karnataka',password:'SW@1234',mobile:''},
+  'DODO19':{name:'',station:'Byndoor',state:'Karnataka',password:'SW@1234',mobile:''},
+  'JODO10':{name:'',station:'Kundapur JODO',state:'Karnataka',password:'SW@1234',mobile:''},
+  'JODO11':{name:'',station:'Bang Katrigupe JODO',state:'Karnataka',password:'SW@1234',mobile:''},
+  'JODO6':{name:'',station:'Bang Banergatta JODO',state:'Karnataka',password:'SW@1234',mobile:''},
+  'JODO7':{name:'',station:'Hubbali New JODO',state:'Karnataka',password:'SW@1234',mobile:''},
+  'JODO8':{name:'',station:'Udupi JODO',state:'Karnataka',password:'SW@1234',mobile:''},
+  'JODO9':{name:'',station:'Belgavi JODO',state:'Karnataka',password:'SW@1234',mobile:''},
+  'AA006':{name:'',station:'Ahmednagar',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AA012':{name:'',station:'Amrawati - Sunderlal',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AA013':{name:'',station:'Akola Nandu',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AA014':{name:'',station:'Ahmednagar-Bholegaon',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AB001':{name:'',station:'Baramati',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AB004':{name:'',station:'Barshi',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AB016':{name:'',station:'Aurangabad Beed Byepass',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AB022':{name:'',station:'Bhusawal',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AC008':{name:'',station:'Aurangabad-Chikalthana',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AI002':{name:'',station:'Nagpur Imambada',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AI003':{name:'',station:'Indapur-JODO- LOCO',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AK001':{name:'',station:'Nagpur Kamptee Rd - COCO',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AK002':{name:'',station:'Kolhapur',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AK022':{name:'',station:'Aurangabad Kanchanwadi',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AL005':{name:'',station:'Latur Ambejogai Road',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AN013':{name:'',station:'Nashik Adgaon',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AO001':{name:'',station:'Ozar',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AP002':{name:'',station:'Palus',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AP008':{name:'',station:'Pandharpur',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AP013':{name:'',station:'Nagpur Pardi-Lic',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AR003':{name:'',station:'Nagpur Radisson - COCO',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AS001':{name:'',station:'Solapur',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AS114':{name:'',station:'Solapur - 2',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AT018':{name:'',station:'Nagpur Taj Bagh',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AY002':{name:'',station:'Yeola JODO - LOCO',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AY004':{name:'',station:'Yeotmal',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AY006':{name:'',station:'Dhule',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AY009':{name:'',station:'Karmala JOCO',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AY017':{name:'',station:'Parbhani - New',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AY018':{name:'',station:'Aurangabad South City',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AY019':{name:'',station:'Nashik Dwarka',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AY027':{name:'',station:'Jalna',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AY033':{name:'',station:'Manmad',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AY037':{name:'',station:'Nagpur Hingana',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AY038':{name:'',station:'Karad',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AY049':{name:'',station:'Satara',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AY060':{name:'',station:'Niphad JODO',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AY084':{name:'',station:'Sangamner',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AY087':{name:'',station:'Nashik Satpur',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AY096':{name:'',station:'Ambaad Satpur',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AY099':{name:'',station:'Solapur - 3 Majrewadi',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AY100':{name:'',station:'Nashik Lam Road',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AY116':{name:'',station:'Basmat',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AY120':{name:'',station:'Baramati New',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AY125':{name:'',station:'Parbhani Pathri',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AY126':{name:'',station:'Dhule Deopur',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AY127':{name:'',station:'Kolhapur - City',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AY143':{name:'',station:'Sangli',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'DODO15':{name:'',station:'Kalamna DODO',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'JODO2':{name:'',station:'Nanded JODO',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'JODO4':{name:'',station:'Nagpur Manewada',state:'Maharashtra',password:'SW@1234',mobile:''},
+  'AA003':{name:'',station:'Hyd Amberpet',state:'Telangana',password:'SW@1234',mobile:''},
+  'AA008':{name:'',station:'Hyd Alwaal',state:'Telangana',password:'SW@1234',mobile:''},
+  'AB012':{name:'',station:'Hyd Barakas',state:'Telangana',password:'SW@1234',mobile:''},
+  'AB013':{name:'',station:'Hyd Bandlaguda',state:'Telangana',password:'SW@1234',mobile:''},
+  'AB018':{name:'',station:'Hyd Balanagar',state:'Telangana',password:'SW@1234',mobile:''},
+  'AH007':{name:'',station:'Hyd Hayat Nagar',state:'Telangana',password:'SW@1234',mobile:''},
+  'AK003':{name:'',station:'Kurnool',state:'Telangana',password:'SW@1234',mobile:''},
+  'AL002':{name:'',station:'Hyd Lakdi Ka Pool',state:'Telangana',password:'SW@1234',mobile:''},
+  'AL003':{name:'',station:'Hyd Lb Nagar',state:'Telangana',password:'SW@1234',mobile:''},
+  'AL004':{name:'',station:'Hyd Lalapet',state:'Telangana',password:'SW@1234',mobile:''},
+  'AN004':{name:'',station:'Nirmal',state:'Telangana',password:'SW@1234',mobile:''},
+  'AN005':{name:'',station:'Nizamabad',state:'Telangana',password:'SW@1234',mobile:''},
+  'AP009':{name:'',station:'Hyd Patancheru',state:'Telangana',password:'SW@1234',mobile:''},
+  'AS007':{name:'',station:'Hyd Sayeedabad',state:'Telangana',password:'SW@1234',mobile:''},
+  'AS008':{name:'',station:'Siddipet',state:'Telangana',password:'SW@1234',mobile:''},
+  'AS014':{name:'',station:'Hyd Siri Nagar',state:'Telangana',password:'SW@1234',mobile:''},
+  'AS112':{name:'',station:'Hyd Shahlibanda',state:'Telangana',password:'SW@1234',mobile:''},
+  'AW001':{name:'',station:'Warangal',state:'Telangana',password:'SW@1234',mobile:''},
+  'AY001':{name:'',station:'Hyd Yapral',state:'Telangana',password:'SW@1234',mobile:''},
+  'AY030':{name:'',station:'Hyd (Bandlaguda) Uppal',state:'Telangana',password:'SW@1234',mobile:''},
+  'AY058':{name:'',station:'Hyd Bahadurpura',state:'Telangana',password:'SW@1234',mobile:''},
+  'AY059':{name:'',station:'Koddad',state:'Telangana',password:'SW@1234',mobile:''},
+  'AY069':{name:'',station:'Kamareddy',state:'Telangana',password:'SW@1234',mobile:''},
+  'AY104':{name:'',station:'Raydurgam',state:'Telangana',password:'SW@1234',mobile:''},
+  'AY105':{name:'',station:'Ananthapur',state:'Telangana',password:'SW@1234',mobile:''},
+  'DODO14':{name:'',station:'Karimnagar DODO',state:'Telangana',password:'SW@1234',mobile:''},
+  'JODO12':{name:'',station:'Hyd Yusufguda JODO',state:'Telangana',password:'SW@1234',mobile:''},
+  'JODO13':{name:'',station:'Karimnagar - JODO',state:'Telangana',password:'SW@1234',mobile:''},
+  'AB020':{name:'',station:'Burhanpur',state:'Madhya Pradesh',password:'SW@1234',mobile:''},
+  'AJ005':{name:'',station:'Jabalpur Laxmipur',state:'Madhya Pradesh',password:'SW@1234',mobile:''},
+  'AJ007':{name:'',station:'Jabalpur Durgavati',state:'Madhya Pradesh',password:'SW@1234',mobile:''},
+  'AK016':{name:'',station:'Khandwa',state:'Madhya Pradesh',password:'SW@1234',mobile:''},
+  'AY053':{name:'',station:'Sagar',state:'Madhya Pradesh',password:'SW@1234',mobile:''},
+  'AY108':{name:'',station:'Jabalpur Karmeta',state:'Madhya Pradesh',password:'SW@1234',mobile:''},
+  'AY111':{name:'',station:'Jabalpur Adhartal',state:'Madhya Pradesh',password:'SW@1234',mobile:''},
+  'AA001':{name:'',station:'Ajmer',state:'Rajasthan',password:'SW@1234',mobile:''},
+  'AB006':{name:'',station:'Bhilwara',state:'Rajasthan',password:'SW@1234',mobile:''},
+  'AD001':{name:'',station:'Dausa',state:'Rajasthan',password:'SW@1234',mobile:''},
+  'AJ006':{name:'',station:'Jaipur Sikar Road',state:'Rajasthan',password:'SW@1234',mobile:''},
+  'AT008':{name:'',station:'Jaipur T P Nagar',state:'Rajasthan',password:'SW@1234',mobile:''},
+  'AB008':{name:'',station:'Barasat',state:'West Bengal',password:'SW@1234',mobile:''}
+};
+
+// ── TAB SWITCHER ──
+function switchTab(tab){
+  var eb=document.getElementById('tab_erp'),ob=document.getElementById('tab_otp');
+  var ec=document.getElementById('tab_erp_content'),oc=document.getElementById('tab_otp_content');
+  if(tab==='erp'){
+    eb.style.background='#E8541E';eb.style.color='#000';
+    ob.style.background='transparent';ob.style.color='#8696A0';
+    ec.style.display='block';oc.style.display='none';
+    setTimeout(function(){document.getElementById('li_erp').focus();},100);
+  } else {
+    ob.style.background='#E8541E';ob.style.color='#000';
+    eb.style.background='transparent';eb.style.color='#8696A0';
+    ec.style.display='none';oc.style.display='block';
+    setTimeout(function(){document.getElementById('li_mobile').focus();},100);
+  }
+}
+
+// ── MOBILE OTP ──
+var mobileOTPCode=null, mobileOTPExpiry=null, mobileOTPNumber=null;
+function sendMobileOTP(){
+  var mobile=document.getElementById('li_mobile').value.trim().replace(/[^0-9]/g,'');
+  var errEl=document.getElementById('otp_err');
+  errEl.style.display='none';
+  if(mobile.length!==10){errEl.style.display='block';errEl.textContent='Enter valid 10-digit mobile number';return;}
+  mobileOTPCode=Math.floor(100000+Math.random()*900000).toString();
+  mobileOTPExpiry=Date.now()+(10*60*1000);
+  mobileOTPNumber=mobile;
+  var msg='Your Station Reporting OTP is: *'+mobileOTPCode+'*\n\nValid for 10 minutes. Do not share.\n\n_GoGas Station Reporting_';
+  window.open('https://wa.me/91'+mobile+'?text='+encodeURIComponent(msg),'_blank');
+  document.getElementById('otp_sub').textContent='OTP sent to +91'+mobile.slice(-4).padStart(10,'•')+' — enter below';
+  ['otp1','otp2','otp3','otp4','otp5','otp6'].forEach(function(id){document.getElementById(id).value='';});
+  goScreen('s_otp');
+  setTimeout(function(){document.getElementById('otp1').focus();},300);
+  toast('OTP sent ✓');
+}
+
+// ════════ CONSTANTS ════════
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MONTHS_S=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const REQ=['f_date','f_oa1','f_ob1','f_ca1','f_cb1','f_ts','f_ns','f_ta','f_cih','f_dip','f_stk'];
+
+// ════════ STATE ════════
+let user = JSON.parse(localStorage.getItem('sw_user')||'null');
+let reports = JSON.parse(localStorage.getItem('sw_reports')||'[]');
+let syncQueue = JSON.parse(localStorage.getItem('sw_queue')||'[]');
+let settings = JSON.parse(localStorage.getItem('sw_settings')||'{}');
+let editId = null;
+let reminderTimers = [];
+
+// ════════ DEVICE SECURITY ════════
+function getOrCreateDeviceId(){
+  let did = localStorage.getItem('sw_device_id');
+  if(!did){
+    did = 'DEV_' + Date.now() + '_' + Math.random().toString(36).substring(2,10).toUpperCase();
+    localStorage.setItem('sw_device_id', did);
+  }
+  return did;
+}
+
+async function registerDevice(userData){
+  const url = localStorage.getItem('sw_sheet_url');
+  if(!url) return;
+  const deviceId = getOrCreateDeviceId();
+  const payload = {
+    type: 'registerDevice',
+    deviceId,
+    erp: userData.erp,
+    ssName: userData.name,
+    stationName: userData.station,
+    state: userData.state,
+    firstSeen: new Date().toISOString(),
+    lastSeen: new Date().toISOString(),
+    userAgent: navigator.userAgent.substring(0,100)
+  };
+  try {
+    await fetch(url, {
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify(payload)
+    });
+  } catch(e){}
+}
+
+async function checkDeviceStatus(){
+  const url = localStorage.getItem('sw_sheet_url');
+  if(!url || !user) return;
+  const deviceId = getOrCreateDeviceId();
+  try {
+    const res = await fetch(url+'?action=checkDevice&deviceId='+deviceId+'&erp='+user.erp);
+    const data = await res.json();
+    if(data.blocked){
+      // Device blocked by admin
+      user = null;
+      localStorage.removeItem('sw_user');
+      alert('⛔ Your access has been blocked by admin. Contact your supervisor.');
+      goScreen('s_login');
+      return false;
+    }
+    if(data.forceLogout){
+      user = null;
+      localStorage.removeItem('sw_user');
+      alert('🔒 You have been logged out by admin. Please login again.');
+      goScreen('s_login');
+      return false;
+    }
+  } catch(e){}
+  return true;
+}
+
+// Check device status every 5 minutes while app is open
+setInterval(()=>{ if(user) checkDeviceStatus(); }, 5*60*1000);
+
+// ════════ OTP ════════
+let currentOTP = null;
+let otpExpiry = null;
+let pendingUser = null;
+
+function generateOTP(){
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+function doLoginWithOTP(){
+  const erp=document.getElementById('li_erp').value.trim().toUpperCase();
+  const name=document.getElementById('li_name').value.trim();
+  const station=document.getElementById('li_station').value.trim();
+  const state=document.getElementById('li_state').value;
+  if(!erp||!name||!station||!state){toast('Please fill all fields');return;}
+  pendingUser={erp,name,station,state};
+  currentOTP=generateOTP();
+  otpExpiry=Date.now()+(10*60*1000); // 10 min
+  // Send OTP via WhatsApp
+  const msg='Your Station Reporting OTP is: *'+currentOTP+'*\n\nValid for 10 minutes.\nDo not share with anyone.\n\n_GoGas Station Reporting_';
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+  // Clear OTP fields
+  ['otp1','otp2','otp3','otp4','otp5','otp6'].forEach(id=>{document.getElementById(id).value='';});
+  document.getElementById('otp_sub').textContent='OTP sent to your WhatsApp — check and enter below';
+  goScreen('s_otp');
+  setTimeout(()=>document.getElementById('otp1').focus(),300);
+  toast('OTP sent to WhatsApp ✓');
+}
+
+function doLoginDirect(){
+  doLogin();
+}
+
+function otpNext(el, nextId){
+  const val=el.value.toString().slice(-1);
+  el.value=val;
+  if(val && nextId) document.getElementById(nextId)?.focus();
+  // Auto verify when all 6 entered
+  const otp=['otp1','otp2','otp3','otp4','otp5','otp6'].map(id=>document.getElementById(id).value).join('');
+  if(otp.length===6) setTimeout(verifyOTP, 300);
+}
+
+function otpBack(e, prevId, currId){
+  if(e.key==='Backspace'&&!document.getElementById(currId).value&&prevId){
+    document.getElementById(prevId).focus();
+  }
+}
+
+function verifyOTP(){
+  const entered=['otp1','otp2','otp3','otp4','otp5','otp6'].map(id=>document.getElementById(id).value).join('');
+  if(entered.length<6){toast('Enter all 6 digits');return;}
+  const expiry = otpExpiry || mobileOTPExpiry;
+  if(Date.now()>expiry){toast('OTP expired — please resend');return;}
+  const validOTP = currentOTP || mobileOTPCode;
+  if(entered===validOTP){
+    // OTP correct - check if mobile login or ERP login
+    if(mobileOTPCode && mobileOTPNumber){
+      var match=Object.entries(SS_CREDENTIALS).find(function(e){return e[1].mobile&&e[1].mobile.replace(/[^0-9]/g,'')===mobileOTPNumber;});
+      if(match){user={erp:match[0],name:match[1].name,station:match[1].station,state:match[1].state};}
+      else{user=pendingUser||{erp:'MOBILE',name:'SS User',station:'Station',state:'Unknown'};}
+      mobileOTPCode=null;mobileOTPNumber=null;
+    } else {
+      user=pendingUser;
+    }
+    if(!user.mobile){user.mobile=mobileOTPNumber||'';}
+    localStorage.setItem('sw_user',JSON.stringify(user));
+    currentOTP=null;pendingUser=null;
+    registerDevice(user);
+    routeAfterLogin();
+  } else {
+    // Wrong OTP — shake effect
+    toast('Wrong OTP — please try again');
+    ['otp1','otp2','otp3','otp4','otp5','otp6'].forEach(id=>{
+      const el=document.getElementById(id);
+      el.style.borderColor='#FF3B30';
+      setTimeout(()=>el.style.borderColor='#E9EDEF',1500);
+    });
+  }
+}
+
+function resendOTP(){
+  if(!pendingUser){goScreen('s_login');return;}
+  currentOTP=generateOTP();
+  otpExpiry=Date.now()+(10*60*1000);
+  const msg='Your Station Reporting OTP is: *'+currentOTP+'*\n\nValid for 10 minutes.\nDo not share with anyone.\n\n_GoGas Station Reporting_';
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+  toast('New OTP sent to WhatsApp ✓');
+}
+
+// ════════ SS CREDENTIALS (loaded from admin config or defaults) ════════
+// Format: {ERP: {name, station, state, password}}
+// Admin can update this via the config code from admin panel
+// SS_CREDENTIALS defined above
+
+// ════════ LOGIN ════════
+function togglePwd(){
+  const inp=document.getElementById('li_pwd');
+  const eye=document.getElementById('pwd_eye');
+  if(inp.type==='password'){inp.type='text';eye.textContent='🙈';}
+  else{inp.type='password';eye.textContent='👁';}
+}
+
+function doLogin(){
+  var erp=document.getElementById('li_erp').value.trim().toUpperCase();
+  var pwd=document.getElementById('li_pwd').value.trim();
+  var errEl=document.getElementById('login_err');
+  if(errEl)errEl.style.display='none';
+  if(!erp||!pwd){if(errEl){errEl.style.display='block';errEl.textContent='Enter ERP and password';}return;}
+  var cred=SS_CREDENTIALS[erp];
+  if(!cred){if(errEl){errEl.style.display='block';errEl.textContent='ERP not found. Contact admin.';}return;}
+  if(cred.password!==pwd){if(errEl){errEl.style.display='block';errEl.textContent='Wrong password.';}document.getElementById('li_pwd').value='';return;}
+  user={erp:erp,name:cred.name||'',station:cred.station,state:cred.state,mobile:cred.mobile||''};
+  localStorage.setItem('sw_user',JSON.stringify(user));
+  try{registerDevice(user);}catch(e){}
+  routeAfterLogin();
+}
+
+// Forced profile gate: if name or mobile missing, force setup screen
+function routeAfterLogin(){
+  if(!user.name || !user.mobile){
+    const ss=document.getElementById('setup_station');
+    if(ss)ss.textContent=user.station+' · '+user.erp;
+    const n=document.getElementById('su_name');if(n)n.value=user.name||'';
+    const m=document.getElementById('su_mobile');if(m)m.value=user.mobile||'';
+    goScreen('s_setup');
+    return;
+  }
+  initHome();goScreen('s_home');
+}
+
+function saveSetupProfile(){
+  const name=(document.getElementById('su_name').value||'').trim();
+  const mobile=(document.getElementById('su_mobile').value||'').replace(/[^0-9]/g,'');
+  const err=document.getElementById('setup_err');
+  err.style.display='none';
+  if(name.length<2){err.style.display='block';err.textContent='Please enter your full name.';return;}
+  if(mobile.length!==10){err.style.display='block';err.textContent='Enter a valid 10-digit mobile number.';return;}
+  user.name=name;user.mobile=mobile;
+  localStorage.setItem('sw_user',JSON.stringify(user));
+  // update local credential cache so it persists
+  try{
+    const creds=JSON.parse(localStorage.getItem('sw_ss_creds')||'null')||SS_CREDENTIALS;
+    if(creds[user.erp]){creds[user.erp].name=name;creds[user.erp].mobile=mobile;localStorage.setItem('sw_ss_creds',JSON.stringify(creds));}
+  }catch(e){}
+  saveProfileToMaster();
+  toast('Profile saved ✓');
+  initHome();goScreen('s_home');
+}
+
+// Push name+mobile to central SS Master sheet
+function saveProfileToMaster(){
+  const url=localStorage.getItem('sw_sheet_url');
+  if(!url||!user)return;
+  fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},
+    body:JSON.stringify({type:'updateProfile',erp:user.erp,stationName:user.station,state:user.state,ssName:user.name,mobile:user.mobile})
+  }).catch(()=>{});
+}
+
+function showProfile(){
+  if(!user) return;
+  const nm=(user.name||user.station||'?');
+  const setT=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  setT('prof_av',(nm[0]||'?').toUpperCase());
+  setT('prof_name',nm);setT('prof_name2',nm);
+  setT('prof_station',user.station);setT('prof_station2',user.station);
+  setT('prof_erp',user.erp);setT('prof_erp2',user.erp);
+  setT('prof_state',user.state);
+  goScreen('s_profile');
+}
+function editProfile(){
+  // reuse setup screen to edit name/mobile
+  const ss=document.getElementById('setup_station');if(ss)ss.textContent=user.station+' · '+user.erp;
+  const n=document.getElementById('su_name');if(n)n.value=user.name||'';
+  const m=document.getElementById('su_mobile');if(m)m.value=user.mobile||'';
+  goScreen('s_setup');
+}
+
+function logout(){
+  if(!confirm('Logout? Your saved reports stay on this phone.'))return;
+  user=null;
+  localStorage.removeItem('sw_user');
+  document.getElementById('li_erp').value='';
+  document.getElementById('li_pwd').value='';
+  goScreen('s_login');
+}
+
+// ════════ HOME ════════
+function initHome(){
+  if(!user) return;
+  const now=new Date();
+  const h=now.getHours();
+  const greet=h<12?'Good morning,':h<17?'Good afternoon,':'Good evening,';
+  const ds=now.getDate()+' '+MONTHS_S[now.getMonth()]+' '+now.getFullYear();
+  document.getElementById('h_greet').textContent=greet;
+  document.getElementById('h_name').textContent=user.name;
+  document.getElementById('home_av').textContent=user.name[0].toUpperCase();
+  document.getElementById('h_badge').textContent='● '+user.erp+' · '+user.station;
+  document.getElementById('h_date').textContent=user.state+' · '+ds;
+  const tod=new Date().toDateString();
+  const tr=reports.filter(r=>new Date(r.savedAt).toDateString()===tod);
+  document.getElementById('st_sent').textContent=tr.filter(r=>r.status==='sent'||r.status==='synced').length;
+  document.getElementById('st_sync').textContent=tr.filter(r=>r.status==='synced').length;
+  document.getElementById('st_draft').textContent=tr.filter(r=>r.status==='draft').length;
+  updateSyncBanner();
+  // Auto-sync on open
+  syncPending();
+}
+
+function updateSyncBanner(){
+  const url=localStorage.getItem('sw_sheet_url')||'';
+  const pend=syncQueue.length;
+  const banner=document.getElementById('sync_banner');
+  const dot=document.getElementById('sync_dot');
+  const msg=document.getElementById('sync_msg');
+  if(!url){
+    banner.className='sync-banner sync-off';dot.className='status-dot dot-off';
+    msg.textContent='Sheet not connected · Go to Settings to add URL';
+  } else if(pend>0){
+    banner.className='sync-banner sync-pend';dot.className='status-dot dot-warn';
+    msg.textContent=pend+' report(s) pending sync · Will sync when online';
+  } else {
+    banner.className='sync-banner sync-ok';dot.className='status-dot dot-ok';
+    msg.textContent='Connected to Google Sheet · All synced ✓';
+  }
+}
+
+// ════════ NEW REPORT ════════
+function startNew(){
+  editId=null;resetForm();
+  const now=new Date();
+  document.getElementById('fd_erp').textContent=user.erp;
+  document.getElementById('fd_stn').textContent=user.station;
+  document.getElementById('f_date').value=now.getDate();
+  document.getElementById('fd_month').textContent=MONTHS[now.getMonth()];
+  document.getElementById('fd_year').textContent=now.getFullYear();
+  document.getElementById('form_sub').textContent=user.station+' · '+MONTHS_S[now.getMonth()]+' '+now.getFullYear();
+  buildPhotoSlots();updateFill();goScreen('s_form');
+  setTimeout(()=>{const fs=document.getElementById('form_scroll');if(fs)fs.scrollTop=0;},50);
+}
+
+function resetForm(){
+  const ids=['f_date','f_oa1','f_ob1','f_ca1','f_cb1','f_ts','f_ns','f_ta','f_cih','f_dip','f_stk','f_cmt','f_r1','f_s1sale','f_s2sale','f_s3sale'];
+  ids.forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  const na=['f_oa2','f_ob2','f_ca2','f_cb2','f_r2','f_r3','f_r4'];
+  na.forEach(id=>{const e=document.getElementById(id);if(e)e.value='NA';});
+  const z=['f_rtn','f_free','f_prev','f_card','f_paytm','f_famt','f_csale','f_bank','f_dgo','f_dgc','f_dgh'];
+  z.forEach(id=>{const e=document.getElementById(id);if(e)e.value='0.00';});
+  // Reset photos + RSP change
+  photoSlots=[];photoDataUrl=null;photoFile=null;
+  rspChangeOn=false;rspPhotoSlot=null;
+  const rb=document.getElementById('rsp_change_box');if(rb)rb.style.display='none';
+  const rab=document.getElementById('rsp_add_btn');if(rab)rab.style.display='flex';
+  ['f_rsp_new','f_rsp_read','f_rsp_lb','f_rsp_la','f_rsp_ab','f_rsp_aa'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  buildPhotoSlots();
+  ['sh1_chk','sh2_chk','sh3_chk'].forEach(id=>{const e=document.getElementById(id);if(e)e.checked=false;});
+  ['sh1_row','sh2_row','sh3_row'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none';});
+  ['sl1','sl2','sl3'].forEach((id,i)=>styleShiftLabel(id,'sl'+(i+1)+'_dot',false));
+}
+
+// ════════ SHIFT HANDLERS ════════
+function onShiftChange(){
+  const s1=document.getElementById('sh1_chk').checked;
+  const s2=document.getElementById('sh2_chk').checked;
+  const s3=document.getElementById('sh3_chk').checked;
+  document.getElementById('sh1_row').style.display=s1?'grid':'none';
+  document.getElementById('sh2_row').style.display=s2?'grid':'none';
+  document.getElementById('sh3_row').style.display=s3?'grid':'none';
+  styleShiftLabel('sl1','sl1_dot',s1);
+  styleShiftLabel('sl2','sl2_dot',s2);
+  styleShiftLabel('sl3','sl3_dot',s3);
+  updateFill();
+}
+function styleShiftLabel(lblId,dotId,active){
+  const lbl=document.getElementById(lblId);
+  const dot=document.getElementById(dotId);
+  if(!lbl||!dot)return;
+  if(active){lbl.style.borderColor='#E8541E';lbl.style.background='rgba(232,84,30,0.08)';lbl.style.color='#E8541E';dot.style.background='#E8541E';dot.style.borderColor='#E8541E';}
+  else{lbl.style.borderColor='#E9EDEF';lbl.style.background='#F7F8FA';lbl.style.color='#E7F8EE';dot.style.background='transparent';dot.style.borderColor='#8696A0';}
+}
+function getSelectedShifts(){
+  const s=[];
+  if(document.getElementById('sh1_chk').checked)s.push('1');
+  if(document.getElementById('sh2_chk').checked)s.push('2');
+  if(document.getElementById('sh3_chk').checked)s.push('3');
+  return s;
+}
+
+// ════════ FORM LOGIC ════════
+function calcNS(){
+  const ts=parseFloat(document.getElementById('f_ts').value)||0;
+  const rtn=parseFloat(document.getElementById('f_rtn').value)||0;
+  const fr=parseFloat(document.getElementById('f_free').value)||0;
+  if(ts>0)document.getElementById('f_ns').value=(ts-rtn-fr).toFixed(2);
+  updateFill();
+}
+
+function updateFill(){
+  const shiftOk=getSelectedShifts().length>0;
+  const filled=REQ.filter(id=>{const e=document.getElementById(id);return e&&e.value.trim()&&e.value!=='0'&&e.value!=='0.00';}).length+(shiftOk?1:0);
+  const total=REQ.length+1;
+  const pct=Math.round(filled/total*100);
+  document.getElementById('fb_fill').style.width=pct+'%';
+  document.getElementById('fb_txt').textContent=filled+' / '+total+' required';
+  const s=document.getElementById('val_strip');
+  if(filled===total){s.className='val-strip val-ok';document.getElementById('val_ic').textContent='✓';document.getElementById('val_msg').textContent='All good — ready to preview!';}
+  else{s.className='val-strip val-pend';document.getElementById('val_ic').textContent='○';document.getElementById('val_msg').textContent=(total-filled)+' required fields remaining';}
+}
+
+// ════════ BUILD REPORT ════════
+function g(id){return(document.getElementById(id)?.value||'').trim()||'0.00';}
+function gt(id){return(document.getElementById(id)?.value||'').trim()||'—';}
+
+function photoLines(){
+  let out='';
+  const done=photoSlots.filter(s=>s.dataUrl||s.driveView);
+  if(done.length){out+='\n--------------------\n*PHOTOS*\n--------------------';done.forEach(s=>{out+='\n📷 '+s.label+(s.driveView?': '+s.driveView:': attached');});}
+  if(rspChangeOn){out+='\n--------------------\n*RSP CHANGE*\n--------------------\nNew RSP : '+g('f_rsp_new')+'\nChange Reading : '+g('f_rsp_read')+'\nLtrs(old/new) : '+gt('f_rsp_lb')+' / '+gt('f_rsp_la');if(rspPhotoSlot&&rspPhotoSlot.driveView)out+='\n📷 RSP Photo: '+rspPhotoSlot.driveView;}
+  return out;
+}
+function buildText(){
+  const shifts=getSelectedShifts();
+  const mon=document.getElementById('fd_month').textContent;
+  const yr=document.getElementById('fd_year').textContent;
+  const cmt=document.getElementById('f_cmt').value.trim();
+  const shiftLines=`Shift 1 sales Ltrs : ${shifts.includes('1')?g('f_s1sale'):'0.00'}\nShift 2  Sales Ltrs : ${shifts.includes('2')?g('f_s2sale'):'0.00'}\nShift 3 Sales Ltrs : ${shifts.includes('3')?g('f_s3sale'):'0.00'}`;
+  return `--------------------\n*GOGAS DAILY REPORT*\n--------------------\nERP Code : ${user.erp}\nStation name  : ${user.station}\n${shiftLines}\n--------------------\nDate (Change Daily) : ${gt('f_date')}\nMonth (Fixed)  - ${mon}\nYear - ${yr}\n--------------------\n*OPENING*\n--------------------\nA1 : ${g('f_oa1')}\nB1 : ${g('f_ob1')}\nA2 : ${gt('f_oa2')}\nB2 : ${gt('f_ob2')}\n--------------------\n*CLOSING*\n--------------------\nA1 : ${g('f_ca1')}\nB1 : ${g('f_cb1')}\nA2 : ${gt('f_ca2')}\nB2 : ${gt('f_cb2')}\n*SALES*\n--------------------\nTotal Sale : ${g('f_ts')}\nRtn Testing : ${g('f_rtn')}\nFree Sale : ${g('f_free')}\nNet Sale : ${g('f_ns')}\n--------------------\n*RATE*\n--------------------\nRSP \u2013 DU1  - N1 : ${g('f_r1')}\nRSP - DU1  - N2 : ${gt('f_r2')}\nRSP - DU 2 \u2013 N1 : ${gt('f_r3')}\nRSP - DU 2 \u2013 N2 : ${gt('f_r4')}\n--------------------\n*PAYMENTS*\nPrevious cash Balance : ${g('f_prev')}\nTotal Sales Amount : ${g('f_ta')}\nCard sale : ${g('f_card')}\nPaytm Sale : ${g('f_paytm')}\nFree sales Amt : ${g('f_famt')}\nCash Sale amt : ${g('f_csale')}\nBank Deposit : ${g('f_bank')}\nCash In Hand : ${g('f_cih')}\n--------------------\n*STOCK*\n--------------------\nDip Reading (mm) : ${g('f_dip')}\nStock in Ltrs : ${g('f_stk')}\n--------------------\n*DG METER*\n--------------------\nOpening DG : ${g('f_dgo')}\nClosing DG : ${g('f_dgc')}\nHours : ${g('f_dgh')}\n--------------------${cmt?'\n*COMMENTS*\n--------------------\n'+cmt+'\n--------------------':''}${photoLines()}`;
+}
+
+function slotLink(key){const s=photoSlots.find(x=>x.key===key);return s&&s.driveView?s.driveView:'';}
+function buildData(status){
+  const shifts=getSelectedShifts();
+  const now=new Date();
+  return{
+    editHistory:editId?(()=>{
+      const existing=reports.find(r=>r.id===editId);
+      const prev=existing?existing.editHistory||[]:[]; 
+      if(existing&&existing.status==='sent'){
+        prev.push({editedAt:new Date().toISOString(),editedBy:user.erp});
+      }
+      return prev;
+    })():[],
+    id:editId||(()=>{
+      const shifts=getSelectedShifts().join('');
+      const dt=document.getElementById('f_date')?.value||new Date().getDate();
+      const mon=document.getElementById('fd_month')?.textContent||'';
+      const yr=document.getElementById('fd_year')?.textContent||new Date().getFullYear();
+      return user.erp+'_'+dt+'_'+mon+'_'+yr+'_S'+shifts;
+    })(),
+    erp:user.erp,stationName:user.station,state:user.state,ssName:user.name,
+    shift:shifts.join('+'),date:gt('f_date'),
+    month:document.getElementById('fd_month').textContent,
+    year:document.getElementById('fd_year').textContent,
+    s1sale:shifts.includes('1')?g('f_s1sale'):'0.00',
+    s2sale:shifts.includes('2')?g('f_s2sale'):'0.00',
+    s3sale:shifts.includes('3')?g('f_s3sale'):'0.00',
+    openA1:g('f_oa1'),openB1:g('f_ob1'),openA2:gt('f_oa2'),openB2:gt('f_ob2'),
+    closeA1:g('f_ca1'),closeB1:g('f_cb1'),closeA2:gt('f_ca2'),closeB2:gt('f_cb2'),
+    totalSale:g('f_ts'),rtnTesting:g('f_rtn'),freeSale:g('f_free'),netSale:g('f_ns'),
+    rsp1:g('f_r1'),rsp2:gt('f_r2'),rsp3:gt('f_r3'),rsp4:gt('f_r4'),
+    rspChanged:rspChangeOn,
+    rspNewRate:rspChangeOn?g('f_rsp_new'):'',
+    rspChangeReading:rspChangeOn?g('f_rsp_read'):'',
+    rspLtrsBefore:rspChangeOn?gt('f_rsp_lb'):'',
+    rspLtrsAfter:rspChangeOn?gt('f_rsp_la'):'',
+    rspAmtBefore:rspChangeOn?gt('f_rsp_ab'):'',
+    rspAmtAfter:rspChangeOn?gt('f_rsp_aa'):'',
+    photoDU1A:slotLink('DU1A'),photoDU1B:slotLink('DU1B'),photoDU2A:slotLink('DU2A'),photoDU2B:slotLink('DU2B'),
+    photoRoto:slotLink('ROTO'),photoDip:slotLink('DIP'),photoRadar:slotLink('RADAR'),
+    rspPhoto:(rspPhotoSlot&&rspPhotoSlot.driveView)||'',
+    prevCash:g('f_prev'),totalAmt:g('f_ta'),cardSale:g('f_card'),
+    paytmSale:g('f_paytm'),freeAmt:g('f_famt'),cashSale:g('f_csale'),
+    bankDeposit:g('f_bank'),cashInHand:g('f_cih'),
+    dipReading:g('f_dip'),stockLtrs:g('f_stk'),
+    dgOpen:g('f_dgo'),dgClose:g('f_dgc'),dgHours:g('f_dgh'),
+    comments:document.getElementById('f_cmt').value.trim(),
+    reportText:buildText(),
+    submittedAt:now.toISOString(),
+    reportId:editId||'r'+Date.now(),
+    savedAt:now.toISOString(),
+    status,
+    synced:false,
+    sentAt:status==='sent'?now.toISOString():undefined
+  };
+}
+
+function saveRep(data){
+  const i=reports.findIndex(r=>r.id===data.id);
+  if(i>=0)reports[i]=data;else reports.push(data);
+  localStorage.setItem('sw_reports',JSON.stringify(reports));
+}
+
+function saveDraft(){const d=buildData('draft');saveRep(d);editId=d.id;toast('Draft saved ✓');}
+
+function validateReport(){
+  const errors=[];
+  const oa1=parseFloat(document.getElementById('f_oa1')?.value||0);
+  const ca1=parseFloat(document.getElementById('f_ca1')?.value||0);
+  const ob1=parseFloat(document.getElementById('f_ob1')?.value||0);
+  const cb1=parseFloat(document.getElementById('f_cb1')?.value||0);
+  if(oa1>0&&ca1>0&&ca1>oa1) errors.push('A1 Closing ('+ca1+') cannot exceed Opening ('+oa1+')');
+  if(ob1>0&&cb1>0&&cb1>ob1) errors.push('B1 Closing ('+cb1+') cannot exceed Opening ('+ob1+')');
+  const ns=parseFloat(document.getElementById('f_ns')?.value||0);
+  if(ns<0) errors.push('Net Sale cannot be negative');
+  const cih=parseFloat(document.getElementById('f_cih')?.value||0);
+  if(cih<0) errors.push('Cash In Hand cannot be negative');
+  return errors.length>0?errors.join(', '):null;
+}
+
+function checkDuplicate(){
+  const today=new Date().toDateString();
+  return reports.find(r=>r.erp===user.erp&&r.status==='sent'&&new Date(r.savedAt).toDateString()===today)||null;
+}
+
+function doPreview(){
+  const filled=REQ.filter(id=>{const e=document.getElementById(id);return e&&e.value.trim()&&e.value!=='0'&&e.value!=='0.00';}).length;
+  if(filled<6){toast('Fill at least the key required fields first');return;}
+
+  // ── DUPLICATE CHECK ──
+  if(!editId){
+    const dup=checkDuplicate();
+    if(dup){
+      const timeStr=new Date(dup.savedAt).toLocaleTimeString();const proceed=confirm("Already submitted today at "+timeStr+". Submit another?");
+      if(!proceed)return;
+    }
+  }
+
+  // ── DATA VALIDATION ──
+  const validationError=validateReport();
+  if(validationError){
+    alert('Fix: '+validationError);
+    return;
+  }
+
+  const d=buildData('draft');saveRep(d);editId=d.id;
+  document.getElementById('prev_text').textContent=buildText();
+  goScreen('s_preview');
+}
+
+async function doSubmit(){
+  const miss=missingRequiredPhotos();
+  if(miss.length){toast('📷 Please add the '+miss.length+' required meter photo(s) before submitting.');goScreen('s_form');updatePhotoReqNote();return;}
+  const d=buildData('sent');
+  d.id=editId||d.id;
+  const anyPhoto=photoSlots.some(s=>s.file||s.driveView)||(rspPhotoSlot&&(rspPhotoSlot.file||rspPhotoSlot.driveView));
+  if(anyPhoto){
+    toast('Uploading photos…');
+    try{await uploadAllPhotos(d,d.id);toast('Photos uploaded ✓');}
+    catch(e){toast('Some photos failed — report still saved');}
+  }
+  saveRep(d);
+  addToSyncQueue(d);
+  toast('✅ Report submitted to Google Sheet!');
+  setTimeout(()=>{initHome();goScreen('s_home');},1500);
+}
+
+async function doWA(){
+  const miss=missingRequiredPhotos();
+  if(miss.length){toast('📷 Please add the '+miss.length+' required meter photo(s) before submitting.');goScreen('s_form');updatePhotoReqNote();return;}
+  const d=buildData('sent');
+  d.id=editId||d.id;
+
+  // Save and sync FIRST
+  saveRep(d);
+  addToSyncQueue(d);
+
+  // Open WhatsApp with report text
+  const txt=buildText();
+  window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank');
+  toast('Report shared on WhatsApp ✓');
+
+  // Upload photos in background, then re-sync so links land in the same row
+  const anyPhoto=photoSlots.some(s=>s.file||s.driveView)||(rspPhotoSlot&&(rspPhotoSlot.file||rspPhotoSlot.driveView));
+  if(anyPhoto){
+    setTimeout(()=>toast('📷 Photos uploading in background…'),1500);
+    uploadAllPhotos(d,d.id).then(()=>{saveRep(d);addToSyncQueue(d);}).catch(()=>{});
+  }
+
+  setTimeout(()=>{initHome();goScreen('s_home');},2500);
+}
+
+// ════════ GOOGLE SHEET SYNC ════════
+function addToSyncQueue(data){
+  const alreadyQueued=syncQueue.find(q=>q.id===data.id);
+  if(!alreadyQueued){
+    syncQueue.push({id:data.id,data,attempts:0,queuedAt:new Date().toISOString()});
+    localStorage.setItem('sw_queue',JSON.stringify(syncQueue));
+  }
+  syncPending();
+}
+
+async function syncPending(){
+  const url=localStorage.getItem('sw_sheet_url');
+  if(!url||!syncQueue.length)return;
+  if(!navigator.onLine){updateSyncBanner();return;}
+  const pending=[...syncQueue];
+  let synced=0;
+  for(const item of pending){
+    try{
+      const res=await fetch(url,{
+        method:'POST',
+        headers:{'Content-Type':'text/plain'},
+        body:JSON.stringify({...item.data,reportId:item.id,editHistory:JSON.stringify(item.data.editHistory||[])})
+      });
+      if(res.ok){
+        syncQueue=syncQueue.filter(q=>q.id!==item.id);
+        const rep=reports.find(r=>r.id===item.id);
+        if(rep){rep.synced=true;rep.status='synced';saveRep(rep);}
+        synced++;
+      }
+    }catch(e){
+      item.attempts=(item.attempts||0)+1;
+    }
+  }
+  localStorage.setItem('sw_queue',JSON.stringify(syncQueue));
+  if(synced>0){
+    toast('✓ '+synced+' report(s) synced to sheet');
+    updateSyncBanner();
+  }
+}
+
+async function syncAll(){
+  // Add all unsynced reports to queue
+  reports.filter(r=>!r.synced&&r.status!=='draft').forEach(r=>addToSyncQueue(r));
+  await syncPending();
+  showReports();
+}
+
+async function testConnection(){
+  const url=document.getElementById('sheet_url').value.trim();
+  if(!url){toast('Enter the URL first');return;}
+  const el=document.getElementById('conn_status');
+  el.style.display='block';el.style.color='#FF8C00';el.textContent='Verifying…';
+  if(!url.includes('script.google.com')||!url.includes('/exec')){
+    el.style.color='#FF3B30';el.textContent='✗ Invalid URL. Must be a Google Apps Script /exec URL.';return;
+  }
+  try{
+    await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({type:'ping'})});
+    el.style.color='#E8541E';el.textContent='✓ Connected! Sheet is ready to receive reports.';
+  }catch(e){
+    if(!navigator.onLine){el.style.color='#FF8C00';el.textContent='⚠️ No internet. URL looks correct.';}
+    else{el.style.color='#FF3B30';el.textContent='✗ Could not reach URL. Check and try again.';}
+  }
+}
+
+function saveSheetUrl(){
+  const url=document.getElementById('sheet_url').value.trim();
+  if(!url){toast('Paste the Apps Script URL first');return;}
+  localStorage.setItem('sw_sheet_url',url);
+  updateSyncBanner();
+  toast('URL saved ✓ Syncing pending reports…');
+  syncPending();
+}
+
+// Listen for online event — auto sync when internet returns
+window.addEventListener('online',()=>{
+  toast('Back online — syncing reports…');
+  syncPending();
+});
+
+// ════════ REMINDERS ════════
+function toggleReminder(n){
+  const tog=document.getElementById('rem'+n+'_tog');
+  const isOn=tog.classList.contains('on');
+  if(!isOn){
+    // Request permission first
+    if('Notification' in window && Notification.permission!=='granted'){
+      requestNotifPermThen(()=>enableReminder(n,tog));
+    } else {
+      enableReminder(n,tog);
+    }
+  } else {
+    tog.classList.remove('on');
+    saveRemSettings();
+    cancelReminder(n);
+    toast('Reminder '+n+' disabled');
+  }
+}
+
+function requestNotifPermThen(cb){
+  Notification.requestPermission().then(p=>{
+    if(p==='granted'){cb();}
+    else{toast('Please allow notifications to use reminders');}
+  });
+}
+
+function enableReminder(n,tog){
+  tog.classList.add('on');
+  saveRemSettings();
+  scheduleReminder(n);
+  toast('Reminder '+n+' enabled ✓');
+}
+
+function scheduleReminder(n){
+  const timeEl=document.getElementById('rem'+n+'_time');
+  if(!timeEl)return;
+  const [h,m]=timeEl.value.split(':').map(Number);
+  const now=new Date();
+  const target=new Date();
+  target.setHours(h,m,0,0);
+  if(target<=now)target.setDate(target.getDate()+1);
+  const ms=target-now;
+  const timerId=setTimeout(()=>{
+    fireReminder(n);
+    // Reschedule for next day
+    setInterval(()=>fireReminder(n),24*60*60*1000);
+  },ms);
+  reminderTimers[n]=timerId;
+}
+
+function fireReminder(n){
+  if('Notification' in window && Notification.permission==='granted'){
+    const labels={1:'Shift 1 morning',2:'Shift 2 afternoon',3:'Evening shift'};
+    new Notification('⛽ Station Reporting Reminder',{
+      body:'Time to submit your '+labels[n]+' report for '+user?.station||'your station',
+      icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%231b5e20"/><text y=".9em" font-size="80">⛽</text></svg>',
+      tag:'sw-reminder-'+n,
+      requireInteraction:true
+    });
+  }
+  // Vibrate phone if supported
+  if(navigator.vibrate){navigator.vibrate([200,100,200]);}
+}
+
+function cancelReminder(n){
+  if(reminderTimers[n]){clearTimeout(reminderTimers[n]);delete reminderTimers[n];}
+}
+
+function saveRemSettings(){
+  const s={};
+  [1,2,3].forEach(n=>{
+    s['rem'+n]={
+      on:document.getElementById('rem'+n+'_tog').classList.contains('on'),
+      time:document.getElementById('rem'+n+'_time').value
+    };
+  });
+  localStorage.setItem('sw_reminders',JSON.stringify(s));
+}
+
+function loadRemSettings(){
+  const s=JSON.parse(localStorage.getItem('sw_reminders')||'{}');
+  [1,2,3].forEach(n=>{
+    const r=s['rem'+n];
+    if(r){
+      const timeEl=document.getElementById('rem'+n+'_time');
+      const togEl=document.getElementById('rem'+n+'_tog');
+      if(timeEl)timeEl.value=r.time||['08:00','14:00','20:00'][n-1];
+      if(r.on&&togEl){togEl.classList.add('on');scheduleReminder(n);}
+    }
+  });
+}
+
+async function requestNotifPerm(){
+  if(!('Notification' in window)){toast('Notifications not supported on this browser');return;}
+  const p=await Notification.requestPermission();
+  if(p==='granted'){
+    document.getElementById('notif_perm').style.display='none';
+    toast('Notifications allowed ✓');
+  } else {
+    toast('Please allow notifications in browser settings');
+  }
+}
+
+function saveAllSettings(){
+  const url=document.getElementById('sheet_url').value.trim();
+  if(url)localStorage.setItem('sw_sheet_url',url);
+  saveRemSettings();
+  updateSyncBanner();
+  syncPending();
+  toast('Settings saved ✓');
+  goHome();
+}
+
+// ════════ MY REPORTS ════════
+function showReports(){
+  const el=document.getElementById('rep_list');
+  if(!reports.length){el.innerHTML='<div class="empty-st"><div class="empty-ic">📋</div><div class="empty-t">No reports yet</div><div class="empty-s">Fill and share your first report<br>to see it here</div></div>';return;}
+  const sorted=[...reports].sort((a,b)=>new Date(b.savedAt)-new Date(a.savedAt));
+  el.innerHTML=sorted.map(r=>{
+    const dt=new Date(r.savedAt);
+    const ts=dt.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    const sentTs=r.sentAt?' · Sent '+new Date(r.sentAt).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}):'';
+    const syncChip=r.synced?'<span class="rc-chip synced">☁ Synced</span>':syncQueue.find(q=>q.id===r.id)?'<span class="rc-chip pending">⏳ Pending</span>':'';
+    const waChip=r.status==='sent'||r.status==='synced'?'<span class="rc-chip sent">✓ Shared</span>':r.status==='draft'?'<span class="rc-chip draft">Draft</span>':'';
+    const dotCls=r.synced?'synced':r.status==='sent'?'sent':'draft';
+    return`<div class="rep-card" id="rc_${r.id}">
+      <div class="rc-head" onclick="toggleActs('${r.id}')">
+        <div class="rc-dot ${dotCls}"></div>
+        <div class="rc-info">
+          <div class="rc-date">Shift ${r.shift||'?'} · ${r.date} ${r.month} ${r.year}</div>
+          <div class="rc-meta">${r.stationName||r.station||'—'} · ${ts}${sentTs}</div>
+        </div>
+        <div class="rc-chips">${waChip}${syncChip}</div>
+      </div>
+      <div class="rc-acts" id="ra_${r.id}">
+        <button class="rcb wa" onclick="reshare('${r.id}')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" fill="white"/></svg>
+          Share WA
+        </button>
+        ${''+(!r.synced?'<button class="rcb sync" onclick="forceSyncOne(\''+r.id+'\')">↑ Sync</button>':'')}
+        <button class="rcb view" onclick="viewRep('${r.id}')">View</button>
+        <button class="rcb view" onclick="editRep('${r.id}')">Edit</button>
+        <button class="rcb del" onclick="delRep('${r.id}')">Del</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleActs(id){document.getElementById('ra_'+id).classList.toggle('open');}
+
+function reshare(id){
+  const r=reports.find(x=>x.id===id);if(!r)return;
+  window.open('https://wa.me/?text='+encodeURIComponent(r.reportText),'_blank');
+  r.status='sent';r.sentAt=new Date().toISOString();saveRep(r);
+  addToSyncQueue(r);
+  toast('WhatsApp opening…');
+}
+
+async function forceSyncOne(id){
+  const r=reports.find(x=>x.id===id);if(!r)return;
+  addToSyncQueue(r);
+  await syncPending();
+  showReports();
+}
+
+function viewRep(id){
+  const r=reports.find(x=>x.id===id);if(!r)return;
+  document.getElementById('prev_text').textContent=r.reportText;
+  goScreen('s_preview');
+}
+
+function editRep(id){
+  const r=reports.find(x=>x.id===id);if(!r)return;
+  editId=id;
+  document.getElementById('fd_erp').textContent=r.erp||user.erp;
+  document.getElementById('fd_stn').textContent=r.stationName||r.station||user.station;
+  document.getElementById('fd_month').textContent=r.month||'';
+  document.getElementById('fd_year').textContent=r.year||'';
+  const sv=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v||'';};
+  sv('f_date',r.date);sv('f_ts',r.totalSale);sv('f_ns',r.netSale);
+  sv('f_ta',r.totalAmt);sv('f_cih',r.cashInHand);sv('f_dip',r.dipReading);sv('f_stk',r.stockLtrs);
+  sv('f_oa1',r.openA1);sv('f_ob1',r.openB1);sv('f_ca1',r.closeA1);sv('f_cb1',r.closeB1);
+  sv('f_oa2',r.openA2);sv('f_ob2',r.openB2);sv('f_ca2',r.closeA2);sv('f_cb2',r.closeB2);
+  sv('f_r1',r.rsp1);sv('f_r2',r.rsp2);sv('f_r3',r.rsp3);sv('f_r4',r.rsp4);
+  sv('f_rtn',r.rtnTesting);sv('f_free',r.freeSale);
+  sv('f_prev',r.prevCash);sv('f_card',r.cardSale);sv('f_paytm',r.paytmSale);
+  sv('f_famt',r.freeAmt);sv('f_csale',r.cashSale);sv('f_bank',r.bankDeposit);
+  sv('f_dgo',r.dgOpen);sv('f_dgc',r.dgClose);sv('f_dgh',r.dgHours);
+  sv('f_cmt',r.comments);
+  sv('f_s1sale',r.s1sale);sv('f_s2sale',r.s2sale);sv('f_s3sale',r.s3sale);
+  // rebuild photo slots, then restore existing Drive links
+  photoSlots=[];rspChangeOn=false;rspPhotoSlot=null;
+  buildPhotoSlots();
+  const linkMap={DU1A:r.photoDU1A,DU1B:r.photoDU1B,DU2A:r.photoDU2A,DU2B:r.photoDU2B,ROTO:r.photoRoto,DIP:r.photoDip,RADAR:r.photoRadar};
+  photoSlots.forEach(s=>{const lk=linkMap[s.key];if(lk){s.driveView=lk;s.driveThumb=lk;s.dataUrl=lk;}});
+  renderPhotoSlots();
+  // restore RSP change if present
+  if(r.rspChanged===true||r.rspChanged==='YES'||r.rspChanged==='true'){
+    rspChangeOn=false;toggleRSPChange();
+    sv('f_rsp_new',r.rspNewRate);sv('f_rsp_read',r.rspChangeReading);
+    if(r.rspPhoto){rspPhotoSlot.driveView=r.rspPhoto;rspPhotoSlot.dataUrl=r.rspPhoto;renderRSPPhoto();}
+    calcRSPSplit();
+  }
+  goScreen('s_form');updateFill();
+}
+
+function delRep(id){
+  if(!confirm('Delete this report?'))return;
+  reports=reports.filter(r=>r.id!==id);
+  syncQueue=syncQueue.filter(q=>q.id!==id);
+  localStorage.setItem('sw_reports',JSON.stringify(reports));
+  localStorage.setItem('sw_queue',JSON.stringify(syncQueue));
+  showReports();toast('Deleted');
+}
+
+// ════════ SETTINGS SCREEN ════════
+function initSettings(){
+  const url=localStorage.getItem('sw_sheet_url')||'';
+  document.getElementById('sheet_url').value=url;
+  if(user){
+    document.getElementById('set_name').textContent=(user.name||user.station||'SS')+' ('+user.erp+')';
+    document.getElementById('set_station').textContent=user.station+' · '+user.state;
+  }
+  // Show notification permission banner if needed
+  if('Notification' in window && Notification.permission==='default'){
+    document.getElementById('notif_perm').style.display='flex';
+  }
+}
+
+// ════════ NAVIGATION ════════
+function goScreen(id){
+  try{history.pushState(null,'',location.href);}catch(e){}
+  document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
+  const target=document.getElementById(id);
+  if(!target){console.error('Screen not found:',id);return;}
+  target.classList.remove('hidden');
+  if(id==='s_reports')showReports();
+  if(id==='s_home')initHome();
+  if(id==='s_settings')initSettings();
+  const b=document.getElementById(id).querySelector('.scroll-body');
+  if(b)b.scrollTop=0;
+}
+function goHome(){initHome();goScreen('s_home');}
+
+function toast(msg){
+  const t=document.getElementById('toast_el');
+  t.textContent=msg;t.classList.add('on');
+  setTimeout(()=>t.classList.remove('on'),2400);
+}
+
+// ════════ INIT ════════
+window.addEventListener('load',()=>{
+  if(!localStorage.getItem('sw_sheet_url')) localStorage.setItem('sw_sheet_url','https://script.google.com/macros/s/AKfycbwjH7wNrU-QdoYOm-1dR_vWtcSN9_Vk8givgfTKDSqyn2s7hzj6rF-bCZjCaOuvldqc/exec');
+  // Show install instructions after 2 seconds always
+  setTimeout(()=>{
+    // Check if already installed (standalone mode)
+    const isInstalled=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone;
+    if(!isInstalled){
+      if(deferredPrompt){
+        const btnWrap=document.getElementById('install_btn_wrap');
+        if(btnWrap)btnWrap.style.display='block';
+      } else {
+        // Always show manual instructions on non-installed browsers
+        const manualWrap=document.getElementById('install_manual_wrap');
+        if(manualWrap)manualWrap.style.display='block';
+      }
+    }
+  },2000);
+  // Pre-set Google Sheet URL if not already set
+  if(!localStorage.getItem('sw_sheet_url')){
+    localStorage.setItem('sw_sheet_url','https://script.google.com/macros/s/AKfycbwjH7wNrU-QdoYOm-1dR_vWtcSN9_Vk8givgfTKDSqyn2s7hzj6rF-bCZjCaOuvldqc/exec');
+  }
+  user = JSON.parse(localStorage.getItem('sw_user')||'null');
+  if(user){ try{loadRemSettings();}catch(e){} routeAfterLogin(); }
+  else { goScreen('s_login'); }
+});
+// ════ MULTI-PHOTO SYSTEM ════
+// Each slot: {key, label, required, file, dataUrl, driveView, driveThumb}
+let photoSlots = [];
+// legacy refs kept so older code paths don't crash
+let photoDataUrl = null;
+let photoFile = null;
+
+function isDoubleDispenser(){
+  // double if A2 or B2 opening/closing has a real (non-NA, non-empty) value
+  const vals=['f_oa2','f_ob2','f_ca2','f_cb2'].map(id=>{
+    const el=document.getElementById(id);return el?(el.value||'').trim().toUpperCase():'';
+  });
+  return vals.some(v=>v && v!=='NA' && v!=='0' && !isNaN(parseFloat(v)) && parseFloat(v)!==0);
+}
+
+function buildPhotoSlots(){
+  const dbl=isDoubleDispenser();
+  const defs=[
+    {key:'DU1A',label:'DU-1 A-side Meter',required:true},
+    {key:'DU1B',label:'DU-1 B-side Meter',required:true}
+  ];
+  if(dbl){
+    defs.push({key:'DU2A',label:'DU-2 A-side Meter',required:true});
+    defs.push({key:'DU2B',label:'DU-2 B-side Meter',required:true});
+  }
+  defs.push({key:'ROTO',label:'ROTO Gauge (optional)',required:false});
+  defs.push({key:'DIP',label:'DIP Scale (optional)',required:false});
+  defs.push({key:'RADAR',label:'RADAR Meter (optional)',required:false});
+  // preserve any already-captured photos across re-render
+  const prev={};photoSlots.forEach(s=>{prev[s.key]=s;});
+  photoSlots=defs.map(d=>{
+    const p=prev[d.key]||{};
+    return {key:d.key,label:d.label,required:d.required,
+      file:p.file||null,dataUrl:p.dataUrl||null,driveView:p.driveView||'',driveThumb:p.driveThumb||''};
+  });
+  renderPhotoSlots();
+}
+
+function renderPhotoSlots(){
+  const wrap=document.getElementById('photo_slots');
+  if(!wrap)return;
+  let html='';
+  photoSlots.forEach((s,i)=>{
+    const done=!!s.dataUrl;
+    const reqTag=s.required?'<span style="color:#FF3B30;">*</span>':'<span style="color:#8696A0;font-weight:600;">(optional)</span>';
+    html+='<div style="margin-bottom:12px;padding:10px;border:1.5px solid '+(done?'rgba(232,84,30,0.4)':'#E9EDEF')+';border-radius:12px;background:'+(done?'rgba(232,84,30,0.06)':'#FBFCFD')+';">';
+    html+='<div style="font-size:12px;font-weight:800;color:#111B21;margin-bottom:8px;">'+(done?'✓ ':'')+s.label+' '+reqTag+'</div>';
+    if(done){
+      html+='<img src="'+s.dataUrl+'" style="width:100%;border-radius:9px;border:1px solid #E9EDEF;max-height:160px;object-fit:cover;"/>';
+      html+='<div style="display:flex;gap:7px;margin-top:7px;">';
+      html+='<button type="button" onclick="slotCapture('+i+',true)" style="flex:1;padding:8px;background:#F7F8FA;border:1px solid #E9EDEF;border-radius:9px;font-family:inherit;font-size:12px;font-weight:700;color:#54656F;cursor:pointer;">📷 Retake</button>';
+      html+='<button type="button" onclick="slotCapture('+i+',false)" style="flex:1;padding:8px;background:#F7F8FA;border:1px solid #E9EDEF;border-radius:9px;font-family:inherit;font-size:12px;font-weight:700;color:#54656F;cursor:pointer;">📁 Replace</button>';
+      html+='<button type="button" onclick="slotClear('+i+')" style="padding:8px 11px;background:rgba(255,82,82,0.1);border:none;border-radius:9px;font-size:12px;font-weight:700;color:#FF3B30;cursor:pointer;">✕</button>';
+      html+='</div>';
+    } else {
+      html+='<div style="display:flex;gap:7px;">';
+      html+='<button type="button" onclick="slotCapture('+i+',true)" style="flex:1;padding:13px;background:#F7F8FA;border:2px dashed #D1D7DB;border-radius:10px;font-family:inherit;font-size:13px;font-weight:700;color:#54656F;cursor:pointer;">📷 Take Photo</button>';
+      html+='<button type="button" onclick="slotCapture('+i+',false)" style="flex:1;padding:13px;background:#F7F8FA;border:2px dashed #D1D7DB;border-radius:10px;font-family:inherit;font-size:13px;font-weight:700;color:#54656F;cursor:pointer;">📁 Upload</button>';
+      html+='</div>';
+    }
+    html+='</div>';
+  });
+  wrap.innerHTML=html;
+  updatePhotoReqNote();
+}
+
+let _pendingSlot=-1;
+function slotCapture(i,useCamera){
+  _pendingSlot=i;
+  const inp=document.getElementById('photo_file_input');
+  if(useCamera) inp.setAttribute('capture','environment');
+  else inp.removeAttribute('capture');
+  inp.value='';
+  inp.click();
+}
+function slotClear(i){
+  photoSlots[i].file=null;photoSlots[i].dataUrl=null;photoSlots[i].driveView='';photoSlots[i].driveThumb='';
+  renderPhotoSlots();
+}
+function onSlotFile(input){
+  const file=input.files[0];
+  if(!file)return;
+  // RSP photo path
+  if(_rspPending){
+    _rspPending=false;
+    const reader=new FileReader();
+    reader.onload=e=>{rspPhotoSlot.file=file;rspPhotoSlot.dataUrl=e.target.result;rspPhotoSlot.driveView='';renderRSPPhoto();};
+    reader.readAsDataURL(file);return;
+  }
+  if(_pendingSlot<0)return;
+  const i=_pendingSlot;_pendingSlot=-1;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    photoSlots[i].file=file;
+    photoSlots[i].dataUrl=e.target.result;
+    photoSlots[i].driveView='';photoSlots[i].driveThumb='';
+    renderPhotoSlots();
+    if(typeof updateFill==='function')updateFill();
+  };
+  reader.readAsDataURL(file);
+}
+
+function missingRequiredPhotos(){
+  return photoSlots.filter(s=>s.required && !s.dataUrl).map(s=>s.label);
+}
+function updatePhotoReqNote(){
+  const note=document.getElementById('photo_req_note');
+  if(!note)return;
+  const miss=missingRequiredPhotos();
+  if(miss.length){note.textContent='Required photo(s) missing: '+miss.join(', ');note.style.color='#FF8C00';}
+  else {note.textContent='✓ All required photos added';note.style.color='#E8541E';}
+}
+
+// Upload one slot, return {view,thumb} or null. Reuses already-uploaded link.
+async function uploadSlot(slot,reportId){
+  if(!slot.file && !slot.driveView)return null;
+  if(slot.driveView)return {view:slot.driveView,thumb:slot.driveThumb}; // already uploaded
+  const url=localStorage.getItem('sw_sheet_url');
+  if(!url)return null;
+  const base64=await new Promise((res,rej)=>{
+    const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=rej;r.readAsDataURL(slot.file);
+  });
+  const res=await fetch(url,{
+    method:'POST',headers:{'Content-Type':'text/plain'},
+    body:JSON.stringify({
+      type:'photo',slot:slot.key,reportId:reportId,
+      fileName:slot.key+'_'+reportId+'_'+Date.now()+'.jpg',
+      mimeType:slot.file.type||'image/jpeg',
+      base64Data:base64.split(',')[1],
+      stationName:user.station,erp:user.erp,ssName:user.name
+    })
+  });
+  const j=await res.json();
+  if(j && j.status==='ok' && j.photoUrl){
+    slot.driveView=j.photoUrl;slot.driveThumb=j.thumbUrl||'';
+    return {view:j.photoUrl,thumb:j.thumbUrl||''};
+  }
+  return null;
+}
+
+// Upload all photos (DU + equipment + rsp) and attach links onto data object
+async function uploadAllPhotos(data,reportId){
+  const map={DU1A:'photoDU1A',DU1B:'photoDU1B',DU2A:'photoDU2A',DU2B:'photoDU2B',ROTO:'photoRoto',DIP:'photoDip',RADAR:'photoRadar'};
+  for(const s of photoSlots){
+    try{
+      const r=await uploadSlot(s,reportId);
+      if(r && map[s.key]) data[map[s.key]]=r.view;
+    }catch(e){}
+  }
+  // RSP change photo
+  if(rspPhotoSlot && (rspPhotoSlot.file||rspPhotoSlot.driveView)){
+    try{
+      const r=await uploadSlot(rspPhotoSlot,reportId);
+      if(r) data.rspPhoto=r.view;
+    }catch(e){}
+  }
+  return data;
+}
+
+// ════ RSP CHANGE ════
+let rspChangeOn=false;
+let rspPhotoSlot=null;
+function toggleRSPChange(){
+  rspChangeOn=!rspChangeOn;
+  document.getElementById('rsp_change_box').style.display=rspChangeOn?'block':'none';
+  document.getElementById('rsp_add_btn').style.display=rspChangeOn?'none':'flex';
+  if(rspChangeOn){
+    rspPhotoSlot=rspPhotoSlot||{key:'RSPCHG',label:'RSP Change Photo',required:false,file:null,dataUrl:null,driveView:'',driveThumb:''};
+    renderRSPPhoto();
+    calcRSPSplit();
+  } else {
+    // clear so it won't be saved
+    document.getElementById('f_rsp_new').value='';
+    document.getElementById('f_rsp_read').value='';
+    rspPhotoSlot=null;
+    calcRSPSplit();
+  }
+}
+function renderRSPPhoto(){
+  const wrap=document.getElementById('rsp_photo_slot');
+  if(!wrap||!rspPhotoSlot)return;
+  const done=!!rspPhotoSlot.dataUrl;
+  let html='<div style="font-size:11px;font-weight:800;margin-bottom:7px;color:#111B21;">'+(done?'✓ ':'')+'RSP Change Photo <span style="color:#8696A0;font-weight:600;">(optional)</span></div>';
+  if(done){
+    html+='<img src="'+rspPhotoSlot.dataUrl+'" style="width:100%;border-radius:9px;border:1px solid #E9EDEF;max-height:150px;object-fit:cover;"/>';
+    html+='<div style="display:flex;gap:7px;margin-top:7px;"><button type="button" onclick="rspPhotoCapture(true)" style="flex:1;padding:8px;background:#fff;border:1px solid #E9EDEF;border-radius:9px;font-family:inherit;font-size:12px;font-weight:700;color:#54656F;cursor:pointer;">📷 Retake</button><button type="button" onclick="rspPhotoClear()" style="padding:8px 11px;background:rgba(255,82,82,0.1);border:none;border-radius:9px;font-size:12px;font-weight:700;color:#FF3B30;cursor:pointer;">✕</button></div>';
+  } else {
+    html+='<div style="display:flex;gap:7px;"><button type="button" onclick="rspPhotoCapture(true)" style="flex:1;padding:11px;background:#fff;border:2px dashed #D1D7DB;border-radius:10px;font-family:inherit;font-size:12px;font-weight:700;color:#54656F;cursor:pointer;">📷 Take</button><button type="button" onclick="rspPhotoCapture(false)" style="flex:1;padding:11px;background:#fff;border:2px dashed #D1D7DB;border-radius:10px;font-family:inherit;font-size:12px;font-weight:700;color:#54656F;cursor:pointer;">📁 Upload</button></div>';
+  }
+  wrap.innerHTML=html;
+}
+let _rspPending=false;
+function rspPhotoCapture(useCamera){
+  _rspPending=true;
+  const inp=document.getElementById('photo_file_input');
+  if(useCamera)inp.setAttribute('capture','environment');else inp.removeAttribute('capture');
+  inp.value='';inp.click();
+}
+function rspPhotoClear(){rspPhotoSlot.file=null;rspPhotoSlot.dataUrl=null;rspPhotoSlot.driveView='';renderRSPPhoto();}
+
+function calcRSPSplit(){
+  if(!rspChangeOn)return;
+  const oa1=parseFloat((document.getElementById('f_oa1')||{}).value||0)||0;
+  const ca1=parseFloat((document.getElementById('f_ca1')||{}).value||0)||0;
+  const rd =parseFloat((document.getElementById('f_rsp_read')||{}).value||0)||0;
+  const oldR=parseFloat((document.getElementById('f_r1')||{}).value||0)||0;
+  const newR=parseFloat((document.getElementById('f_rsp_new')||{}).value||0)||0;
+  let lb=0,la=0;
+  if(rd>0){lb=Math.max(0,rd-oa1);la=Math.max(0,ca1-rd);}
+  const ab=lb*oldR, aa=la*newR;
+  const sv=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v.toFixed(2);};
+  sv('f_rsp_lb',lb);sv('f_rsp_la',la);sv('f_rsp_ab',ab);sv('f_rsp_aa',aa);
+}
+
+document.addEventListener('touchmove',e=>{if(!e.target.closest('.scroll-body'))e.preventDefault();},{passive:false});
+
+// Android back button handler
+window.addEventListener('popstate',()=>{
+  const screens=['s_preview','s_form','s_reports','s_settings','s_home'];
+  const active=screens.find(id=>!document.getElementById(id).classList.contains('hidden'));
+  if(active==='s_preview'){goScreen('s_form');history.pushState(null,'',location.href);}
+  else if(active==='s_form'){goHome();history.pushState(null,'',location.href);}
+  else if(active==='s_reports'){goHome();history.pushState(null,'',location.href);}
+  else if(active==='s_settings'){goHome();history.pushState(null,'',location.href);}
+  else if(active==='s_home'){history.pushState(null,'',location.href);} // stay on home
+});
+
+// Push initial state so back button works
+history.pushState(null,'',location.href);
+</script>
+<script>
+const APP_VERSION='v2.0';
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js?'+APP_VERSION).then(reg=>{
+      reg.update();
+      reg.addEventListener('updatefound',()=>{
+        const nw=reg.installing;
+        if(nw)nw.addEventListener('statechange',()=>{
+          if(nw.state==='activated'&&navigator.serviceWorker.controller){
+            // new version active — silent, will apply on next open
+          }
+        });
+      });
+    }).catch(()=>{});
+  });
+}
+// PWA install prompt
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt',(e)=>{
+  e.preventDefault();
+  deferredPrompt=e;
+  // Show install banner after 3 seconds if not installed
+  setTimeout(()=>{
+    if(deferredPrompt){
+      showInstallBanner();
+    }
+  },3000);
+});
+function showInstallBanner(){
+  // Show the install button on login screen
+  const btnWrap=document.getElementById('install_btn_wrap');
+  if(btnWrap)btnWrap.style.display='block';
+  // Also show banner
+  const banner=document.createElement('div');
+  banner.id='install_banner';
+  banner.style.cssText='position:fixed;bottom:80px;left:14px;right:14px;background:linear-gradient(135deg,#E8541E,#FF7A33);color:#fff;padding:14px 16px;border-radius:14px;display:flex;align-items:center;gap:12px;z-index:9998;box-shadow:0 4px 20px rgba(232,84,30,0.4);font-family:Nunito,sans-serif;';
+  banner.innerHTML=`<span style="font-size:24px;">📲</span><div style="flex:1;"><div style="font-size:14px;font-weight:800;">Install Station Reporting</div><div style="font-size:11px;opacity:0.8;">Add to home screen for quick access</div></div><button onclick="installApp()" style="background:#000;color:#FF8A4C;border:none;border-radius:10px;padding:8px 14px;font-family:Nunito,sans-serif;font-size:13px;font-weight:800;cursor:pointer;">Install</button><button onclick="document.getElementById('install_banner').remove()" style="background:rgba(0,0,0,0.2);color:#000;border:none;border-radius:10px;padding:8px 10px;font-size:16px;cursor:pointer;font-weight:800;">✕</button>`;
+  document.body.appendChild(banner);
+}
+async function installApp(){
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    const result=await deferredPrompt.userChoice;
+    deferredPrompt=null;
+    const banner=document.getElementById('install_banner');
+    if(banner)banner.remove();
+    const wrap=document.getElementById('install_btn_wrap');
+    if(wrap)wrap.style.display='none';
+    if(result.outcome==='accepted'){
+      const t=document.getElementById('toast_el');
+      if(t){t.textContent='✓ App installed on home screen!';t.classList.add('on');setTimeout(()=>t.classList.remove('on'),3000);}
+    }
+  } else {
+    // Show manual instructions if no prompt available
+    const wrap=document.getElementById('install_manual_wrap');
+    if(wrap)wrap.style.display='block';
+  }
+}
+</script>
+</body>
+</html>
