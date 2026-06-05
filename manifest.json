@@ -1,6 +1,6 @@
 {
   "name": "Station Reporting",
-  "short_name": "Reporting",
+  "short_name": "Station Reporting",
   "description": "GOGAS Daily Station Reporting App",
   "start_url": "/stationwise/",
   "scope": "/stationwise/",
