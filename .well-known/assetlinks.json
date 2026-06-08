@@ -1,8 +1,32 @@
-[{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "io.github.sunnyguptagogas_bot.twa",
-        "sha256_cert_fingerprints": ["A4:44:FD:88:8A:AD:71:27:C5:4B:A6:44:46:DB:99:24:CB:1D:EC:A1:52:1B:D8:CE:78:DE:F2:4A:17:6B:C0:55"]
-      }
-    }]
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "co.median.android.wedbmnx",
+      "sha256_cert_fingerprints": [
+        "38:D5:94:4D:C4:94:C2:63:4B:53:F0:2C:48:B5:A4:23:CB:E2:8A:5B:74:01:56:1C:6A:CC:87:22:73:44:67:2E"
+      ]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "co.median.android.pwpmodn",
+      "sha256_cert_fingerprints": [
+        "A7:A4:48:1C:BC:A8:69:4F:79:CB:56:20:DD:69:07:EF:1F:36:8E:19:08:1C:5B:59:54:8F:F3:27:BD:08:C9:B2"
+      ]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "io.github.sunnyguptagogas_bot.twa",
+      "sha256_cert_fingerprints": [
+        "A4:44:FD:88:8A:AD:71:27:C5:4B:A6:44:46:DB:99:24:CB:1D:EC:A1:52:1B:D8:CE:78:DE:F2:4A:17:6B:C0:55"
+      ]
+    }
+  }
+]
