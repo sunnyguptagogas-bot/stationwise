@@ -24,7 +24,7 @@ body{background:#EEF1F4;color:#111B21;}
 .login-err{color:#d32f2f;font-size:12px;font-weight:700;margin-bottom:10px;display:none;}
 
 /* SHELL */
-#app{display:none;min-height:100vh;padding-bottom:70px;}
+#app{display:none;min-height:100vh;}
 .topbar{background:#2B2F36;color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
 .tb-logo{font-size:17px;font-weight:900;}
 .tb-logo span{color:#FF7A33;}
@@ -62,10 +62,19 @@ tr:hover td{background:#FBFCFD;}
 .erp{font-family:'Courier New',monospace;font-size:11px;font-weight:700;background:#EEF1F4;padding:2px 7px;border-radius:6px;}
 .time{color:#8696A0;font-size:12px;}
 
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #E2E6EA;display:flex;z-index:50;}
-.bn-item{flex:1;background:none;border:none;padding:9px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;color:#8696A0;font-size:10px;font-weight:700;}
-.bn-item.active{color:#E8541E;}
-.bn-item .ic{font-size:18px;}
+.shell{display:flex;min-height:calc(100vh - 52px);}
+.sidebar{width:210px;background:#fff;border-right:1px solid #E2E6EA;padding:14px 10px;flex-shrink:0;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;}
+.bn-item{width:100%;background:none;border:none;padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;color:#54656F;font-size:14px;font-weight:700;border-radius:11px;margin-bottom:4px;text-align:left;}
+.bn-item:hover{background:#F4F6F8;}
+.bn-item.active{background:rgba(232,84,30,0.1);color:#E8541E;}
+.bn-item .ic{font-size:18px;width:24px;text-align:center;}
+.content{flex:1;min-width:0;}
+@media(max-width:760px){
+  .shell{flex-direction:column;}
+  .sidebar{width:100%;height:auto;position:static;display:flex;gap:6px;overflow-x:auto;padding:8px;border-right:none;border-bottom:1px solid #E2E6EA;}
+  .bn-item{flex-direction:column;gap:3px;font-size:10px;padding:8px 10px;margin-bottom:0;min-width:70px;text-align:center;}
+  .bn-item .ic{width:auto;}
+}
 
 /* MODAL */
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;padding:18px;}
@@ -115,6 +124,14 @@ tr:hover td{background:#FBFCFD;}
     <div class="tb-right"><span id="tb_user"></span><button class="tb-logout" onclick="doLogout()">Logout</button></div>
   </div>
 
+  <div class="shell">
+    <div class="sidebar">
+      <button class="bn-item active" id="bn_dashboard" onclick="showPage('dashboard')"><span class="ic">📊</span><span>Dashboard</span></button>
+      <button class="bn-item" id="bn_reports" onclick="showPage('reports')"><span class="ic">📋</span><span>Reports</span></button>
+      <button class="bn-item" id="bn_coords" onclick="showPage('coords')"><span class="ic">🗺️</span><span>Mapping</span></button>
+      <button class="bn-item" id="bn_users" onclick="showPage('users')"><span class="ic">👥</span><span>Users</span></button>
+    </div>
+    <div class="content">
   <div class="wrap">
     <!-- DASHBOARD -->
     <div class="page active" id="pg_dashboard">
@@ -160,12 +177,8 @@ tr:hover td{background:#FBFCFD;}
     </div>
   </div>
 
-  <div class="bottom-nav">
-    <button class="bn-item active" id="bn_dashboard" onclick="showPage('dashboard')"><span class="ic">📊</span><span>Dashboard</span></button>
-    <button class="bn-item" id="bn_reports" onclick="showPage('reports')"><span class="ic">📋</span><span>Reports</span></button>
-    <button class="bn-item" id="bn_coords" onclick="showPage('coords')"><span class="ic">🗺️</span><span>Mapping</span></button>
-    <button class="bn-item" id="bn_users" onclick="showPage('users')"><span class="ic">👥</span><span>Users</span></button>
-  </div>
+    </div><!-- /content -->
+  </div><!-- /shell -->
 </div>
 
 <!-- DETAIL MODAL -->
@@ -242,6 +255,7 @@ async function afterLogin(){
   document.getElementById('app').style.display='block';
   document.getElementById('tb_user').textContent=me.full_name||me.email;
   await loadAll();
+  try{var last=localStorage.getItem('sr_admin_page');if(last&&document.getElementById('pg_'+last))showPage(last);}catch(e){}
 }
 
 // ── LOAD DATA ──
@@ -353,8 +367,9 @@ function chainCheck(r){
 function showPage(name){
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
   document.querySelectorAll('.bn-item').forEach(function(b){b.classList.remove('active');});
-  document.getElementById('pg_'+name).classList.add('active');
-  document.getElementById('bn_'+name).classList.add('active');
+  var pg=document.getElementById('pg_'+name);var bn=document.getElementById('bn_'+name);
+  if(pg)pg.classList.add('active');if(bn)bn.classList.add('active');
+  try{localStorage.setItem('sr_admin_page',name);}catch(e){}
 }
 var _repShown=[];
 function renderReports(){
