@@ -13,6 +13,16 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
+      "package_name": "co.median.android.pwpbmen",
+      "sha256_cert_fingerprints": [
+        "92:78:95:36:BC:3C:72:06:D0:C2:26:0C:D5:05:A1:B8:AB:AE:EE:2B:51:5A:66:E0:8F:EB:B8:E3:4C:83:C3:47"
+      ]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
       "package_name": "co.median.android.pwpmodn",
       "sha256_cert_fingerprints": [
         "A7:A4:48:1C:BC:A8:69:4F:79:CB:56:20:DD:69:07:EF:1F:36:8E:19:08:1C:5B:59:54:8F:F3:27:BD:08:C9:B2"
