@@ -1,0 +1,15 @@
+{
+  "name": "Reporting Admin",
+  "short_name": "Reporting Admin",
+  "description": "Station Reporting Management Dashboard",
+  "start_url": "/stationwise/sr-dashboard.html",
+  "scope": "/stationwise/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#2B2F36",
+  "theme_color": "#2B2F36",
+  "icons": [
+    { "src": "icon.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
