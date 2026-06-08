@@ -122,7 +122,7 @@ tr:hover td{background:#FBFCFD;}
       <div class="cards" id="dash_cards"></div>
       <div class="table-wrap">
         <div class="table-head">By State</div>
-        <div class="tbl-scroll"><table><thead><tr><th>State</th><th>Stations</th><th>Reported</th><th>Pending Flags</th><th>Total Sale (L)</th><th>Amount</th></tr></thead><tbody id="state_tbody"></tbody></table></div>
+        <div class="tbl-scroll"><table><thead><tr><th>State</th><th>Stations</th><th>Reported</th><th>Not Reported</th><th>Mismatch</th><th>Total Sale (L)</th><th>Amount</th></tr></thead><tbody id="state_tbody"></tbody></table></div>
       </div>
     </div>
 
@@ -136,7 +136,7 @@ tr:hover td{background:#FBFCFD;}
       </div>
       <div class="table-wrap">
         <div class="table-head"><span id="rep_count">0</span></div>
-        <div class="tbl-scroll"><table><thead><tr><th>Date</th><th>SS Name</th><th>ERP</th><th>State</th><th>Shift</th><th>Net Sale</th><th>Amount</th><th>Chain</th><th>Status</th><th>View</th></tr></thead><tbody id="rep_tbody"></tbody></table></div>
+        <div class="tbl-scroll"><table><thead><tr><th>Date</th><th>SS Name</th><th>ERP</th><th>Station</th><th>State</th><th>Shift</th><th>Net Sale</th><th>Amount</th><th>Chain</th><th>Status</th><th>View</th></tr></thead><tbody id="rep_tbody"></tbody></table></div>
       </div>
     </div>
 
@@ -292,10 +292,38 @@ function renderDashboard(){
   });
   document.getElementById('state_tbody').innerHTML=Object.keys(states).sort().map(function(st){
     var d=states[st];
-    return '<tr><td><b>'+st+'</b></td><td>'+d.stations+'</td><td>'+Object.keys(d.reported).length+'</td>'+
+    var repCount=Object.keys(d.reported).length;
+    var notRep=d.stations-repCount;
+    var notRepCell=notRep>0
+      ? '<td><button class="btn sm red" onclick="showPending(\''+st.replace(/'/g,"")+'\')">'+notRep+' pending</button></td>'
+      : '<td><span class="chip ok">All in</span></td>';
+    return '<tr><td><b>'+st+'</b></td><td>'+d.stations+'</td><td>'+repCount+'</td>'+
+      notRepCell+
       '<td>'+(d.flags?'<span class="chip mis">'+d.flags+'</span>':'0')+'</td>'+
       '<td>'+Math.round(d.sale).toLocaleString('en-IN')+'</td><td>₹'+Math.round(d.amt).toLocaleString('en-IN')+'</td></tr>';
   }).join('');
+}
+
+// Show which stations in a state have NOT reported (for the selected date, default today)
+function showPending(state){
+  var df=document.getElementById('rep_date')?document.getElementById('rep_date').value:'';
+  var dateLabel='today';
+  var reportedErps={};
+  REPORTS.forEach(function(r){
+    if(r.state!==state)return;
+    if(df){var d=new Date(df);if(!(r.submitted_at&&new Date(r.submitted_at).toDateString()===d.toDateString()))return;dateLabel=df;}
+    reportedErps[r.erp_code]=1;
+  });
+  var missing=STATIONS.filter(function(s){return s.state===state&&!reportedErps[s.erp_code];});
+  var html='<div style="font-size:13px;color:#54656F;margin-bottom:10px;">'+missing.length+' station(s) in <b>'+state+'</b> have NOT reported ('+dateLabel+')</div>';
+  if(!missing.length){html+='<div style="text-align:center;color:#2e7d32;font-weight:700;padding:20px;">✓ All stations reported</div>';}
+  else{
+    html+='<div style="max-height:55vh;overflow-y:auto;border:1px solid #EEF1F4;border-radius:10px;">'+
+      missing.map(function(s){return '<div style="padding:9px 12px;border-bottom:1px solid #F4F6F8;display:flex;justify-content:space-between;align-items:center;"><div><b style="font-size:13px;">'+s.station_name+'</b><div style="font-size:11px;color:#8696A0;"><span class="erp">'+s.erp_code+'</span></div></div></div>';}).join('')+'</div>';
+  }
+  document.getElementById('detail_title').textContent='⚠ Not Reported · '+state;
+  document.getElementById('detail_body').innerHTML=html;
+  document.getElementById('detail_modal').classList.add('open');
 }
 function card(n,l){return '<div class="card"><div class="num">'+n+'</div><div class="lbl">'+l+'</div></div>';}
 
@@ -354,6 +382,7 @@ function renderReports(){
     var status = ap?'<span class="chip app">✓</span>':'<span class="chip pend">Pending</span>';
     return '<tr><td class="time">'+(r.rep_date||'')+' '+(r.rep_month||'')+'</td>'+
       '<td><b>'+(r.ss_name||'—')+'</b></td><td><span class="erp">'+r.erp_code+'</span></td>'+
+      '<td style="font-size:12px;">'+(r.station_name||'')+'</td>'+
       '<td style="font-size:11px;color:#E8541E;font-weight:700;">'+(r.state||'')+'</td>'+
       '<td class="time">'+(r.shift||'')+'</td>'+
       '<td style="font-family:Courier New;font-size:11px;font-weight:700;">'+(r.net_sale||'')+'</td>'+
