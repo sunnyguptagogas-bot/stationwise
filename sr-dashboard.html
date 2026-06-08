@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Station Reporting · Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,Arial,sans-serif;}
+body{background:#EEF1F4;color:#111B21;}
+.hidden{display:none!important;}
+
+/* LOGIN */
+#login_wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#EEF1F4,#E2E6EA);}
+.login-box{background:#fff;border-radius:20px;padding:34px 28px;width:100%;max-width:380px;box-shadow:0 18px 50px rgba(0,0,0,0.12);text-align:center;}
+.login-logo{width:74px;height:74px;border-radius:20px;background:linear-gradient(135deg,#2B2F36,#C0381A);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 8px 24px rgba(43,47,54,0.35);}
+.login-title{font-size:22px;font-weight:900;color:#111B21;margin-bottom:3px;}
+.login-title span{color:#E8541E;}
+.login-sub{font-size:12px;color:#8696A0;margin-bottom:20px;font-weight:600;}
+.login-input{width:100%;padding:13px 14px;border:1.5px solid #E2E6EA;border-radius:11px;font-size:15px;margin-bottom:11px;outline:none;}
+.login-input:focus{border-color:#E8541E;}
+.login-btn{width:100%;padding:14px;background:#E8541E;border:none;border-radius:11px;color:#fff;font-size:15px;font-weight:800;cursor:pointer;}
+.login-err{color:#d32f2f;font-size:12px;font-weight:700;margin-bottom:10px;display:none;}
+
+/* SHELL */
+#app{display:none;min-height:100vh;}
+.topbar{background:#2B2F36;color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.tb-logo{font-size:17px;font-weight:900;}
+.tb-logo span{color:#FF7A33;}
+.tb-badge{font-size:9px;font-weight:800;background:#E8541E;padding:3px 8px;border-radius:7px;margin-left:8px;letter-spacing:0.5px;}
+.tb-right{font-size:12px;color:#B8C0C8;display:flex;align-items:center;gap:12px;}
+.tb-logout{background:rgba(255,255,255,0.12);border:none;color:#fff;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;}
+
+.wrap{max-width:1200px;margin:0 auto;padding:16px;}
+.page{display:none;}
+.page.active{display:block;}
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
+.sec-title{font-size:20px;font-weight:800;}
+.btn{background:#E8541E;color:#fff;border:none;padding:9px 16px;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;}
+.btn.dark{background:#2B2F36;}
+.btn.gray{background:#fff;color:#54656F;border:1px solid #E2E6EA;}
+.btn.green{background:#2e7d32;}
+.btn.red{background:#d32f2f;}
+.btn.sm{padding:6px 11px;font-size:12px;}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px;}
+.card{background:#fff;border:1px solid #E9EDEF;border-radius:14px;padding:16px;text-align:center;}
+.card .num{font-size:26px;font-weight:900;color:#E8541E;}
+.card .lbl{font-size:11px;color:#8696A0;font-weight:700;margin-top:2px;}
+
+.filter-bar{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+.filter-bar input,.filter-bar select{padding:9px 12px;border:1px solid #E2E6EA;border-radius:10px;font-size:13px;font-family:inherit;}
+
+.table-wrap{background:#fff;border:1px solid #E9EDEF;border-radius:14px;overflow:hidden;}
+.table-head{padding:12px 16px;border-bottom:1px solid #EEF1F4;font-weight:800;font-size:14px;}
+.tbl-scroll{overflow-x:auto;max-height:70vh;overflow-y:auto;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:left;padding:10px 14px;font-size:11px;color:#8696A0;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;border-bottom:1px solid #EEF1F4;position:sticky;top:0;background:#fff;}
+td{padding:10px 14px;font-size:13px;border-bottom:1px solid #F4F6F8;}
+tr:hover td{background:#FBFCFD;}
+.erp{font-family:'Courier New',monospace;font-size:11px;font-weight:700;background:#EEF1F4;padding:2px 7px;border-radius:6px;}
+.time{color:#8696A0;font-size:12px;}
+
+.shell{display:flex;min-height:calc(100vh - 52px);}
+.sidebar{width:210px;background:#fff;border-right:1px solid #E2E6EA;padding:14px 10px;flex-shrink:0;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;}
+.bn-item{width:100%;background:none;border:none;padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;color:#54656F;font-size:14px;font-weight:700;border-radius:11px;margin-bottom:4px;text-align:left;}
+.bn-item:hover{background:#F4F6F8;}
+.bn-item.active{background:rgba(232,84,30,0.1);color:#E8541E;}
+.bn-item .ic{font-size:18px;width:24px;text-align:center;}
+.content{flex:1;min-width:0;}
+@media(max-width:760px){
+  .shell{flex-direction:column;}
+  .sidebar{width:100%;height:auto;position:static;display:flex;gap:6px;overflow-x:auto;padding:8px;border-right:none;border-bottom:1px solid #E2E6EA;}
+  .bn-item{flex-direction:column;gap:3px;font-size:10px;padding:8px 10px;margin-bottom:0;min-width:70px;text-align:center;}
+  .bn-item .ic{width:auto;}
+}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;padding:18px;}
+.modal-bg.open{display:flex;}
+.modal{background:#fff;border-radius:16px;max-width:560px;width:100%;max-height:88vh;overflow-y:auto;padding:22px;}
+.modal h3{font-size:18px;font-weight:800;margin-bottom:12px;}
+.mf{margin-bottom:11px;}
+.mf label{display:block;font-size:12px;font-weight:700;color:#54656F;margin-bottom:5px;}
+.mf input,.mf select{width:100%;padding:10px;border:1px solid #E2E6EA;border-radius:9px;font-size:14px;font-family:inherit;}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:800;padding:3px 9px;border-radius:8px;text-transform:uppercase;}
+.chip.ok{background:#e8f5e9;color:#2e7d32;}
+.chip.mis{background:#d32f2f;color:#fff;}
+.chip.app{background:#2e7d32;color:#fff;}
+.chip.first{background:#EEF1F4;color:#8696A0;}
+.chip.pend{background:#fff3e0;color:#e8541e;}
+
+/* lightbox */
+#lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:10001;align-items:center;justify-content:center;cursor:zoom-out;}
+#lightbox img{max-width:96%;max-height:96%;object-fit:contain;border-radius:6px;}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#2B2F36;color:#fff;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:600;z-index:10002;opacity:0;pointer-events:none;transition:opacity .25s;max-width:86%;text-align:center;}
+.toast.on{opacity:1;}
+.map-station-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid #F4F6F8;}
+.map-station-row input{width:18px;height:18px;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login_wrap">
+  <div class="login-box">
+    <div class="login-logo">
+      <svg width="42" height="42" viewBox="-130 -150 260 320" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="-95" y="-130" width="150" height="270" rx="20" fill="#FF6A2C" stroke="#fff" stroke-width="11" stroke-linejoin="round"/><rect x="-95" y="-130" width="150" height="34" rx="16" fill="#FFB020"/><rect x="-72" y="-78" width="104" height="62" rx="10" fill="#fff"/><rect x="-60" y="-66" width="64" height="9" rx="4" fill="#E8541E"/><rect x="-60" y="-48" width="44" height="9" rx="4" fill="#E8541E" opacity="0.6"/><circle cx="-44" cy="29" r="7" fill="#fff"/><circle cx="-16" cy="29" r="7" fill="#fff"/><circle cx="12" cy="29" r="7" fill="#fff"/><path d="M55 -70 C120 -70 120 30 96 90" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/><rect x="78" y="86" width="40" height="58" rx="9" fill="#FFB020" stroke="#fff" stroke-width="8" stroke-linejoin="round"/><rect x="90" y="74" width="16" height="22" rx="5" fill="#fff"/></svg>
+    </div>
+    <div class="login-title">Station Reporting <span>Admin</span></div>
+    <div class="login-sub">Secure Login</div>
+    <div id="login_err" class="login-err"></div>
+    <input class="login-input" id="li_email" type="email" placeholder="Email" autocomplete="username"/>
+    <input class="login-input" id="li_pwd" type="password" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <button class="login-btn" onclick="doLogin()">Login →</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div><span class="tb-logo">Station<span>Reporting</span></span><span class="tb-badge" id="tb_badge">—</span></div>
+    <div class="tb-right"><span id="tb_user"></span><button class="tb-logout" onclick="doLogout()">Logout</button></div>
+  </div>
+
+  <div class="shell">
+    <div class="sidebar">
+      <button class="bn-item active" id="bn_dashboard" onclick="showPage('dashboard')"><span class="ic">📊</span><span>Dashboard</span></button>
+      <button class="bn-item" id="bn_reports" onclick="showPage('reports')"><span class="ic">📋</span><span>Reports</span></button>
+      <button class="bn-item" id="bn_coords" onclick="showPage('coords')"><span class="ic">🗺️</span><span>Mapping</span></button>
+      <button class="bn-item" id="bn_users" onclick="showPage('users')"><span class="ic">👥</span><span>Users</span></button>
+    </div>
+    <div class="content">
+  <div class="wrap">
+    <!-- DASHBOARD -->
+    <div class="page active" id="pg_dashboard">
+      <div class="sec-head"><div class="sec-title">Overview</div><button class="btn dark sm" onclick="loadAll()">↻ Refresh</button></div>
+      <div class="cards" id="dash_cards"></div>
+      <div class="table-wrap">
+        <div class="table-head">By State</div>
+        <div class="tbl-scroll"><table><thead><tr><th>State</th><th>Stations</th><th>Reported</th><th>Not Reported</th><th>Mismatch</th><th>Total Sale (L)</th><th>Amount</th></tr></thead><tbody id="state_tbody"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- REPORTS -->
+    <div class="page" id="pg_reports">
+      <div class="sec-head"><div class="sec-title">All Reports</div><button class="btn dark sm" onclick="exportExcel()">⬇ Excel</button></div>
+      <div class="filter-bar">
+        <input type="date" id="rep_date" onchange="renderReports()"/>
+        <select id="rep_state" onchange="renderReports()"><option value="">All States</option></select>
+        <select id="rep_flag" onchange="renderReports()"><option value="">All Flags</option><option value="mismatch">⚠ Mismatch</option><option value="ok">✓ OK</option><option value="Approved">Approved</option><option value="Pending">Pending</option></select>
+      </div>
+      <div class="table-wrap">
+        <div class="table-head"><span id="rep_count">0</span></div>
+        <div class="tbl-scroll"><table><thead><tr><th>Date</th><th>SS Name</th><th>ERP</th><th>Station</th><th>State</th><th>Shift</th><th>Net Sale</th><th>Amount</th><th>Chain</th><th>Status</th><th>View</th></tr></thead><tbody id="rep_tbody"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- COORDINATORS / MAPPING -->
+    <div class="page" id="pg_coords">
+      <div class="sec-head"><div class="sec-title">Coordinators &amp; Mapping</div><button class="btn" onclick="openNewUser('coordinator')">+ Add Coordinator</button></div>
+      <div class="table-wrap">
+        <div class="table-head"><span id="coord_count">0</span> coordinators</div>
+        <div class="tbl-scroll"><table><thead><tr><th>Name</th><th>Email</th><th>Stations Mapped</th><th>Status</th><th>Actions</th></tr></thead><tbody id="coord_tbody"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="page" id="pg_users">
+      <div class="sec-head"><div class="sec-title">All Users</div><button class="btn" onclick="openNewUser('viewer')">+ Add Viewer</button></div>
+      <div class="table-wrap">
+        <div class="table-head"><span id="user_count">0</span> users</div>
+        <div class="tbl-scroll"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead><tbody id="user_tbody"></tbody></table></div>
+      </div>
+      <div style="margin-top:10px;font-size:12px;color:#8696A0;">Note: After adding a user here, create their login in Supabase → Authentication → Add user (same email), then they can sign in.</div>
+    </div>
+  </div>
+
+    </div><!-- /content -->
+  </div><!-- /shell -->
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-bg" id="detail_modal">
+  <div class="modal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><h3 id="detail_title">Report</h3><button class="btn gray sm" onclick="closeModal('detail_modal')">✕</button></div>
+    <div id="detail_body"></div>
+  </div>
+</div>
+
+<!-- NEW USER MODAL -->
+<div class="modal-bg" id="user_modal">
+  <div class="modal">
+    <h3 id="user_modal_title">Add User</h3>
+    <div class="mf"><label>Full Name</label><input id="nu_name" placeholder="Name"/></div>
+    <div class="mf"><label>Email (their login)</label><input id="nu_email" type="email" placeholder="email@example.com"/></div>
+    <div class="mf"><label>Role</label><select id="nu_role"><option value="coordinator">Coordinator</option><option value="viewer">Admin Viewer</option></select></div>
+    <div style="display:flex;gap:8px;margin-top:14px;"><button class="btn gray" onclick="closeModal('user_modal')">Cancel</button><button class="btn green" onclick="saveNewUser()">Save User</button></div>
+    <div style="font-size:11px;color:#8696A0;margin-top:10px;">Then create their login in Supabase Authentication with the same email + a password.</div>
+  </div>
+</div>
+
+<!-- MAPPING MODAL -->
+<div class="modal-bg" id="map_modal">
+  <div class="modal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><h3 id="map_title">Map Stations</h3><button class="btn gray sm" onclick="closeModal('map_modal')">✕</button></div>
+    <div class="filter-bar">
+      <select id="map_state_filter" onchange="renderMapStations()"><option value="">All States</option></select>
+      <input id="map_search" placeholder="Search station…" oninput="renderMapStations()"/>
+      <button class="btn gray sm" onclick="mapSelectAllShown(true)">Select shown</button>
+      <button class="btn gray sm" onclick="mapSelectAllShown(false)">Clear shown</button>
+    </div>
+    <div style="max-height:46vh;overflow-y:auto;border:1px solid #EEF1F4;border-radius:10px;" id="map_list"></div>
+    <div style="display:flex;gap:8px;margin-top:14px;"><button class="btn gray" onclick="closeModal('map_modal')">Cancel</button><button class="btn green" onclick="saveMapping()">Save Mapping (<span id="map_sel_count">0</span>)</button></div>
+  </div>
+</div>
+
+<div id="lightbox" onclick="closeLightbox()"><img id="lightbox_img"/></div>
+<div class="toast" id="toast_el"></div>
+
+<script>
+const SB_URL='https://vnzkkysoicrwssewofst.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuemtreXNvaWNyd3NzZXdvZnN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5MDQ0OTUsImV4cCI6MjA5NjQ4MDQ5NX0.tSxnAqGPtdnQGc4oLmfz9yyVZ263L9lXzgPbTwbDBUM';
+const sb=supabase.createClient(SB_URL,SB_KEY);
+
+let ME=null, STATIONS=[], REPORTS=[], USERS=[], MAPPINGS=[];
+
+function toast(m){var t=document.getElementById('toast_el');t.textContent=m;t.classList.add('on');setTimeout(function(){t.classList.remove('on');},2600);}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function num(v){var n=parseFloat(v);return isNaN(n)?null:n;}
+
+// ── AUTH ──
+async function doLogin(){
+  var email=document.getElementById('li_email').value.trim();
+  var pwd=document.getElementById('li_pwd').value;
+  var err=document.getElementById('login_err');err.style.display='none';
+  if(!email||!pwd){err.textContent='Enter email and password';err.style.display='block';return;}
+  var {data,error}=await sb.auth.signInWithPassword({email:email,password:pwd});
+  if(error){err.textContent=error.message;err.style.display='block';return;}
+  await afterLogin();
+}
+async function doLogout(){await sb.auth.signOut();location.reload();}
+
+async function afterLogin(){
+  var {data:me,error}=await sb.from('app_users').select('*').eq('email',(await sb.auth.getUser()).data.user.email).single();
+  if(error||!me||!me.active||['super','coordinator','viewer'].indexOf(me.role)<0){
+    document.getElementById('login_err').textContent='This account has no dashboard access. Contact admin.';
+    document.getElementById('login_err').style.display='block';
+    await sb.auth.signOut();return;
+  }
+  ME=me;
+  document.getElementById('login_wrap').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('tb_user').textContent=me.full_name||me.email;
+  document.getElementById('tb_badge').textContent=(me.role==='super')?'SUPER ADMIN':(me.role==='coordinator')?'COORDINATOR':'VIEWER';
+  applyRoleVisibility(me.role);
+  await loadAll();
+  // default page per role
+  var defPage=(me.role==='viewer')?'dashboard':'dashboard';
+  try{var last=localStorage.getItem('sr_dash_page');if(last&&document.getElementById('pg_'+last)&&isPageAllowed(last,me.role)){showPage(last);}else{showPage(defPage);}}catch(e){showPage(defPage);}
+}
+
+// which pages each role may see
+function isPageAllowed(page,role){
+  if(role==='super')return true;
+  if(role==='coordinator')return (page==='dashboard'||page==='reports');
+  if(role==='viewer')return (page==='dashboard');
+  return false;
+}
+function applyRoleVisibility(role){
+  // sidebar buttons
+  var show={dashboard:true,
+    reports:(role==='super'||role==='coordinator'),
+    coords:(role==='super'),
+    users:(role==='super')};
+  ['dashboard','reports','coords','users'].forEach(function(p){
+    var b=document.getElementById('bn_'+p);
+    if(b)b.style.display=show[p]?'':'none';
+  });
+}
+
+// ── LOAD DATA ──
+async function loadAll(){
+  toast('Loading…');
+  if(ME.role==='coordinator'){
+    var m=await sb.from('coordinator_stations').select('*').eq('coordinator_id',ME.id);
+    MAPPINGS=m.data||[];
+    var myErps=MAPPINGS.map(function(x){return x.station_erp;});
+    STATIONS = myErps.length ? ((await sb.from('stations').select('*').in('erp_code',myErps).order('state')).data||[]) : [];
+    REPORTS=(await sb.from('reports').select('*').order('submitted_at',{ascending:false}).limit(2000)).data||[];
+    USERS=[];
+  } else {
+    STATIONS=(await sb.from('stations').select('*').order('state')).data||[];
+    REPORTS=(await sb.from('reports').select('*').order('submitted_at',{ascending:false}).limit(2000)).data||[];
+    if(ME.role==='super'){
+      USERS=(await sb.from('app_users').select('*').order('role')).data||[];
+      MAPPINGS=(await sb.from('coordinator_stations').select('*')).data||[];
+    } else { USERS=[];MAPPINGS=[]; }
+  }
+  fillStateFilters();
+  renderDashboard();
+  if(ME.role==='super'||ME.role==='coordinator')renderReports();
+  if(ME.role==='super'){renderCoords();renderUsers();}
+}
+
+function fillStateFilters(){
+  var states=[...new Set(STATIONS.map(function(x){return x.state;}))].sort();
+  var opts='<option value="">All States</option>'+states.map(function(s){return '<option value="'+s+'">'+s+'</option>';}).join('');
+  document.getElementById('rep_state').innerHTML=opts;
+  document.getElementById('map_state_filter').innerHTML=opts;
+}
+
+// ── DASHBOARD ──
+function renderDashboard(){
+  var todayReports=REPORTS.length;
+  var stationsReported=[...new Set(REPORTS.map(function(r){return r.erp_code;}))].length;
+  var mismatch=REPORTS.filter(function(r){return chainCheck(r).flag==='mismatch'&&r.approval_status!=='Approved';}).length;
+  var totalSale=REPORTS.reduce(function(a,r){return a+(num(r.net_sale)||0);},0);
+  var totalAmt=REPORTS.reduce(function(a,r){return a+(num(r.total_amt)||0);},0);
+  document.getElementById('dash_cards').innerHTML=
+    card(STATIONS.length,'Total Stations')+
+    card(stationsReported,'Stations Reported')+
+    card(todayReports,'Total Reports')+
+    card(mismatch,'⚠ Mismatch Flags')+
+    card(Math.round(totalSale).toLocaleString('en-IN'),'Total Sale (L)')+
+    card('₹'+Math.round(totalAmt).toLocaleString('en-IN'),'Total Amount');
+  // by state
+  var states={};
+  STATIONS.forEach(function(s){states[s.state]=states[s.state]||{stations:0,reported:{},flags:0,sale:0,amt:0};states[s.state].stations++;});
+  REPORTS.forEach(function(r){
+    if(!states[r.state])return;
+    states[r.state].reported[r.erp_code]=1;
+    states[r.state].sale+=(num(r.net_sale)||0);
+    states[r.state].amt+=(num(r.total_amt)||0);
+    if(chainCheck(r).flag==='mismatch'&&r.approval_status!=='Approved')states[r.state].flags++;
+  });
+  document.getElementById('state_tbody').innerHTML=Object.keys(states).sort().map(function(st){
+    var d=states[st];
+    var repCount=Object.keys(d.reported).length;
+    var notRep=d.stations-repCount;
+    var notRepCell=notRep>0
+      ? '<td><button class="btn sm red" onclick="showPending(\''+st.replace(/'/g,"")+'\')">'+notRep+' pending</button></td>'
+      : '<td><span class="chip ok">All in</span></td>';
+    return '<tr><td><b>'+st+'</b></td><td>'+d.stations+'</td><td>'+repCount+'</td>'+
+      notRepCell+
+      '<td>'+(d.flags?'<span class="chip mis">'+d.flags+'</span>':'0')+'</td>'+
+      '<td>'+Math.round(d.sale).toLocaleString('en-IN')+'</td><td>₹'+Math.round(d.amt).toLocaleString('en-IN')+'</td></tr>';
+  }).join('');
+}
+
+// Show which stations in a state have NOT reported (for the selected date, default today)
+function showPending(state){
+  var df=document.getElementById('rep_date')?document.getElementById('rep_date').value:'';
+  var dateLabel='today';
+  var reportedErps={};
+  REPORTS.forEach(function(r){
+    if(r.state!==state)return;
+    if(df){var d=new Date(df);if(!(r.submitted_at&&new Date(r.submitted_at).toDateString()===d.toDateString()))return;dateLabel=df;}
+    reportedErps[r.erp_code]=1;
+  });
+  var missing=STATIONS.filter(function(s){return s.state===state&&!reportedErps[s.erp_code];});
+  var html='<div style="font-size:13px;color:#54656F;margin-bottom:10px;">'+missing.length+' station(s) in <b>'+state+'</b> have NOT reported ('+dateLabel+')</div>';
+  if(!missing.length){html+='<div style="text-align:center;color:#2e7d32;font-weight:700;padding:20px;">✓ All stations reported</div>';}
+  else{
+    html+='<div style="max-height:55vh;overflow-y:auto;border:1px solid #EEF1F4;border-radius:10px;">'+
+      missing.map(function(s){return '<div style="padding:9px 12px;border-bottom:1px solid #F4F6F8;display:flex;justify-content:space-between;align-items:center;"><div><b style="font-size:13px;">'+s.station_name+'</b><div style="font-size:11px;color:#8696A0;"><span class="erp">'+s.erp_code+'</span></div></div></div>';}).join('')+'</div>';
+  }
+  document.getElementById('detail_title').textContent='⚠ Not Reported · '+state;
+  document.getElementById('detail_body').innerHTML=html;
+  document.getElementById('detail_modal').classList.add('open');
+}
+function card(n,l){return '<div class="card"><div class="num">'+n+'</div><div class="lbl">'+l+'</div></div>';}
+
+// ── CHAIN VALIDATION ──
+function chainCheck(r){
+  var thisTime=new Date(r.submitted_at||0).getTime();
+  var prev=null,pt=-1;
+  for(var i=0;i<REPORTS.length;i++){
+    var x=REPORTS[i];if(x.erp_code!==r.erp_code)continue;
+    var t=new Date(x.submitted_at||0).getTime();
+    if(t<thisTime&&t>pt){prev=x;pt=t;}
+  }
+  if(!prev)return {flag:'first',details:[]};
+  var pairs=[['A1','open_a1','close_a1'],['B1','open_b1','close_b1'],['A2','open_a2','close_a2'],['B2','open_b2','close_b2']];
+  var details=[],mis=false,checked=false;
+  pairs.forEach(function(p){
+    var o=num(r[p[1]]),c=num(prev[p[2]]);
+    if(o===null||c===null)return;checked=true;
+    var match=(o===c);if(!match)mis=true;
+    details.push({nozzle:p[0],today:o,prev:c,match:match});
+  });
+  if(!checked)return {flag:'first',details:[]};
+  return {flag:mis?'mismatch':'ok',details:details};
+}
+
+// ── REPORTS ──
+function showPage(name){
+  if(ME&&!isPageAllowed(name,ME.role))name='dashboard';
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.bn-item').forEach(function(b){b.classList.remove('active');});
+  var pg=document.getElementById('pg_'+name);var bn=document.getElementById('bn_'+name);
+  if(pg)pg.classList.add('active');if(bn)bn.classList.add('active');
+  try{localStorage.setItem('sr_dash_page',name);}catch(e){}
+}
+var _repShown=[];
+function renderReports(){
+  var df=document.getElementById('rep_date').value;
+  var sf=document.getElementById('rep_state').value;
+  var ff=document.getElementById('rep_flag').value;
+  var rows=REPORTS.slice();
+  if(sf)rows=rows.filter(function(r){return r.state===sf;});
+  if(df){var d=new Date(df);rows=rows.filter(function(r){return r.submitted_at&&new Date(r.submitted_at).toDateString()===d.toDateString();});}
+  if(ff){
+    rows=rows.filter(function(r){
+      if(ff==='Approved')return r.approval_status==='Approved';
+      if(ff==='Pending')return r.approval_status!=='Approved';
+      return chainCheck(r).flag===ff;
+    });
+  }
+  _repShown=rows;
+  document.getElementById('rep_count').textContent=rows.length+' reports';
+  document.getElementById('rep_tbody').innerHTML=rows.slice(0,300).map(function(r,i){
+    var chk=chainCheck(r);var ap=(r.approval_status==='Approved');
+    var flag = ap?'<span class="chip app">APPROVED</span>'
+      : chk.flag==='mismatch'?'<span class="chip mis">⚠ MISMATCH</span>'
+      : chk.flag==='ok'?'<span class="chip ok">✓ OK</span>'
+      : '<span class="chip first">FIRST</span>';
+    var status = ap?'<span class="chip app">✓</span>':'<span class="chip pend">Pending</span>';
+    return '<tr><td class="time">'+(r.rep_date||'')+' '+(r.rep_month||'')+'</td>'+
+      '<td><b>'+(r.ss_name||'—')+'</b></td><td><span class="erp">'+r.erp_code+'</span></td>'+
+      '<td style="font-size:12px;">'+(r.station_name||'')+'</td>'+
+      '<td style="font-size:11px;color:#E8541E;font-weight:700;">'+(r.state||'')+'</td>'+
+      '<td class="time">'+(r.shift||'')+'</td>'+
+      '<td style="font-family:Courier New;font-size:11px;font-weight:700;">'+(r.net_sale||'')+'</td>'+
+      '<td class="time">₹'+(r.total_amt||'')+'</td>'+
+      '<td>'+flag+'</td><td>'+status+'</td>'+
+      '<td><button class="btn sm" onclick="openDetail('+i+')">👁 View</button></td></tr>';
+  }).join('');
+}
+
+function openDetail(i){
+  var r=_repShown[i];if(!r)return;window._det=r;
+  var chk=chainCheck(r);var ap=(r.approval_status==='Approved');
+  var pairs=[['A1','open_a1','close_a1'],['B1','open_b1','close_b1'],['A2','open_a2','close_a2'],['B2','open_b2','close_b2']];
+  var readHtml='';
+  pairs.forEach(function(p){
+    var o=r[p[1]],c=r[p[2]];
+    if((o==null||o==='')&&(c==null||c===''))return;
+    var det=chk.details.filter(function(d){return d.nozzle===p[0];})[0];
+    var fl=det?(det.match?'<span style="color:#2e7d32;font-weight:700;">✓ matches prev close ('+det.prev+')</span>':'<span style="color:#d32f2f;font-weight:800;">⚠ prev close was '+det.prev+'</span>'):'';
+    readHtml+='<div style="padding:8px 10px;border:1px solid #E9EDEF;border-radius:9px;background:#FBFCFD;margin-bottom:7px;">'+
+      '<div style="font-size:11px;font-weight:800;margin-bottom:5px;">Nozzle '+p[0]+'</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'+
+      '<label style="font-size:11px;color:#54656F;">Open <input id="d_o'+p[0]+'" value="'+(o==null?'':o)+'" style="width:80px;padding:5px;border:1px solid #D1D7DB;border-radius:6px;"/></label>'+
+      '<label style="font-size:11px;color:#54656F;">Close <input id="d_c'+p[0]+'" value="'+(c==null?'':c)+'" style="width:80px;padding:5px;border:1px solid #D1D7DB;border-radius:6px;"/></label></div>'+
+      (fl?'<div style="font-size:11px;margin-top:5px;">'+fl+'</div>':'')+'</div>';
+  });
+  var photos=[['photo_du1a','DU-1 A'],['photo_du1b','DU-1 B'],['photo_du2a','DU-2 A'],['photo_du2b','DU-2 B'],['photo_roto','ROTO'],['photo_dip','DIP'],['photo_radar','RADAR'],['rsp_photo','RSP']];
+  var phtml=photos.filter(function(d){return r[d[0]];}).map(function(d){
+    return '<div style="text-align:center;"><img src="'+r[d[0]]+'" loading="lazy" onclick="openLightbox(\''+r[d[0]]+'\')" style="width:100%;height:110px;object-fit:cover;border-radius:10px;border:1px solid #E9EDEF;cursor:zoom-in;"/><div style="font-size:11px;font-weight:700;color:#54656F;margin-top:4px;">'+d[1]+'</div></div>';
+  }).join('');
+  if(!phtml)phtml='<div style="grid-column:1/-1;text-align:center;color:#8696A0;padding:18px;">No photos</div>';
+  var rsp=r.rsp_changed?'<div style="margin-top:10px;padding:10px;background:rgba(232,84,30,0.06);border:1px solid rgba(232,84,30,0.3);border-radius:10px;font-size:12px;"><b style="color:#C0381A;">🔄 RSP Changed:</b> New '+(r.rsp_new_rate||'-')+' @ '+(r.rsp_change_reading||'-')+' · old '+(r.rsp_ltrs_before||'-')+'L / new '+(r.rsp_ltrs_after||'-')+'L</div>':'';
+  var canApprove=(ME.role==='super'||ME.role==='coordinator');
+  var approveBar=!canApprove?'<div style="margin-top:14px;padding:11px;background:#EEF1F4;border-radius:10px;font-size:12px;color:#8696A0;text-align:center;">View only</div>':ap
+    ?'<div style="margin-top:14px;padding:11px;background:#e8f5e9;border-radius:10px;font-size:12px;font-weight:700;color:#2e7d32;text-align:center;">✓ Approved by '+(r.approved_by||'')+' on '+(r.approved_at?new Date(r.approved_at).toLocaleString():'')+'</div>'
+    :'<div style="margin-top:14px;display:flex;gap:8px;"><input id="d_by" value="'+(ME.full_name||'Admin')+'" style="flex:1;padding:9px;border:1px solid #D1D7DB;border-radius:9px;"/><button class="btn green" onclick="approveDetail()">✓ Approve</button></div><div style="font-size:11px;color:#8696A0;margin-top:6px;">Edit any reading if the photo shows different, then Approve. Saved to the database.</div>';
+  document.getElementById('detail_title').textContent='📋 '+(r.ss_name||r.station_name||r.erp_code);
+  document.getElementById('detail_body').innerHTML=
+    '<div style="font-size:13px;color:#54656F;margin-bottom:8px;">'+(r.station_name||'')+' · '+r.erp_code+' · '+(r.rep_date||'')+' '+(r.rep_month||'')+' · Shift '+(r.shift||'')+'</div>'+
+    '<div style="font-weight:800;margin:6px 0 8px;">Meter Readings &amp; Chain Check</div>'+readHtml+rsp+
+    '<div style="font-weight:800;margin:14px 0 8px;">Photos <span style="font-size:11px;font-weight:600;color:#8696A0;">(tap to enlarge)</span></div>'+
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">'+phtml+'</div>'+approveBar;
+  document.getElementById('detail_modal').classList.add('open');
+}
+
+async function approveDetail(){
+  var r=window._det;if(!r)return;
+  var by=(document.getElementById('d_by').value||'Admin').trim();
+  var upd={approval_status:'Approved',approved_by:by,approved_at:new Date().toISOString()};
+  if(!r.original_values){
+    upd.original_values={open_a1:r.open_a1,open_b1:r.open_b1,open_a2:r.open_a2,open_b2:r.open_b2,close_a1:r.close_a1,close_b1:r.close_b1,close_a2:r.close_a2,close_b2:r.close_b2};
+  }
+  [['A1','open_a1','close_a1'],['B1','open_b1','close_b1'],['A2','open_a2','close_a2'],['B2','open_b2','close_b2']].forEach(function(p){
+    var oe=document.getElementById('d_o'+p[0]);var ce=document.getElementById('d_c'+p[0]);
+    if(oe&&oe.value!=='')upd[p[1]]=parseFloat(oe.value);
+    if(ce&&ce.value!=='')upd[p[2]]=parseFloat(ce.value);
+  });
+  toast('Approving…');
+  var {error}=await sb.from('reports').update(upd).eq('id',r.id);
+  if(error){toast('Failed: '+error.message);return;}
+  toast('✓ Approved & saved');
+  Object.assign(r,upd);
+  closeModal('detail_modal');renderReports();renderDashboard();
+}
+
+// ── COORDINATORS & MAPPING ──
+function renderCoords(){
+  var coords=USERS.filter(function(u){return u.role==='coordinator';});
+  document.getElementById('coord_count').textContent=coords.length;
+  document.getElementById('coord_tbody').innerHTML=coords.map(function(c){
+    var cnt=MAPPINGS.filter(function(m){return m.coordinator_id===c.id;}).length;
+    return '<tr><td><b>'+(c.full_name||'—')+'</b></td><td class="time">'+c.email+'</td>'+
+      '<td>'+cnt+' stations</td>'+
+      '<td>'+(c.active?'<span class="chip ok">Active</span>':'<span class="chip mis">Blocked</span>')+'</td>'+
+      '<td><button class="btn sm" onclick="openMap('+c.id+')">🗺 Map</button> '+
+      '<button class="btn sm gray" onclick="toggleUser('+c.id+','+(!c.active)+')">'+(c.active?'Block':'Unblock')+'</button> '+
+      '<button class="btn sm red" onclick="delUser('+c.id+')">Del</button></td></tr>';
+  }).join('');
+}
+function renderUsers(){
+  document.getElementById('user_count').textContent=USERS.length;
+  document.getElementById('user_tbody').innerHTML=USERS.map(function(u){
+    return '<tr><td><b>'+(u.full_name||'—')+'</b></td><td class="time">'+u.email+'</td>'+
+      '<td><span class="chip '+(u.role==='super'?'app':u.role==='coordinator'?'ok':'first')+'">'+u.role+'</span></td>'+
+      '<td>'+(u.active?'Active':'Blocked')+'</td>'+
+      '<td>'+(u.role==='super'?'<span class="time">(you)</span>':'<button class="btn sm gray" onclick="toggleUser('+u.id+','+(!u.active)+')">'+(u.active?'Block':'Unblock')+'</button> <button class="btn sm red" onclick="delUser('+u.id+')">Del</button>')+'</td></tr>';
+  }).join('');
+}
+
+var _newRole='coordinator';
+function openNewUser(role){_newRole=role;document.getElementById('nu_role').value=role;document.getElementById('user_modal_title').textContent='Add '+(role==='coordinator'?'Coordinator':'Viewer');document.getElementById('nu_name').value='';document.getElementById('nu_email').value='';document.getElementById('user_modal').classList.add('open');}
+async function saveNewUser(){
+  var name=document.getElementById('nu_name').value.trim();
+  var email=document.getElementById('nu_email').value.trim().toLowerCase();
+  var role=document.getElementById('nu_role').value;
+  if(!name||!email){toast('Enter name and email');return;}
+  var {error}=await sb.from('app_users').insert({full_name:name,email:email,role:role,active:true});
+  if(error){toast('Failed: '+error.message);return;}
+  toast('User added. Now create their login in Supabase Auth.');
+  closeModal('user_modal');await loadAll();
+}
+async function toggleUser(id,active){
+  var {error}=await sb.from('app_users').update({active:active}).eq('id',id);
+  if(error){toast('Failed: '+error.message);return;}
+  toast(active?'Unblocked':'Blocked');await loadAll();
+}
+async function delUser(id){
+  if(!confirm('Delete this user? Their mappings will also be removed.'))return;
+  var {error}=await sb.from('app_users').delete().eq('id',id);
+  if(error){toast('Failed: '+error.message);return;}
+  toast('Deleted');await loadAll();
+}
+
+// MAPPING
+var _mapCoordId=null, _mapSelected={};
+function openMap(coordId){
+  _mapCoordId=coordId;_mapSelected={};
+  MAPPINGS.filter(function(m){return m.coordinator_id===coordId;}).forEach(function(m){_mapSelected[m.station_erp]=1;});
+  var c=USERS.filter(function(u){return u.id===coordId;})[0];
+  document.getElementById('map_title').textContent='Map Stations → '+(c?c.full_name:'');
+  document.getElementById('map_search').value='';
+  document.getElementById('map_state_filter').value='';
+  renderMapStations();
+  document.getElementById('map_modal').classList.add('open');
+}
+function renderMapStations(){
+  var sf=document.getElementById('map_state_filter').value;
+  var q=(document.getElementById('map_search').value||'').toLowerCase();
+  // stations already owned by ANOTHER coordinator (lock them, show who)
+  var ownerByErp={};MAPPINGS.forEach(function(m){ownerByErp[m.station_erp]=m.coordinator_id;});
+  var rows=STATIONS.filter(function(s){
+    if(sf&&s.state!==sf)return false;
+    if(q&&(s.erp_code+' '+s.station_name).toLowerCase().indexOf(q)<0)return false;
+    return true;
+  });
+  document.getElementById('map_list').innerHTML=rows.slice(0,400).map(function(s){
+    var owner=ownerByErp[s.erp_code];
+    var otherOwner=(owner&&owner!==_mapCoordId);
+    var checked=_mapSelected[s.erp_code]?'checked':'';
+    var dis=otherOwner?'disabled':'';
+    var ownerName=otherOwner?(' <span style="font-size:10px;color:#d32f2f;">(with '+((USERS.filter(function(u){return u.id===owner;})[0]||{}).full_name||'?')+')</span>'):'';
+    return '<div class="map-station-row"><input type="checkbox" '+checked+' '+dis+' onchange="toggleMap(\''+s.erp_code+'\',this.checked)"/>'+
+      '<div><div style="font-size:13px;font-weight:700;">'+s.station_name+ownerName+'</div><div style="font-size:11px;color:#8696A0;"><span class="erp">'+s.erp_code+'</span> · '+s.state+'</div></div></div>';
+  }).join('');
+  updateMapCount();
+}
+function toggleMap(erp,on){if(on)_mapSelected[erp]=1;else delete _mapSelected[erp];updateMapCount();}
+function mapSelectAllShown(on){
+  var sf=document.getElementById('map_state_filter').value;
+  var q=(document.getElementById('map_search').value||'').toLowerCase();
+  var ownerByErp={};MAPPINGS.forEach(function(m){ownerByErp[m.station_erp]=m.coordinator_id;});
+  STATIONS.forEach(function(s){
+    if(sf&&s.state!==sf)return;
+    if(q&&(s.erp_code+' '+s.station_name).toLowerCase().indexOf(q)<0)return;
+    var owner=ownerByErp[s.erp_code];if(owner&&owner!==_mapCoordId)return;
+    if(on)_mapSelected[s.erp_code]=1;else delete _mapSelected[s.erp_code];
+  });
+  renderMapStations();
+}
+function updateMapCount(){document.getElementById('map_sel_count').textContent=Object.keys(_mapSelected).length;}
+async function saveMapping(){
+  toast('Saving mapping…');
+  // delete this coordinator's existing mappings, then insert selected
+  var del=await sb.from('coordinator_stations').delete().eq('coordinator_id',_mapCoordId);
+  if(del.error){toast('Failed: '+del.error.message);return;}
+  var erps=Object.keys(_mapSelected);
+  if(erps.length){
+    var rows=erps.map(function(e){return {coordinator_id:_mapCoordId,station_erp:e};});
+    var ins=await sb.from('coordinator_stations').insert(rows);
+    if(ins.error){toast('Failed: '+ins.error.message);return;}
+  }
+  toast('✓ Mapping saved ('+erps.length+' stations)');
+  closeModal('map_modal');await loadAll();showPage('coords');
+}
+
+// ── EXPORT ──
+function exportExcel(){
+  var rows=_repShown.length?_repShown:REPORTS;
+  if(!rows.length){toast('No data');return;}
+  var cols=Object.keys(rows[0]);
+  var csv=cols.join(',')+'\n'+rows.map(function(r){return cols.map(function(c){var v=r[c]==null?'':(''+r[c]).replace(/"/g,'""');return '"'+v+'"';}).join(',');}).join('\n');
+  var blob=new Blob([csv],{type:'text/csv'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='station_reports_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+  toast('Exported CSV');
+}
+
+// ── LIGHTBOX ──
+function openLightbox(url){document.getElementById('lightbox_img').src=url;document.getElementById('lightbox').style.display='flex';}
+function closeLightbox(){document.getElementById('lightbox').style.display='none';document.getElementById('lightbox_img').src='';}
+
+// ── BOOT ──
+(async function(){
+  var {data}=await sb.auth.getSession();
+  if(data&&data.session){await afterLogin();}
+})();
+</script>
+</body>
+</html>
