@@ -460,7 +460,7 @@ function switchTab(tab){
     <div class="sec-div">Date</div>
     <div class="fsec fadein">
       <div class="frow two">
-        <div class="ffield"><div class="fflbl">Date <span class="req">*</span></div><input class="ffin" id="f_date" type="number" inputmode="numeric" placeholder="14" min="1" max="31" oninput="updateFill()"/></div>
+        <div class="ffield" id="date_control_wrap"><div id="date_control"></div><input type="hidden" id="f_date"/></div>
         <div class="ffield"><div class="fflbl">Month (Fixed)</div><div class="fflocked" id="fd_month">—</div></div>
       </div>
       <div class="frow"><div class="ffield"><div class="fflbl">Year</div><div class="fflocked" id="fd_year">—</div></div></div>
@@ -726,6 +726,39 @@ const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 const sb=supabase.createClient(SB_URL,SB_KEY);
 // SS account cache (loaded from DB at login)
 let CURRENT_STATION=null;
+let ALLOWED_DATES=[]; // dates this ERP may submit (T-1 + any admin-granted backdates)
+let SELECTED_REPORT_DATE=null; // the date object the form is currently for
+
+// ---- IST date helpers ----
+function istNow(){
+  // convert current time to IST (UTC+5:30)
+  var now=new Date();
+  var utc=now.getTime()+now.getTimezoneOffset()*60000;
+  return new Date(utc+(5.5*3600000));
+}
+function istYesterday(){
+  var d=istNow();d.setDate(d.getDate()-1);return d;
+}
+function ymd(d){ // YYYY-MM-DD
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+// Load which dates this ERP can submit: always T-1, plus any unused backdate grants
+async function loadAllowedDates(){
+  ALLOWED_DATES=[];
+  var t1=istYesterday();
+  ALLOWED_DATES.push({date:new Date(t1), ymd:ymd(t1), label:'Yesterday ('+ymd(t1)+')', isBackdate:false});
+  try{
+    var {data}=await sb.from('backdate_grants').select('*').eq('erp_code',user.erp).eq('used',false);
+    (data||[]).forEach(function(g){
+      // parse allow_date YYYY-MM-DD
+      var parts=(g.allow_date||'').split('-');
+      if(parts.length===3){
+        var d=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
+        ALLOWED_DATES.push({date:d, ymd:g.allow_date, label:'Allowed: '+g.allow_date, isBackdate:true, grantId:g.id});
+      }
+    });
+  }catch(e){}
+}
 // doLogin uses SS_CREDENTIALS defined above
 const SS_CREDENTIALS = JSON.parse(localStorage.getItem('sw_ss_creds')||'null') || {
   'AA004':{name:'',station:'Chennai Aminjikarai',state:'Tamil Nadu',password:'SW@1234',mobile:''},
@@ -1275,6 +1308,7 @@ async function doLogin(){
   if(prof.data){pname=prof.data.ss_name||'';pmobile=prof.data.mobile||'';}
   user={erp:erp,name:pname,station:data.station_name,state:data.state,mobile:pmobile};
   localStorage.setItem('sw_user',JSON.stringify(user));
+  await loadAllowedDates();
   routeAfterLogin();
 }
 
@@ -1386,17 +1420,49 @@ function updateSyncBanner(){
 }
 
 // ════════ NEW REPORT ════════
-function startNew(){
+async function startNew(){
   editId=null;resetForm();
-  const now=new Date();
+  await loadAllowedDates();
+  // default to T-1
+  SELECTED_REPORT_DATE=ALLOWED_DATES[0].date;
+  applyReportDate(SELECTED_REPORT_DATE);
   document.getElementById('fd_erp').textContent=user.erp;
   document.getElementById('fd_stn').textContent=user.station;
-  document.getElementById('f_date').value=now.getDate();
-  document.getElementById('fd_month').textContent=MONTHS[now.getMonth()];
-  document.getElementById('fd_year').textContent=now.getFullYear();
-  document.getElementById('form_sub').textContent=user.station+' · '+MONTHS_S[now.getMonth()]+' '+now.getFullYear();
+  // build the date control (locked T-1, or dropdown if backdates granted)
+  renderDateControl();
   buildPhotoSlots();updateFill();goScreen('s_form');
   setTimeout(()=>{const fs=document.getElementById('form_scroll');if(fs)fs.scrollTop=0;},50);
+}
+
+function applyReportDate(d){
+  SELECTED_REPORT_DATE=d;
+  document.getElementById('f_date').value=d.getDate();
+  document.getElementById('fd_month').textContent=MONTHS[d.getMonth()];
+  document.getElementById('fd_year').textContent=d.getFullYear();
+  document.getElementById('form_sub').textContent=user.station+' · '+MONTHS_S[d.getMonth()]+' '+d.getFullYear();
+}
+
+function renderDateControl(){
+  var wrap=document.getElementById('date_control');
+  if(!wrap)return;
+  if(ALLOWED_DATES.length<=1){
+    // only T-1 — locked display
+    var d=ALLOWED_DATES[0].date;
+    wrap.innerHTML='<div class="fflbl">Report Date <span class="req">*</span></div>'+
+      '<div style="padding:11px 12px;border:1px solid #E2E6EA;border-radius:10px;background:#F4F6F8;font-weight:700;color:#2B2F36;">'+
+      d.getDate()+' '+MONTHS[d.getMonth()]+' '+d.getFullYear()+' <span style="font-size:11px;color:#8696A0;font-weight:600;">(Yesterday — locked)</span></div>';
+  } else {
+    // backdates available — dropdown
+    var opts=ALLOWED_DATES.map(function(a,i){return '<option value="'+i+'">'+a.date.getDate()+' '+MONTHS[a.date.getMonth()]+' '+a.date.getFullYear()+(a.isBackdate?' (allowed)':' (yesterday)')+'</option>';}).join('');
+    wrap.innerHTML='<div class="fflbl">Report Date <span class="req">*</span></div>'+
+      '<select class="ffin" id="date_select" onchange="onDateSelect()">'+opts+'</select>'+
+      '<div style="font-size:11px;color:#8696A0;margin-top:4px;">Admin allowed extra date(s) for backdated reports.</div>';
+  }
+}
+function onDateSelect(){
+  var i=parseInt(document.getElementById('date_select').value);
+  applyReportDate(ALLOWED_DATES[i].date);
+  updateFill();
 }
 
 function resetForm(){
@@ -1603,6 +1669,7 @@ async function pushToSupabase(d){
     report_key:d.id,
     erp_code:d.erp, station_name:d.stationName, state:d.state, ss_name:d.ssName,
     shift:d.shift, rep_date:String(d.date||''), rep_month:d.month, rep_year:String(d.year||''),
+    rep_date_full: (SELECTED_REPORT_DATE? (SELECTED_REPORT_DATE.getFullYear()+'-'+String(SELECTED_REPORT_DATE.getMonth()+1).padStart(2,'0')+'-'+String(SELECTED_REPORT_DATE.getDate()).padStart(2,'0')) : null),
     s1_sale:_n(d.s1sale), s2_sale:_n(d.s2sale), s3_sale:_n(d.s3sale),
     open_a1:_n(d.openA1), open_b1:_n(d.openB1), open_a2:_n(d.openA2), open_b2:_n(d.openB2),
     close_a1:_n(d.closeA1), close_b1:_n(d.closeB1), close_a2:_n(d.closeA2), close_b2:_n(d.closeB2),
@@ -1624,6 +1691,15 @@ async function pushToSupabase(d){
     updated_at:new Date().toISOString()
   };
   var {error}=await sb.from('reports').upsert(row,{onConflict:'report_key'});
+  if(!error && SELECTED_REPORT_DATE){
+    // if this date was a backdate grant, mark it used
+    try{
+      var sel=ALLOWED_DATES.filter(function(a){return a.isBackdate && a.date.getTime()===SELECTED_REPORT_DATE.getTime();})[0];
+      if(sel && sel.grantId){
+        await sb.from('backdate_grants').update({used:true,used_at:new Date().toISOString()}).eq('id',sel.grantId);
+      }
+    }catch(e){}
+  }
   return !error ? {ok:true} : {ok:false,error:error.message};
 }
 
