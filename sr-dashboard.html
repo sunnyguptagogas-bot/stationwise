@@ -89,6 +89,8 @@ tr:hover td{background:#FBFCFD;}
 .chip.mis{background:#d32f2f;color:#fff;}
 .chip.app{background:#2e7d32;color:#fff;}
 .chip.first{background:#EEF1F4;color:#8696A0;}
+.permck{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#54656F;}
+.permck input{width:16px;height:16px;}
 .chip.pend{background:#fff3e0;color:#e8541e;}
 
 /* lightbox */
@@ -128,7 +130,8 @@ tr:hover td{background:#FBFCFD;}
   <div class="shell">
     <div class="sidebar">
       <button class="bn-item active" id="bn_dashboard" onclick="showPage('dashboard')"><span class="ic">📊</span><span>Dashboard</span></button>
-      <button class="bn-item" id="bn_reports" onclick="showPage('reports')"><span class="ic">📋</span><span>Reports</span></button>
+      <button class="bn-item" id="bn_reports" onclick="showPage('reports')"><span class="ic">📋</span><span>Review (T-1)</span></button>
+      <button class="bn-item" id="bn_history" onclick="showPage('history')"><span class="ic">🗂️</span><span>History</span></button>
       <button class="bn-item" id="bn_coords" onclick="showPage('coords')"><span class="ic">🗺️</span><span>Mapping</span></button>
       <button class="bn-item" id="bn_users" onclick="showPage('users')"><span class="ic">👥</span><span>Users</span></button>
     </div>
@@ -144,17 +147,35 @@ tr:hover td{background:#FBFCFD;}
       </div>
     </div>
 
-    <!-- REPORTS -->
+    <!-- REVIEW (T-1) -->
     <div class="page" id="pg_reports">
-      <div class="sec-head"><div class="sec-title">All Reports</div><button class="btn dark sm" onclick="exportExcel()">⬇ Excel</button></div>
+      <div class="sec-head"><div class="sec-title">Daily Review <span id="t1_label" style="font-size:13px;color:#8696A0;font-weight:600;"></span></div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn green sm" id="btn_bulk" onclick="bulkApprove()" style="display:none;">✓ Approve all clean</button>
+          <button class="btn dark sm" onclick="exportExcel()">⬇ Excel</button>
+        </div>
+      </div>
       <div class="filter-bar">
-        <input type="date" id="rep_date" onchange="renderReports()"/>
         <select id="rep_state" onchange="renderReports()"><option value="">All States</option></select>
         <select id="rep_flag" onchange="renderReports()"><option value="">All Flags</option><option value="mismatch">⚠ Mismatch</option><option value="ok">✓ OK</option><option value="Approved">Approved</option><option value="Pending">Pending</option></select>
       </div>
       <div class="table-wrap">
-        <div class="table-head"><span id="rep_count">0</span></div>
+        <div class="table-head"><span id="rep_count">0</span> · showing yesterday (T-1) only</div>
         <div class="tbl-scroll"><table><thead><tr><th>Date</th><th>SS Name</th><th>ERP</th><th>Station</th><th>State</th><th>Shift</th><th>Net Sale</th><th>Amount</th><th>Chain</th><th>Status</th><th>View</th></tr></thead><tbody id="rep_tbody"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- HISTORY (all past dates) -->
+    <div class="page" id="pg_history">
+      <div class="sec-head"><div class="sec-title">History</div><button class="btn dark sm" onclick="exportExcelHistory()">⬇ Excel</button></div>
+      <div class="filter-bar">
+        <input type="date" id="hist_date" onchange="renderHistory()"/>
+        <select id="hist_state" onchange="renderHistory()"><option value="">All States</option></select>
+        <select id="hist_flag" onchange="renderHistory()"><option value="">All Flags</option><option value="mismatch">⚠ Mismatch</option><option value="ok">✓ OK</option><option value="Approved">Approved</option><option value="Pending">Pending</option></select>
+      </div>
+      <div class="table-wrap">
+        <div class="table-head"><span id="hist_count">0</span> · all dates (filterable)</div>
+        <div class="tbl-scroll"><table><thead><tr><th>Date</th><th>SS Name</th><th>ERP</th><th>Station</th><th>State</th><th>Shift</th><th>Net Sale</th><th>Amount</th><th>Chain</th><th>Status</th><th>View</th></tr></thead><tbody id="hist_tbody"></tbody></table></div>
       </div>
     </div>
 
@@ -194,11 +215,27 @@ tr:hover td{background:#FBFCFD;}
 <div class="modal-bg" id="user_modal">
   <div class="modal">
     <h3 id="user_modal_title">Add User</h3>
+    <input type="hidden" id="nu_edit_id"/>
     <div class="mf"><label>Full Name</label><input id="nu_name" placeholder="Name"/></div>
     <div class="mf"><label>Email (their login)</label><input id="nu_email" type="email" placeholder="email@example.com"/></div>
-    <div class="mf"><label>Role</label><select id="nu_role"><option value="coordinator">Coordinator</option><option value="viewer">Admin Viewer</option></select></div>
+    <div class="mf"><label>Role</label><select id="nu_role"><option value="coordinator">Coordinator</option><option value="viewer">Admin</option></select></div>
+    <div class="mf"><label>Permissions (what this user can do)</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;border:1px solid #E2E6EA;border-radius:10px;padding:11px;">
+        <label class="permck"><input type="checkbox" id="pm_view" checked/> View reports</label>
+        <label class="permck"><input type="checkbox" id="pm_approve"/> Approve</label>
+        <label class="permck"><input type="checkbox" id="pm_bulk_approve"/> Bulk approve</label>
+        <label class="permck"><input type="checkbox" id="pm_edit"/> Edit readings</label>
+        <label class="permck"><input type="checkbox" id="pm_unlock"/> Unlock reports</label>
+        <label class="permck"><input type="checkbox" id="pm_export"/> Export Excel</label>
+        <label class="permck"><input type="checkbox" id="pm_create_users"/> Manage users</label>
+        <label class="permck"><input type="checkbox" id="pm_assign_permissions"/> Assign permissions</label>
+        <label class="permck"><input type="checkbox" id="pm_map_stations"/> Map stations</label>
+        <label class="permck"><input type="checkbox" id="pm_view_all_states"/> View all states</label>
+        <label class="permck"><input type="checkbox" id="pm_grant_backdate"/> Grant backdate</label>
+      </div>
+    </div>
     <div style="display:flex;gap:8px;margin-top:14px;"><button class="btn gray" onclick="closeModal('user_modal')">Cancel</button><button class="btn green" onclick="saveNewUser()">Save User</button></div>
-    <div style="font-size:11px;color:#8696A0;margin-top:10px;">Then create their login in Supabase Authentication with the same email + a password.</div>
+    <div style="font-size:11px;color:#8696A0;margin-top:10px;">For a brand-new user, also create their login in Supabase Authentication with the same email + a password.</div>
   </div>
 </div>
 
@@ -262,20 +299,32 @@ async function afterLogin(){
   try{var last=localStorage.getItem('sr_dash_page');if(last&&document.getElementById('pg_'+last)&&isPageAllowed(last,me.role)){showPage(last);}else{showPage(defPage);}}catch(e){showPage(defPage);}
 }
 
-// which pages each role may see
+// ── PERMISSIONS ──
+// can(x): does current user have permission x? super always yes.
+function can(perm){
+  if(!ME)return false;
+  if(ME.role==='super')return true;
+  var p=ME.permissions||{};
+  return p[perm]===true;
+}
+// pages allowed based on permissions
 function isPageAllowed(page,role){
-  if(role==='super')return true;
-  if(role==='coordinator')return (page==='dashboard'||page==='reports');
-  if(role==='viewer')return (page==='dashboard');
+  if(page==='dashboard')return true;                       // everyone sees dashboard
+  if(page==='reports')return can('view')||can('approve');  // need view/approve
+  if(page==='history')return can('view')||can('approve');
+  if(page==='coords')return can('map_stations');
+  if(page==='users')return can('create_users');
   return false;
 }
 function applyRoleVisibility(role){
-  // sidebar buttons
-  var show={dashboard:true,
-    reports:(role==='super'||role==='coordinator'),
-    coords:(role==='super'),
-    users:(role==='super')};
-  ['dashboard','reports','coords','users'].forEach(function(p){
+  var show={
+    dashboard:true,
+    reports:isPageAllowed('reports'),
+    history:isPageAllowed('history'),
+    coords:isPageAllowed('coords'),
+    users:isPageAllowed('users')
+  };
+  ['dashboard','reports','history','coords','users'].forEach(function(p){
     var b=document.getElementById('bn_'+p);
     if(b)b.style.display=show[p]?'':'none';
   });
@@ -284,32 +333,30 @@ function applyRoleVisibility(role){
 // ── LOAD DATA ──
 async function loadAll(){
   toast('Loading…');
-  if(ME.role==='coordinator'){
+  // scope: coordinators (without view_all_states) see only mapped stations
+  var scoped = (ME.role==='coordinator' && !can('view_all_states'));
+  if(scoped){
     var m=await sb.from('coordinator_stations').select('*').eq('coordinator_id',ME.id);
     MAPPINGS=m.data||[];
     var myErps=MAPPINGS.map(function(x){return x.station_erp;});
     STATIONS = myErps.length ? ((await sb.from('stations').select('*').in('erp_code',myErps).order('state')).data||[]) : [];
-    REPORTS=(await sb.from('reports').select('*').order('submitted_at',{ascending:false}).limit(2000)).data||[];
-    USERS=[];
   } else {
     STATIONS=(await sb.from('stations').select('*').order('state')).data||[];
-    REPORTS=(await sb.from('reports').select('*').order('submitted_at',{ascending:false}).limit(2000)).data||[];
-    if(ME.role==='super'){
-      USERS=(await sb.from('app_users').select('*').order('role')).data||[];
-      MAPPINGS=(await sb.from('coordinator_stations').select('*')).data||[];
-    } else { USERS=[];MAPPINGS=[]; }
+    MAPPINGS=(await sb.from('coordinator_stations').select('*')).data||[];
   }
+  REPORTS=(await sb.from('reports').select('*').order('submitted_at',{ascending:false}).limit(3000)).data||[];
+  USERS = can('create_users') ? ((await sb.from('app_users').select('*').order('role')).data||[]) : [];
   fillStateFilters();
   renderDashboard();
-  if(ME.role==='super'||ME.role==='coordinator')renderReports();
-  if(ME.role==='super'){renderCoords();renderUsers();}
+  if(isPageAllowed('reports'))renderReports();
+  if(can('map_stations'))renderCoords();
+  if(can('create_users'))renderUsers();
 }
 
 function fillStateFilters(){
   var states=[...new Set(STATIONS.map(function(x){return x.state;}))].sort();
   var opts='<option value="">All States</option>'+states.map(function(s){return '<option value="'+s+'">'+s+'</option>';}).join('');
-  document.getElementById('rep_state').innerHTML=opts;
-  document.getElementById('map_state_filter').innerHTML=opts;
+  ['rep_state','hist_state','map_state_filter'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML=opts;});
 }
 
 // ── DASHBOARD ──
@@ -395,53 +442,95 @@ function chainCheck(r){
   return {flag:mis?'mismatch':'ok',details:details};
 }
 
-// ── REPORTS ──
+// ── IST T-1 helper ──
+function istNow(){var n=new Date();var u=n.getTime()+n.getTimezoneOffset()*60000;return new Date(u+5.5*3600000);}
+function istYesterdayYMD(){var d=istNow();d.setDate(d.getDate()-1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function reportDayYMD(r){
+  // prefer rep_date_full; else derive from submitted_at (IST)
+  if(r.rep_date_full)return r.rep_date_full;
+  if(r.submitted_at){var d=new Date(r.submitted_at);var u=d.getTime()+d.getTimezoneOffset()*60000;var i=new Date(u+5.5*3600000);return i.getFullYear()+'-'+String(i.getMonth()+1).padStart(2,'0')+'-'+String(i.getDate()).padStart(2,'0');}
+  return '';
+}
+
 function showPage(name){
   if(ME&&!isPageAllowed(name,ME.role))name='dashboard';
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
   document.querySelectorAll('.bn-item').forEach(function(b){b.classList.remove('active');});
   var pg=document.getElementById('pg_'+name);var bn=document.getElementById('bn_'+name);
   if(pg)pg.classList.add('active');if(bn)bn.classList.add('active');
+  if(name==='reports')renderReports();
+  if(name==='history')renderHistory();
   try{localStorage.setItem('sr_dash_page',name);}catch(e){}
 }
-var _repShown=[];
-function renderReports(){
-  var df=document.getElementById('rep_date').value;
-  var sf=document.getElementById('rep_state').value;
-  var ff=document.getElementById('rep_flag').value;
-  var rows=REPORTS.slice();
-  if(sf)rows=rows.filter(function(r){return r.state===sf;});
-  if(df){var d=new Date(df);rows=rows.filter(function(r){return r.submitted_at&&new Date(r.submitted_at).toDateString()===d.toDateString();});}
-  if(ff){
-    rows=rows.filter(function(r){
-      if(ff==='Approved')return r.approval_status==='Approved';
-      if(ff==='Pending')return r.approval_status!=='Approved';
-      return chainCheck(r).flag===ff;
-    });
-  }
-  _repShown=rows;
-  document.getElementById('rep_count').textContent=rows.length+' reports';
-  document.getElementById('rep_tbody').innerHTML=rows.slice(0,300).map(function(r,i){
-    var chk=chainCheck(r);var ap=(r.approval_status==='Approved');
-    var flag = ap?'<span class="chip app">APPROVED</span>'
-      : chk.flag==='mismatch'?'<span class="chip mis">⚠ MISMATCH</span>'
-      : chk.flag==='ok'?'<span class="chip ok">✓ OK</span>'
-      : '<span class="chip first">FIRST</span>';
-    var status = ap?'<span class="chip app">✓</span>':'<span class="chip pend">Pending</span>';
-    return '<tr><td class="time">'+(r.rep_date||'')+' '+(r.rep_month||'')+'</td>'+
-      '<td><b>'+(r.ss_name||'—')+'</b></td><td><span class="erp">'+r.erp_code+'</span></td>'+
-      '<td style="font-size:12px;">'+(r.station_name||'')+'</td>'+
-      '<td style="font-size:11px;color:#E8541E;font-weight:700;">'+(r.state||'')+'</td>'+
-      '<td class="time">'+(r.shift||'')+'</td>'+
-      '<td style="font-family:Courier New;font-size:11px;font-weight:700;">'+(r.net_sale||'')+'</td>'+
-      '<td class="time">₹'+(r.total_amt||'')+'</td>'+
-      '<td>'+flag+'</td><td>'+status+'</td>'+
-      '<td><button class="btn sm" onclick="openDetail('+i+')">👁 View</button></td></tr>';
-  }).join('');
+
+// shared row renderer (used by both Review and History)
+function reportRowHtml(r,i,arrName){
+  var chk=chainCheck(r);var ap=(r.approval_status==='Approved');
+  var flag = ap?'<span class="chip app">APPROVED</span>'
+    : chk.flag==='mismatch'?'<span class="chip mis">⚠ MISMATCH</span>'
+    : chk.flag==='ok'?'<span class="chip ok">✓ OK</span>'
+    : '<span class="chip first">FIRST</span>';
+  var status = ap?'<span class="chip app">✓</span>':'<span class="chip pend">Pending</span>';
+  return '<tr><td class="time">'+(r.rep_date||'')+' '+(r.rep_month||'')+'</td>'+
+    '<td><b>'+(r.ss_name||'—')+'</b></td><td><span class="erp">'+r.erp_code+'</span></td>'+
+    '<td style="font-size:12px;">'+(r.station_name||'')+'</td>'+
+    '<td style="font-size:11px;color:#E8541E;font-weight:700;">'+(r.state||'')+'</td>'+
+    '<td class="time">'+(r.shift||'')+'</td>'+
+    '<td style="font-family:Courier New;font-size:11px;font-weight:700;">'+(r.net_sale||'')+'</td>'+
+    '<td class="time">₹'+(r.total_amt||'')+'</td>'+
+    '<td>'+flag+'</td><td>'+status+'</td>'+
+    '<td><button class="btn sm" onclick="openDetail('+i+',\''+arrName+'\')">👁 View</button></td></tr>';
 }
 
-function openDetail(i){
-  var r=_repShown[i];if(!r)return;window._det=r;
+// ── REVIEW (T-1 only) ──
+window._repShown=[];var _repShown;
+function renderReports(){
+  var t1=istYesterdayYMD();
+  var lbl=document.getElementById('t1_label');if(lbl)lbl.textContent='· '+t1;
+  var sf=document.getElementById('rep_state').value;
+  var ff=document.getElementById('rep_flag').value;
+  var rows=REPORTS.filter(function(r){return reportDayYMD(r)===t1;}); // T-1 ONLY
+  if(sf)rows=rows.filter(function(r){return r.state===sf;});
+  if(ff)rows=rows.filter(function(r){
+    if(ff==='Approved')return r.approval_status==='Approved';
+    if(ff==='Pending')return r.approval_status!=='Approved';
+    return chainCheck(r).flag===ff;
+  });
+  _repShown=rows;window._repShown=rows;
+  document.getElementById('rep_count').textContent=rows.length+' reports';
+  document.getElementById('rep_tbody').innerHTML=rows.slice(0,500).map(function(r,i){return reportRowHtml(r,i,'_repShown');}).join('');
+  // bulk approve button visible only if user can bulk-approve and there are clean pending rows
+  var btn=document.getElementById('btn_bulk');
+  if(btn){
+    var cleanPending=rows.filter(function(r){return r.approval_status!=='Approved' && chainCheck(r).flag!=='mismatch';}).length;
+    btn.style.display=(can('bulk_approve')&&cleanPending>0)?'':'none';
+    btn.textContent='✓ Approve all clean ('+cleanPending+')';
+  }
+}
+
+// ── HISTORY (any date) ──
+window._histShown=[];var _histShown;
+function renderHistory(){
+  var df=document.getElementById('hist_date').value; // YYYY-MM-DD
+  var sf=document.getElementById('hist_state').value;
+  var ff=document.getElementById('hist_flag').value;
+  var rows=REPORTS.slice();
+  if(df)rows=rows.filter(function(r){return reportDayYMD(r)===df;});
+  if(sf)rows=rows.filter(function(r){return r.state===sf;});
+  if(ff)rows=rows.filter(function(r){
+    if(ff==='Approved')return r.approval_status==='Approved';
+    if(ff==='Pending')return r.approval_status!=='Approved';
+    return chainCheck(r).flag===ff;
+  });
+  rows.sort(function(a,b){return new Date(b.submitted_at||0)-new Date(a.submitted_at||0);});
+  _histShown=rows;window._histShown=rows;
+  document.getElementById('hist_count').textContent=rows.length+' reports';
+  document.getElementById('hist_tbody').innerHTML=rows.slice(0,500).map(function(r,i){return reportRowHtml(r,i,'_histShown');}).join('');
+}
+
+function openDetail(i,arrName){
+  var arr=(arrName&&window[arrName])?window[arrName]:_repShown;
+  var r=arr[i];if(!r)return;window._det=r;
   var chk=chainCheck(r);var ap=(r.approval_status==='Approved');
   var pairs=[['A1','open_a1','close_a1'],['B1','open_b1','close_b1'],['A2','open_a2','close_a2'],['B2','open_b2','close_b2']];
   var readHtml='';
@@ -463,7 +552,7 @@ function openDetail(i){
   }).join('');
   if(!phtml)phtml='<div style="grid-column:1/-1;text-align:center;color:#8696A0;padding:18px;">No photos</div>';
   var rsp=r.rsp_changed?'<div style="margin-top:10px;padding:10px;background:rgba(232,84,30,0.06);border:1px solid rgba(232,84,30,0.3);border-radius:10px;font-size:12px;"><b style="color:#C0381A;">🔄 RSP Changed:</b> New '+(r.rsp_new_rate||'-')+' @ '+(r.rsp_change_reading||'-')+' · old '+(r.rsp_ltrs_before||'-')+'L / new '+(r.rsp_ltrs_after||'-')+'L</div>':'';
-  var canApprove=(ME.role==='super'||ME.role==='coordinator');
+  var canApprove=can('approve');
   var approveBar=!canApprove?'<div style="margin-top:14px;padding:11px;background:#EEF1F4;border-radius:10px;font-size:12px;color:#8696A0;text-align:center;">View only</div>':ap
     ?'<div style="margin-top:14px;padding:11px;background:#e8f5e9;border-radius:10px;font-size:12px;font-weight:700;color:#2e7d32;text-align:center;">✓ Approved by '+(r.approved_by||'')+' on '+(r.approved_at?new Date(r.approved_at).toLocaleString():'')+'</div>'
     :'<div style="margin-top:14px;display:flex;gap:8px;"><input id="d_by" value="'+(ME.full_name||'Admin')+'" style="flex:1;padding:9px;border:1px solid #D1D7DB;border-radius:9px;"/><button class="btn green" onclick="approveDetail()">✓ Approve</button></div><div style="font-size:11px;color:#8696A0;margin-top:6px;">Edit any reading if the photo shows different, then Approve. Saved to the database.</div>';
@@ -510,26 +599,65 @@ function renderCoords(){
       '<button class="btn sm red" onclick="delUser('+c.id+')">Del</button></td></tr>';
   }).join('');
 }
+var PERM_KEYS=['view','approve','bulk_approve','edit','unlock','export','create_users','assign_permissions','map_stations','view_all_states','grant_backdate'];
 function renderUsers(){
   document.getElementById('user_count').textContent=USERS.length;
   document.getElementById('user_tbody').innerHTML=USERS.map(function(u){
+    var grants=Object.keys(u.permissions||{}).filter(function(k){return u.permissions[k];}).length;
     return '<tr><td><b>'+(u.full_name||'—')+'</b></td><td class="time">'+u.email+'</td>'+
-      '<td><span class="chip '+(u.role==='super'?'app':u.role==='coordinator'?'ok':'first')+'">'+u.role+'</span></td>'+
+      '<td><span class="chip '+(u.role==='super'?'app':u.role==='coordinator'?'ok':'first')+'">'+(u.role==='viewer'?'admin':u.role)+'</span></td>'+
       '<td>'+(u.active?'Active':'Blocked')+'</td>'+
-      '<td>'+(u.role==='super'?'<span class="time">(you)</span>':'<button class="btn sm gray" onclick="toggleUser('+u.id+','+(!u.active)+')">'+(u.active?'Block':'Unblock')+'</button> <button class="btn sm red" onclick="delUser('+u.id+')">Del</button>')+'</td></tr>';
+      '<td>'+(u.role==='super'?'<span class="time">(you)</span>':'<button class="btn sm" onclick="openEditUser('+u.id+')">Edit</button> <button class="btn sm gray" onclick="toggleUser('+u.id+','+(!u.active)+')">'+(u.active?'Block':'Unblock')+'</button> <button class="btn sm red" onclick="delUser('+u.id+')">Del</button>')+'</td></tr>';
   }).join('');
 }
 
-var _newRole='coordinator';
-function openNewUser(role){_newRole=role;document.getElementById('nu_role').value=role;document.getElementById('user_modal_title').textContent='Add '+(role==='coordinator'?'Coordinator':'Viewer');document.getElementById('nu_name').value='';document.getElementById('nu_email').value='';document.getElementById('user_modal').classList.add('open');}
+function setPermChecks(perms){
+  perms=perms||{};
+  PERM_KEYS.forEach(function(k){var el=document.getElementById('pm_'+k);if(el)el.checked=(perms[k]===true);});
+}
+function readPermChecks(){
+  var p={};PERM_KEYS.forEach(function(k){var el=document.getElementById('pm_'+k);p[k]=!!(el&&el.checked);});return p;
+}
+function openNewUser(role){
+  document.getElementById('nu_edit_id').value='';
+  document.getElementById('nu_role').value=role||'coordinator';
+  document.getElementById('user_modal_title').textContent='Add User';
+  document.getElementById('nu_name').value='';document.getElementById('nu_email').value='';
+  document.getElementById('nu_email').disabled=false;
+  // default perms by role
+  setPermChecks(role==='coordinator'
+    ? {view:true,approve:true,bulk_approve:true,edit:true,export:true}
+    : {view:true,export:true,view_all_states:true});
+  document.getElementById('user_modal').classList.add('open');
+}
+function openEditUser(id){
+  var u=USERS.filter(function(x){return x.id===id;})[0];if(!u)return;
+  document.getElementById('nu_edit_id').value=id;
+  document.getElementById('nu_role').value=u.role;
+  document.getElementById('user_modal_title').textContent='Edit User';
+  document.getElementById('nu_name').value=u.full_name||'';
+  document.getElementById('nu_email').value=u.email||'';
+  document.getElementById('nu_email').disabled=true; // can't change email (tied to Auth login)
+  setPermChecks(u.permissions);
+  document.getElementById('user_modal').classList.add('open');
+}
 async function saveNewUser(){
+  if(!can('create_users')){toast('No permission to manage users');return;}
+  var editId=document.getElementById('nu_edit_id').value;
   var name=document.getElementById('nu_name').value.trim();
   var email=document.getElementById('nu_email').value.trim().toLowerCase();
   var role=document.getElementById('nu_role').value;
+  var perms=readPermChecks();
   if(!name||!email){toast('Enter name and email');return;}
-  var {error}=await sb.from('app_users').insert({full_name:name,email:email,role:role,active:true});
-  if(error){toast('Failed: '+error.message);return;}
-  toast('User added. Now create their login in Supabase Auth.');
+  if(editId){
+    var {error}=await sb.from('app_users').update({full_name:name,role:role,permissions:perms}).eq('id',editId);
+    if(error){toast('Failed: '+error.message);return;}
+    toast('User updated ✓');
+  } else {
+    var {error:e2}=await sb.from('app_users').insert({full_name:name,email:email,role:role,active:true,permissions:perms});
+    if(e2){toast('Failed: '+e2.message);return;}
+    toast('User added. Now create their login in Supabase Auth (same email).');
+  }
   closeModal('user_modal');await loadAll();
 }
 async function toggleUser(id,active){
@@ -606,15 +734,43 @@ async function saveMapping(){
   closeModal('map_modal');await loadAll();showPage('coords');
 }
 
+// ── BULK APPROVE (Step 4) ──
+async function bulkApprove(){
+  if(!can('bulk_approve')){toast('No permission');return;}
+  // approve all T-1 clean (non-mismatch) pending reports currently shown
+  var targets=_repShown.filter(function(r){return r.approval_status!=='Approved' && chainCheck(r).flag!=='mismatch';});
+  if(!targets.length){toast('Nothing clean to approve');return;}
+  if(!confirm('Approve '+targets.length+' clean reports? Flagged ones are skipped and must be reviewed individually.'))return;
+  toast('Approving '+targets.length+'…');
+  var by=(ME.full_name||'Admin');
+  var ok=0;
+  for(var i=0;i<targets.length;i++){
+    var r=targets[i];
+    var {error}=await sb.from('reports').update({approval_status:'Approved',approved_by:by,approved_at:new Date().toISOString()}).eq('id',r.id);
+    if(!error){r.approval_status='Approved';r.approved_by=by;r.approved_at=new Date().toISOString();ok++;}
+  }
+  toast('✓ Approved '+ok+' reports');
+  renderReports();renderDashboard();
+}
+
 // ── EXPORT ──
-function exportExcel(){
-  var rows=_repShown.length?_repShown:REPORTS;
-  if(!rows.length){toast('No data');return;}
+function _csv(rows){
+  if(!rows.length){toast('No data');return null;}
   var cols=Object.keys(rows[0]);
-  var csv=cols.join(',')+'\n'+rows.map(function(r){return cols.map(function(c){var v=r[c]==null?'':(''+r[c]).replace(/"/g,'""');return '"'+v+'"';}).join(',');}).join('\n');
-  var blob=new Blob([csv],{type:'text/csv'});
-  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='station_reports_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
-  toast('Exported CSV');
+  return cols.join(',')+'\n'+rows.map(function(r){return cols.map(function(c){var v=r[c]==null?'':(''+r[c]).replace(/"/g,'""');return '"'+v+'"';}).join(',');}).join('\n');
+}
+function _download(csv,name){var blob=new Blob([csv],{type:'text/csv'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();}
+function exportExcel(){
+  if(!can('export')){toast('No permission to export');return;}
+  var rows=_repShown&&_repShown.length?_repShown:REPORTS;
+  var csv=_csv(rows);if(!csv)return;
+  _download(csv,'review_t1_'+istYesterdayYMD()+'.csv');toast('Exported');
+}
+function exportExcelHistory(){
+  if(!can('export')){toast('No permission to export');return;}
+  var rows=_histShown&&_histShown.length?_histShown:REPORTS;
+  var csv=_csv(rows);if(!csv)return;
+  _download(csv,'history_'+new Date().toISOString().slice(0,10)+'.csv');toast('Exported');
 }
 
 // ── LIGHTBOX ──
