@@ -134,6 +134,7 @@ tr:hover td{background:#FBFCFD;}
       <button class="bn-item" id="bn_history" onclick="showPage('history')"><span class="ic">🗂️</span><span>History</span></button>
       <button class="bn-item" id="bn_coords" onclick="showPage('coords')"><span class="ic">🗺️</span><span>Mapping</span></button>
       <button class="bn-item" id="bn_users" onclick="showPage('users')"><span class="ic">👥</span><span>Users</span></button>
+      <button class="bn-item" id="bn_backdate" onclick="showPage('backdate')"><span class="ic">📅</span><span>Backdate</span></button>
     </div>
     <div class="content">
   <div class="wrap">
@@ -196,6 +197,30 @@ tr:hover td{background:#FBFCFD;}
         <div class="tbl-scroll"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead><tbody id="user_tbody"></tbody></table></div>
       </div>
       <div style="margin-top:10px;font-size:12px;color:#8696A0;">Note: After adding a user here, create their login in Supabase → Authentication → Add user (same email), then they can sign in.</div>
+    </div>
+
+    <!-- BACKDATE GRANTS -->
+    <div class="page" id="pg_backdate">
+      <div class="sec-head"><div class="sec-title">Backdate Grants</div></div>
+      <div style="background:#FBFCFD;border:1px solid #E9EDEF;border-radius:12px;padding:14px;margin-bottom:14px;">
+        <div style="font-weight:800;margin-bottom:4px;">Allow a station to submit one extra date</div>
+        <div style="font-size:12px;color:#8696A0;margin-bottom:12px;">The station's app normally allows yesterday (T-1) only. Grant a specific past date here; the station gets a one-time slot that is consumed once they submit it.</div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;">
+          <label style="font-size:12px;color:#54656F;flex:1;min-width:180px;">Station (ERP)
+            <input id="bd_erp" list="bd_erp_list" placeholder="e.g. AA004" style="width:100%;padding:9px;border:1px solid #D1D7DB;border-radius:9px;margin-top:4px;text-transform:uppercase;"/>
+            <datalist id="bd_erp_list"></datalist>
+          </label>
+          <label style="font-size:12px;color:#54656F;flex:1;min-width:160px;">Allowed date
+            <input id="bd_date" type="date" style="width:100%;padding:9px;border:1px solid #D1D7DB;border-radius:9px;margin-top:4px;"/>
+          </label>
+          <button class="btn green" onclick="grantBackdate()">+ Grant</button>
+        </div>
+        <div id="bd_erp_name" style="font-size:12px;color:#E8541E;font-weight:700;margin-top:8px;min-height:16px;"></div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-head"><span id="bd_count">0</span> grants</div>
+        <div class="tbl-scroll"><table><thead><tr><th>ERP</th><th>Station</th><th>Allowed Date</th><th>Granted By</th><th>Granted At</th><th>Status</th><th>Actions</th></tr></thead><tbody id="bd_tbody"></tbody></table></div>
+      </div>
     </div>
   </div>
 
@@ -262,7 +287,7 @@ const SB_URL='https://vnzkkysoicrwssewofst.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuemtreXNvaWNyd3NzZXdvZnN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5MDQ0OTUsImV4cCI6MjA5NjQ4MDQ5NX0.tSxnAqGPtdnQGc4oLmfz9yyVZ263L9lXzgPbTwbDBUM';
 const sb=supabase.createClient(SB_URL,SB_KEY);
 
-let ME=null, STATIONS=[], REPORTS=[], USERS=[], MAPPINGS=[];
+let ME=null, STATIONS=[], REPORTS=[], USERS=[], MAPPINGS=[], GRANTS=[];
 
 function toast(m){var t=document.getElementById('toast_el');t.textContent=m;t.classList.add('on');setTimeout(function(){t.classList.remove('on');},2600);}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
@@ -314,6 +339,7 @@ function isPageAllowed(page,role){
   if(page==='history')return can('view')||can('approve');
   if(page==='coords')return can('map_stations');
   if(page==='users')return can('create_users');
+  if(page==='backdate')return can('grant_backdate');
   return false;
 }
 function applyRoleVisibility(role){
@@ -322,9 +348,10 @@ function applyRoleVisibility(role){
     reports:isPageAllowed('reports'),
     history:isPageAllowed('history'),
     coords:isPageAllowed('coords'),
-    users:isPageAllowed('users')
+    users:isPageAllowed('users'),
+    backdate:isPageAllowed('backdate')
   };
-  ['dashboard','reports','history','coords','users'].forEach(function(p){
+  ['dashboard','reports','history','coords','users','backdate'].forEach(function(p){
     var b=document.getElementById('bn_'+p);
     if(b)b.style.display=show[p]?'':'none';
   });
@@ -346,11 +373,13 @@ async function loadAll(){
   }
   REPORTS=(await sb.from('reports').select('*').order('submitted_at',{ascending:false}).limit(3000)).data||[];
   USERS = can('create_users') ? ((await sb.from('app_users').select('*').order('role')).data||[]) : [];
+  GRANTS = can('grant_backdate') ? ((await sb.from('backdate_grants').select('*').order('granted_at',{ascending:false})).data||[]) : [];
   fillStateFilters();
   renderDashboard();
   if(isPageAllowed('reports'))renderReports();
   if(can('map_stations'))renderCoords();
   if(can('create_users'))renderUsers();
+  if(can('grant_backdate'))renderBackdate();
 }
 
 function fillStateFilters(){
@@ -452,6 +481,22 @@ function reportDayYMD(r){
   return '';
 }
 
+// ── STEP 5: 24h LOCK ──
+// A report's rep-day cycle ends 24h after that day's IST midnight (i.e. end of T-0 for a T-1 report).
+// Past that, it is auto-locked UNLESS manually unlocked (unlocked_at set). DB locked=false (after re-lock) also respected.
+function lockDeadlineMs(r){
+  var ymd=reportDayYMD(r);if(!ymd)return null;
+  var p=ymd.split('-');                       // rep-day midnight IST as UTC ms
+  var midUTC=Date.UTC(+p[0],+p[1]-1,+p[2],0,0,0)-5.5*3600000;
+  return midUTC+2*24*3600000;                 // rep-day 00:00 + 48h = end of T-0 day +24h grace
+}
+function isLocked(r){
+  if(r.locked===true)return true;             // explicit DB lock / re-lock
+  if(r.unlocked_at)return false;              // manually unlocked, stays open
+  var dl=lockDeadlineMs(r);if(dl==null)return false;
+  return Date.now()>dl;                        // auto-lock once cycle passed
+}
+
 function showPage(name){
   if(ME&&!isPageAllowed(name,ME.role))name='dashboard';
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
@@ -460,6 +505,7 @@ function showPage(name){
   if(pg)pg.classList.add('active');if(bn)bn.classList.add('active');
   if(name==='reports')renderReports();
   if(name==='history')renderHistory();
+  if(name==='backdate')renderBackdate();
   try{localStorage.setItem('sr_dash_page',name);}catch(e){}
 }
 
@@ -471,6 +517,7 @@ function reportRowHtml(r,i,arrName){
     : chk.flag==='ok'?'<span class="chip ok">✓ OK</span>'
     : '<span class="chip first">FIRST</span>';
   var status = ap?'<span class="chip app">✓</span>':'<span class="chip pend">Pending</span>';
+  if(isLocked(r))status+=' <span class="chip" style="background:#37474F;color:#fff;">🔒 LOCKED</span>';
   return '<tr><td class="time">'+(r.rep_date||'')+' '+(r.rep_month||'')+'</td>'+
     '<td><b>'+(r.ss_name||'—')+'</b></td><td><span class="erp">'+r.erp_code+'</span></td>'+
     '<td style="font-size:12px;">'+(r.station_name||'')+'</td>'+
@@ -502,7 +549,7 @@ function renderReports(){
   // bulk approve button visible only if user can bulk-approve and there are clean pending rows
   var btn=document.getElementById('btn_bulk');
   if(btn){
-    var cleanPending=rows.filter(function(r){return r.approval_status!=='Approved' && chainCheck(r).flag!=='mismatch';}).length;
+    var cleanPending=rows.filter(function(r){return r.approval_status!=='Approved' && chainCheck(r).flag!=='mismatch' && !isLocked(r);}).length;
     btn.style.display=(can('bulk_approve')&&cleanPending>0)?'':'none';
     btn.textContent='✓ Approve all clean ('+cleanPending+')';
   }
@@ -553,7 +600,24 @@ function openDetail(i,arrName){
   if(!phtml)phtml='<div style="grid-column:1/-1;text-align:center;color:#8696A0;padding:18px;">No photos</div>';
   var rsp=r.rsp_changed?'<div style="margin-top:10px;padding:10px;background:rgba(232,84,30,0.06);border:1px solid rgba(232,84,30,0.3);border-radius:10px;font-size:12px;"><b style="color:#C0381A;">🔄 RSP Changed:</b> New '+(r.rsp_new_rate||'-')+' @ '+(r.rsp_change_reading||'-')+' · old '+(r.rsp_ltrs_before||'-')+'L / new '+(r.rsp_ltrs_after||'-')+'L</div>':'';
   var canApprove=can('approve');
-  var approveBar=!canApprove?'<div style="margin-top:14px;padding:11px;background:#EEF1F4;border-radius:10px;font-size:12px;color:#8696A0;text-align:center;">View only</div>':ap
+  var locked=isLocked(r);
+  // unlock / re-lock controls (only for users with unlock permission)
+  var lockBar='';
+  if(can('unlock')){
+    if(locked){
+      lockBar='<div style="margin-top:12px;padding:11px;background:#ECEFF1;border:1px solid #B0BEC5;border-radius:10px;display:flex;align-items:center;gap:8px;">'+
+        '<span style="font-size:12px;color:#37474F;flex:1;">🔒 Locked — 24h cycle ended. Unlock to edit/approve.</span>'+
+        '<button class="btn sm" style="background:#37474F;color:#fff;" onclick="unlockDetail()">🔓 Unlock</button></div>';
+    } else if(r.unlocked_at){
+      lockBar='<div style="margin-top:12px;padding:11px;background:#FFF8E1;border:1px solid #FFE082;border-radius:10px;display:flex;align-items:center;gap:8px;">'+
+        '<span style="font-size:12px;color:#7A5B00;flex:1;">🔓 Unlocked by '+(r.unlocked_by||'')+' on '+(r.unlocked_at?new Date(r.unlocked_at).toLocaleString():'')+'</span>'+
+        '<button class="btn sm gray" onclick="relockDetail()">🔒 Re-lock</button></div>';
+    }
+  } else if(locked){
+    lockBar='<div style="margin-top:12px;padding:11px;background:#ECEFF1;border:1px solid #B0BEC5;border-radius:10px;font-size:12px;color:#37474F;text-align:center;">🔒 Locked — 24h cycle ended. Ask an admin with unlock permission to reopen.</div>';
+  }
+  var approveBar=locked?''
+    :!canApprove?'<div style="margin-top:14px;padding:11px;background:#EEF1F4;border-radius:10px;font-size:12px;color:#8696A0;text-align:center;">View only</div>':ap
     ?'<div style="margin-top:14px;padding:11px;background:#e8f5e9;border-radius:10px;font-size:12px;font-weight:700;color:#2e7d32;text-align:center;">✓ Approved by '+(r.approved_by||'')+' on '+(r.approved_at?new Date(r.approved_at).toLocaleString():'')+'</div>'
     :'<div style="margin-top:14px;display:flex;gap:8px;"><input id="d_by" value="'+(ME.full_name||'Admin')+'" style="flex:1;padding:9px;border:1px solid #D1D7DB;border-radius:9px;"/><button class="btn green" onclick="approveDetail()">✓ Approve</button></div><div style="font-size:11px;color:#8696A0;margin-top:6px;">Edit any reading if the photo shows different, then Approve. Saved to the database.</div>';
   document.getElementById('detail_title').textContent='📋 '+(r.ss_name||r.station_name||r.erp_code);
@@ -561,12 +625,13 @@ function openDetail(i,arrName){
     '<div style="font-size:13px;color:#54656F;margin-bottom:8px;">'+(r.station_name||'')+' · '+r.erp_code+' · '+(r.rep_date||'')+' '+(r.rep_month||'')+' · Shift '+(r.shift||'')+'</div>'+
     '<div style="font-weight:800;margin:6px 0 8px;">Meter Readings &amp; Chain Check</div>'+readHtml+rsp+
     '<div style="font-weight:800;margin:14px 0 8px;">Photos <span style="font-size:11px;font-weight:600;color:#8696A0;">(tap to enlarge)</span></div>'+
-    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">'+phtml+'</div>'+approveBar;
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">'+phtml+'</div>'+approveBar+lockBar;
   document.getElementById('detail_modal').classList.add('open');
 }
 
 async function approveDetail(){
   var r=window._det;if(!r)return;
+  if(isLocked(r)){toast('🔒 Locked — unlock first');return;}
   var by=(document.getElementById('d_by').value||'Admin').trim();
   var upd={approval_status:'Approved',approved_by:by,approved_at:new Date().toISOString()};
   if(!r.original_values){
@@ -585,7 +650,29 @@ async function approveDetail(){
   closeModal('detail_modal');renderReports();renderDashboard();
 }
 
-// ── COORDINATORS & MAPPING ──
+async function unlockDetail(){
+  var r=window._det;if(!r)return;
+  if(!can('unlock')){toast('No permission to unlock');return;}
+  var who=(ME.full_name||ME.email||'Admin');
+  var upd={locked:false,unlocked_by:who,unlocked_at:new Date().toISOString()};
+  toast('Unlocking…');
+  var {error}=await sb.from('reports').update(upd).eq('id',r.id);
+  if(error){toast('Failed: '+error.message);return;}
+  Object.assign(r,upd);toast('🔓 Unlocked');
+  openDetail(_repShown.indexOf(r)>=0?_repShown.indexOf(r):0,window._histShown&&window._histShown.indexOf(r)>=0?'_histShown':'_repShown');
+  renderReports();renderHistory();
+}
+
+async function relockDetail(){
+  var r=window._det;if(!r)return;
+  if(!can('unlock')){toast('No permission');return;}
+  var upd={locked:true,unlocked_by:null,unlocked_at:null};
+  toast('Re-locking…');
+  var {error}=await sb.from('reports').update(upd).eq('id',r.id);
+  if(error){toast('Failed: '+error.message);return;}
+  Object.assign(r,upd);toast('🔒 Re-locked');
+  closeModal('detail_modal');renderReports();renderHistory();
+}
 function renderCoords(){
   var coords=USERS.filter(function(u){return u.role==='coordinator';});
   document.getElementById('coord_count').textContent=coords.length;
@@ -737,8 +824,8 @@ async function saveMapping(){
 // ── BULK APPROVE (Step 4) ──
 async function bulkApprove(){
   if(!can('bulk_approve')){toast('No permission');return;}
-  // approve all T-1 clean (non-mismatch) pending reports currently shown
-  var targets=_repShown.filter(function(r){return r.approval_status!=='Approved' && chainCheck(r).flag!=='mismatch';});
+  // approve all T-1 clean (non-mismatch, non-locked) pending reports currently shown
+  var targets=_repShown.filter(function(r){return r.approval_status!=='Approved' && chainCheck(r).flag!=='mismatch' && !isLocked(r);});
   if(!targets.length){toast('Nothing clean to approve');return;}
   if(!confirm('Approve '+targets.length+' clean reports? Flagged ones are skipped and must be reviewed individually.'))return;
   toast('Approving '+targets.length+'…');
@@ -751,6 +838,74 @@ async function bulkApprove(){
   }
   toast('✓ Approved '+ok+' reports');
   renderReports();renderDashboard();
+}
+
+// ── STEP 6: BACKDATE GRANTS ──
+function _stationName(erp){var s=STATIONS.filter(function(x){return x.erp_code===erp;})[0];return s?s.station_name:'';}
+function renderBackdate(){
+  if(!can('grant_backdate'))return;
+  // populate ERP autocomplete from stations in scope
+  var dl=document.getElementById('bd_erp_list');
+  if(dl)dl.innerHTML=STATIONS.map(function(s){return '<option value="'+s.erp_code+'">'+s.erp_code+' — '+(s.station_name||'')+'</option>';}).join('');
+  var erpIn=document.getElementById('bd_erp');
+  if(erpIn&&!erpIn._wired){
+    erpIn._wired=1;
+    erpIn.addEventListener('input',function(){
+      var v=erpIn.value.trim().toUpperCase();var nm=_stationName(v);
+      document.getElementById('bd_erp_name').textContent=nm?('✓ '+nm):(v?'⚠ ERP not found':'');
+    });
+  }
+  GRANTS.sort(function(a,b){return new Date(b.granted_at||0)-new Date(a.granted_at||0);});
+  document.getElementById('bd_count').textContent=GRANTS.length;
+  document.getElementById('bd_tbody').innerHTML=GRANTS.map(function(g){
+    var st=g.used
+      ?'<span class="chip app">Used'+(g.used_at?' · '+new Date(g.used_at).toLocaleDateString():'')+'</span>'
+      :'<span class="chip pend">Unused</span>';
+    var act=g.used?'<span style="color:#8696A0;font-size:12px;">—</span>'
+      :'<button class="btn sm red" onclick="revokeBackdate('+g.id+')">Revoke</button>';
+    return '<tr><td><span class="erp">'+g.erp_code+'</span></td>'+
+      '<td style="font-size:12px;">'+(_stationName(g.erp_code)||'')+'</td>'+
+      '<td class="time">'+(g.allow_date||'')+'</td>'+
+      '<td style="font-size:12px;">'+(g.granted_by||'')+'</td>'+
+      '<td class="time">'+(g.granted_at?new Date(g.granted_at).toLocaleString():'')+'</td>'+
+      '<td>'+st+'</td><td>'+act+'</td></tr>';
+  }).join('')||'<tr><td colspan="7" style="text-align:center;color:#8696A0;padding:18px;">No grants yet</td></tr>';
+}
+
+async function grantBackdate(){
+  if(!can('grant_backdate')){toast('No permission');return;}
+  var erp=(document.getElementById('bd_erp').value||'').trim().toUpperCase();
+  var date=(document.getElementById('bd_date').value||'').trim(); // YYYY-MM-DD
+  if(!erp){toast('Enter a station ERP');return;}
+  if(!_stationName(erp)){toast('ERP not found');return;}
+  if(!date){toast('Pick an allowed date');return;}
+  var t1=istYesterdayYMD();
+  if(date>=t1){toast('Backdate must be before T-1 ('+t1+')');return;}
+  var by=(ME.full_name||ME.email||'Admin');
+  toast('Granting…');
+  var {error}=await sb.from('backdate_grants').insert({erp_code:erp,allow_date:date,granted_by:by});
+  if(error){
+    if((error.message||'').indexOf('duplicate')>=0||error.code==='23505')toast('That date is already granted for this station');
+    else toast('Failed: '+error.message);
+    return;
+  }
+  toast('✓ Granted '+erp+' → '+date);
+  document.getElementById('bd_erp').value='';document.getElementById('bd_date').value='';
+  document.getElementById('bd_erp_name').textContent='';
+  GRANTS=(await sb.from('backdate_grants').select('*').order('granted_at',{ascending:false})).data||[];
+  renderBackdate();
+}
+
+async function revokeBackdate(id){
+  if(!can('grant_backdate')){toast('No permission');return;}
+  var g=GRANTS.filter(function(x){return x.id===id;})[0];
+  if(g&&g.used){toast('Already used — cannot revoke');return;}
+  toast('Revoking…');
+  var {error}=await sb.from('backdate_grants').delete().eq('id',id);
+  if(error){toast('Failed: '+error.message);return;}
+  toast('Revoked');
+  GRANTS=GRANTS.filter(function(x){return x.id!==id;});
+  renderBackdate();
 }
 
 // ── EXPORT ──
