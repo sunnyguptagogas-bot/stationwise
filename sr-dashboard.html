@@ -453,9 +453,11 @@ function renderCoordRollup(){
   }
   if(!coords.length){wrap.style.display='none';return;}
 
-  // reported / approved sets per ERP from current T-1 REPORTS
+  // reported / approved sets per ERP — T-1 ONLY (matches table title)
+  var t1=istYesterdayYMD();
+  var t1Reports=REPORTS.filter(function(r){return reportDayYMD(r)===t1;});
   var reportedErp={},approvedErp={};
-  REPORTS.forEach(function(r){
+  t1Reports.forEach(function(r){
     reportedErp[r.erp_code]=1;
     if(r.approval_status==='Approved')approvedErp[r.erp_code]=1;
   });
@@ -472,17 +474,15 @@ function renderCoordRollup(){
     var repPct=active?Math.round(rep/active*100):0;
     var appPct=active?Math.round(app/active*100):0;
     return {name:c.full_name||c.email||'—',email:c.email||'',active:active,rep:rep,app:app,repPct:repPct,appPct:appPct};
-  }).filter(function(x){return x.active>0;})
-    .sort(function(a,b){return a.repPct-b.repPct;}); // worst completion first
+  }).sort(function(a,b){return a.repPct-b.repPct;}); // worst completion first
 
-  if(!rows.length){wrap.style.display='none';return;}
   wrap.style.display='';
   function pctChip(p){var cls=p>=100?'app':p>=60?'ok':'mis';return '<span class="chip '+cls+'">'+p+'%</span>';}
-  tb.innerHTML=rows.map(function(x){
+  tb.innerHTML=rows.length?rows.map(function(x){
     return '<tr><td><b>'+x.name+'</b>'+(x.email?'<div style="font-size:11px;color:#8696A0;">'+x.email+'</div>':'')+'</td>'+
       '<td>'+x.active+'</td><td>'+x.rep+'</td><td>'+pctChip(x.repPct)+'</td>'+
       '<td>'+x.app+'</td><td>'+pctChip(x.appPct)+'</td></tr>';
-  }).join('');
+  }).join(''):'<tr><td colspan="6" style="text-align:center;color:#8696A0;padding:16px;">No coordinators with mapped stations yet</td></tr>';
 }
 
 // Show which stations in a state have NOT reported (for the selected date, default today)
