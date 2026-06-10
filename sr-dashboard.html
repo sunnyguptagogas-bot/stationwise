@@ -143,8 +143,8 @@ tr:hover td{background:#FBFCFD;}
       <div class="sec-head"><div class="sec-title">Overview</div><button class="btn dark sm" onclick="loadAll()">↻ Refresh</button></div>
       <div class="cards" id="dash_cards"></div>
       <div class="table-wrap" id="coord_rollup_wrap" style="display:none;">
-        <div class="table-head">Coordinator Completion <span style="font-weight:600;color:#8696A0;">· yesterday (T-1)</span></div>
-        <div class="tbl-scroll"><table><thead><tr><th>Coordinator</th><th>Active Stations</th><th>Reported</th><th>Reported %</th><th>Approved</th><th>Approved %</th></tr></thead><tbody id="coord_rollup_tbody"></tbody></table></div>
+        <div class="table-head">Coordinator Completion <span style="font-weight:600;color:#8696A0;">· yesterday (T-1)</span> <span id="coord_rollup_count" style="font-weight:600;color:#8696A0;"></span><input id="coord_rollup_q" oninput="renderCoordRollup()" placeholder="Filter coordinator…" style="float:right;padding:5px 9px;border:1px solid #D1D7DB;border-radius:8px;font-size:12px;width:170px;"/></div>
+        <div style="max-height:240px;overflow-y:auto;"><table><thead style="position:sticky;top:0;background:#fff;z-index:1;"><tr><th>Coordinator</th><th>Active Stations</th><th>Reported</th><th>Reported %</th><th>Approved</th><th>Approved %</th></tr></thead><tbody id="coord_rollup_tbody"></tbody></table></div>
       </div>
       <div class="table-wrap">
         <div class="table-head">By State</div>
@@ -476,13 +476,24 @@ function renderCoordRollup(){
     return {name:c.full_name||c.email||'—',email:c.email||'',active:active,rep:rep,app:app,repPct:repPct,appPct:appPct};
   }).sort(function(a,b){return a.repPct-b.repPct;}); // worst completion first
 
+  // count badge (total coordinators with mapped stations)
+  var withStations=rows.filter(function(x){return x.active>0;}).length;
+  var cntEl=document.getElementById('coord_rollup_count');
+  if(cntEl)cntEl.textContent='· '+withStations+' coordinator'+(withStations===1?'':'s');
+  // optional filter
+  var qEl=document.getElementById('coord_rollup_q');
+  var q=qEl?qEl.value.trim().toLowerCase():'';
+  // hide the filter box entirely when only one row (self-view)
+  if(qEl)qEl.style.display=(rows.length>1)?'':'none';
+  var shown=q?rows.filter(function(x){return (x.name+' '+x.email).toLowerCase().indexOf(q)>=0;}):rows;
+
   wrap.style.display='';
   function pctChip(p){var cls=p>=100?'app':p>=60?'ok':'mis';return '<span class="chip '+cls+'">'+p+'%</span>';}
-  tb.innerHTML=rows.length?rows.map(function(x){
+  tb.innerHTML=shown.length?shown.map(function(x){
     return '<tr><td><b>'+x.name+'</b>'+(x.email?'<div style="font-size:11px;color:#8696A0;">'+x.email+'</div>':'')+'</td>'+
       '<td>'+x.active+'</td><td>'+x.rep+'</td><td>'+pctChip(x.repPct)+'</td>'+
       '<td>'+x.app+'</td><td>'+pctChip(x.appPct)+'</td></tr>';
-  }).join(''):'<tr><td colspan="6" style="text-align:center;color:#8696A0;padding:16px;">No coordinators with mapped stations yet</td></tr>';
+  }).join(''):'<tr><td colspan="6" style="text-align:center;color:#8696A0;padding:16px;">'+(q?'No match':'No coordinators with mapped stations yet')+'</td></tr>';
 }
 
 // Show which stations in a state have NOT reported (for the selected date, default today)
