@@ -156,7 +156,9 @@ tr:hover td{background:#FBFCFD;}
     <!-- REVIEW (T-1) -->
     <div class="page" id="pg_reports">
       <div class="sec-head"><div class="sec-title">Daily Review <span id="t1_label" style="font-size:13px;color:#8696A0;font-weight:600;"></span></div>
-        <div style="display:flex;gap:8px;">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span id="ocr_scan_status" style="font-size:12px;color:#E8541E;font-weight:700;"></span>
+          <button class="btn sm gray" id="btn_ocr_scan" onclick="ocrScan(true)">🔍 Run OCR scan</button>
           <button class="btn green sm" id="btn_bulk" onclick="bulkApprove()" style="display:none;">✓ Approve all clean</button>
           <button class="btn dark sm" onclick="exportExcel()">⬇ Excel</button>
         </div>
@@ -385,6 +387,7 @@ async function loadAll(){
   if(can('map_stations'))renderCoords();
   if(can('create_users'))renderUsers();
   if(can('grant_backdate'))renderBackdate();
+  if(can('approve'))setTimeout(function(){ocrScan(false);},400); // background OCR on new T-1 reports
 }
 
 function fillStateFilters(){
@@ -587,6 +590,10 @@ function reportRowHtml(r,i,arrName){
     : chk.flag==='mismatch'?'<span class="chip mis">⚠ MISMATCH</span>'
     : chk.flag==='ok'?'<span class="chip ok">✓ OK</span>'
     : '<span class="chip first">FIRST</span>';
+  if(r.ocr_done){
+    if(r.ocr_flagged>0)flag+=' <span class="chip mis" title="OCR flagged meters">🔍 OCR '+r.ocr_flagged+'</span>';
+    else flag+=' <span class="chip ok" title="OCR all matched">🔍 OCR ✓</span>';
+  }
   var status = ap?'<span class="chip app">✓</span>':'<span class="chip pend">Pending</span>';
   if(isLocked(r))status+=' <span class="chip" style="background:#37474F;color:#fff;">🔒 LOCKED</span>';
   return '<tr><td class="time">'+(r.rep_date||'')+' '+(r.rep_month||'')+'</td>'+
@@ -651,25 +658,35 @@ function openDetail(i,arrName){
   var r=arr[i];if(!r)return;window._det=r;
   var chk=chainCheck(r);var ap=(r.approval_status==='Approved');
   var pairs=[['A1','open_a1','close_a1'],['B1','open_b1','close_b1'],['A2','open_a2','close_a2'],['B2','open_b2','close_b2']];
+  var ocr=r.ocr_results||{};
   var readHtml='';
   pairs.forEach(function(p){
     var o=r[p[1]],c=r[p[2]];
     if((o==null||o==='')&&(c==null||c===''))return;
     var det=chk.details.filter(function(d){return d.nozzle===p[0];})[0];
     var fl=det?(det.match?'<span style="color:#2e7d32;font-weight:700;">✓ matches prev close ('+det.prev+')</span>':'<span style="color:#d32f2f;font-weight:800;">⚠ prev close was '+det.prev+'</span>'):'';
+    // OCR highlight on the close input
+    var os=ocr[p[0]]?ocr[p[0]].status:null;
+    var cBorder=os==='mismatch'?'2px solid #d32f2f':os==='match'?'2px solid #2e7d32':'1px solid #D1D7DB';
+    var ocrLine='';
+    if(os==='mismatch')ocrLine='<div style="font-size:11px;margin-top:5px;color:#d32f2f;font-weight:800;">🔍 OCR read '+(ocr[p[0]].reading!=null?ocr[p[0]].reading.toLocaleString('en-IN'):'?')+' ≠ entered '+c+' <button class="btn sm gray" style="font-size:10px;padding:2px 7px;" onclick="useOcr(\''+p[0]+'\','+ocr[p[0]].reading+')">Use OCR</button></div>';
+    else if(os==='match')ocrLine='<div style="font-size:11px;margin-top:5px;color:#2e7d32;font-weight:700;">🔍 OCR '+(ocr[p[0]].reading!=null?ocr[p[0]].reading.toLocaleString('en-IN'):'')+' — matches</div>';
+    else if(os==='unclear')ocrLine='<div style="font-size:11px;margin-top:5px;color:#8696A0;">🔍 OCR couldn\'t read this meter clearly</div>';
     readHtml+='<div style="padding:8px 10px;border:1px solid #E9EDEF;border-radius:9px;background:#FBFCFD;margin-bottom:7px;">'+
       '<div style="font-size:11px;font-weight:800;margin-bottom:5px;">Nozzle '+p[0]+'</div>'+
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'+
       '<label style="font-size:11px;color:#54656F;">Open <input id="d_o'+p[0]+'" value="'+(o==null?'':o)+'" style="width:80px;padding:5px;border:1px solid #D1D7DB;border-radius:6px;"/></label>'+
-      '<label style="font-size:11px;color:#54656F;">Close <input id="d_c'+p[0]+'" value="'+(c==null?'':c)+'" style="width:80px;padding:5px;border:1px solid #D1D7DB;border-radius:6px;"/></label></div>'+
-      (fl?'<div style="font-size:11px;margin-top:5px;">'+fl+'</div>':'')+'</div>';
+      '<label style="font-size:11px;color:#54656F;">Close <input id="d_c'+p[0]+'" value="'+(c==null?'':c)+'" style="width:80px;padding:5px;border:'+cBorder+';border-radius:6px;"/></label></div>'+
+      (fl?'<div style="font-size:11px;margin-top:5px;">'+fl+'</div>':'')+ocrLine+'</div>';
   });
   var canApprove=can('approve');
   var photos=[['photo_du1a','DU-1 A','A1'],['photo_du1b','DU-1 B','B1'],['photo_du2a','DU-2 A','A2'],['photo_du2b','DU-2 B','B2'],['photo_roto','ROTO',''],['photo_dip','DIP',''],['photo_radar','RADAR',''],['rsp_photo','RSP','']];
   var anyDU=canApprove&&photos.some(function(d){return d[2]&&r[d[0]];});
   var phtml=photos.filter(function(d){return r[d[0]];}).map(function(d){
     var ocrBtn=(canApprove&&d[2])?'<button class="btn sm gray" style="margin-top:4px;font-size:10px;padding:3px 8px;" onclick="ocrMeter(\''+r[d[0]]+'\',\''+d[2]+'\',\''+d[1]+'\')">🔍 Read meter</button><div id="ocr_'+d[2]+'" style="font-size:10px;margin-top:3px;min-height:12px;"></div>':'';
-    return '<div style="text-align:center;"><img src="'+r[d[0]]+'" loading="lazy" onclick="openLightbox(\''+r[d[0]]+'\')" style="width:100%;height:110px;object-fit:cover;border-radius:10px;border:1px solid #E9EDEF;cursor:zoom-in;"/><div style="font-size:11px;font-weight:700;color:#54656F;margin-top:4px;">'+d[1]+'</div>'+ocrBtn+'</div>';
+    var ps=(d[2]&&ocr[d[2]])?ocr[d[2]].status:null;
+    var imgBorder=ps==='mismatch'?'3px solid #d32f2f':ps==='match'?'3px solid #2e7d32':'1px solid #E9EDEF';
+    return '<div style="text-align:center;"><img src="'+r[d[0]]+'" loading="lazy" onclick="openLightbox(\''+r[d[0]]+'\')" style="width:100%;height:110px;object-fit:cover;border-radius:10px;border:'+imgBorder+';cursor:zoom-in;"/><div style="font-size:11px;font-weight:700;color:#54656F;margin-top:4px;">'+d[1]+'</div>'+ocrBtn+'</div>';
   }).join('');
   if(!phtml)phtml='<div style="grid-column:1/-1;text-align:center;color:#8696A0;padding:18px;">No photos</div>';
   var ocrAllBtn=anyDU?'<button class="btn sm dark" style="font-size:11px;" onclick="ocrAllMeters()">🔍 Read all DU meters</button> <span style="font-size:11px;color:#8696A0;">OCR is assistive only — it never blocks approval.</span>':'';
@@ -695,8 +712,18 @@ function openDetail(i,arrName){
     ?'<div style="margin-top:14px;padding:11px;background:#e8f5e9;border-radius:10px;font-size:12px;font-weight:700;color:#2e7d32;text-align:center;">✓ Approved by '+(r.approved_by||'')+' on '+(r.approved_at?new Date(r.approved_at).toLocaleString():'')+'</div>'
     :'<div style="margin-top:14px;display:flex;gap:8px;"><input id="d_by" value="'+(ME.full_name||'Admin')+'" style="flex:1;padding:9px;border:1px solid #D1D7DB;border-radius:9px;"/><button class="btn green" onclick="approveDetail()">✓ Approve</button></div><div style="font-size:11px;color:#8696A0;margin-top:6px;">Edit any reading if the photo shows different, then Approve. Saved to the database.</div>';
   document.getElementById('detail_title').textContent='📋 '+(r.ss_name||r.station_name||r.erp_code);
+  // OCR summary banner
+  var ocrBanner='';
+  if(r.ocr_done){
+    var nz=Object.keys(ocr);var total=nz.length;var fl=r.ocr_flagged||0;
+    if(fl>0)ocrBanner='<div style="margin-bottom:10px;padding:10px;background:#fdecea;border:1px solid #d32f2f;border-radius:10px;font-size:13px;font-weight:700;color:#b71c1c;">🔍 OCR flagged '+fl+' of '+total+' meter'+(total===1?'':'s')+' — see highlighted readings below</div>';
+    else if(total>0)ocrBanner='<div style="margin-bottom:10px;padding:10px;background:#e8f5e9;border:1px solid #2e7d32;border-radius:10px;font-size:13px;font-weight:700;color:#1b5e20;">🔍 OCR checked '+total+' meter'+(total===1?'':'s')+' — all match</div>';
+  } else if(canApprove&&(r.photo_du1a||r.photo_du1b||r.photo_du2a||r.photo_du2b)&&reportDayYMD(r)===istYesterdayYMD()){
+    ocrBanner='<div style="margin-bottom:10px;padding:10px;background:#fff8e1;border:1px solid #FFE082;border-radius:10px;font-size:12px;color:#7A5B00;">🔍 OCR not yet run for this report — use "Read all DU meters" or the Run OCR scan button.</div>';
+  }
   document.getElementById('detail_body').innerHTML=
     '<div style="font-size:13px;color:#54656F;margin-bottom:8px;">'+(r.station_name||'')+' · '+r.erp_code+' · '+(r.rep_date||'')+' '+(r.rep_month||'')+' · Shift '+(r.shift||'')+'</div>'+
+    ocrBanner+
     '<div style="font-weight:800;margin:6px 0 8px;">Meter Readings &amp; Chain Check</div>'+readHtml+rsp+
     '<div style="font-weight:800;margin:14px 0 8px;">Photos <span style="font-size:11px;font-weight:600;color:#8696A0;">(tap to enlarge)</span></div>'+
     (ocrAllBtn?'<div style="margin-bottom:8px;">'+ocrAllBtn+'</div>':'')+
@@ -1012,18 +1039,84 @@ function closeLightbox(){document.getElementById('lightbox').style.display='none
 // entered CLOSING reading for that nozzle. Admin decides; OCR never auto-applies.
 function _ocrPickNumber(text){
   if(!text)return null;
-  // grab digit groups (allow comma/space/dot separators), keep the longest plausible meter reading
   var matches=(text.replace(/[oO]/g,'0').match(/[\d][\d.,\s]{2,}/g)||[])
-    .map(function(s){return s.replace(/[^\d.]/g,'');})       // strip separators
-    .map(function(s){var p=s.split('.');return p.length>1?p[0]+'.'+p.slice(1).join(''):s;}) // one dot max
-    .filter(function(s){return s.replace('.','').length>=3;}); // meter readings are 3+ digits
+    .map(function(s){return s.replace(/[^\d.]/g,'');})
+    .map(function(s){var p=s.split('.');return p.length>1?p[0]+'.'+p.slice(1).join(''):s;})
+    .filter(function(s){return s.replace('.','').length>=3;});
   if(!matches.length)return null;
-  // prefer the longest (meter readings are big numbers)
   matches.sort(function(a,b){return b.replace('.','').length-a.replace('.','').length;});
   var v=parseFloat(matches[0]);
   return isFinite(v)?v:null;
 }
-async function ocrMeter(url,nozzle,label){
+// Read one image URL -> number|null (pure, no DOM)
+async function _ocrReadUrl(url){
+  if(typeof Tesseract==='undefined')return undefined; // engine not loaded
+  try{
+    var res=await Tesseract.recognize(url,'eng',{tessedit_char_whitelist:'0123456789.,'});
+    return _ocrPickNumber(res&&res.data?res.data.text:'');
+  }catch(e){return null;}
+}
+// Compare reading vs entered -> 'match'|'mismatch'|'unclear'
+function _ocrStatus(reading,entered){
+  if(reading==null)return 'unclear';
+  if(!isFinite(entered))return 'read';
+  var tol=Math.max(2,Math.abs(entered)*0.01);
+  return Math.abs(reading-entered)<=tol?'match':'mismatch';
+}
+// Process a single report's 4 DU meters, write ocr_results/ocr_flagged/ocr_done to DB
+async function ocrProcessReport(r){
+  var map=[['photo_du1a','A1','close_a1'],['photo_du1b','B1','close_b1'],['photo_du2a','A2','close_a2'],['photo_du2b','B2','close_b2']];
+  var results={},flagged=0;
+  for(var i=0;i<map.length;i++){
+    var m=map[i];if(!r[m[0]])continue;
+    var reading=await _ocrReadUrl(r[m[0]]);
+    if(reading===undefined)return false; // engine missing — abort, don't mark done
+    var entered=parseFloat(r[m[2]]);
+    var status=_ocrStatus(reading,entered);
+    if(status==='mismatch')flagged++;
+    results[m[1]]={reading:(reading==null?null:reading),entered:(isFinite(entered)?entered:null),status:status};
+  }
+  var upd={ocr_done:true,ocr_results:results,ocr_flagged:flagged};
+  var {error}=await sb.from('reports').update(upd).eq('id',r.id);
+  if(!error)Object.assign(r,upd);
+  return !error;
+}
+// Background/manual scan over T-1 reports
+var _ocrScanning=false;
+async function ocrScan(force){
+  if(_ocrScanning)return;
+  if(!can('approve')){return;}
+  if(typeof Tesseract==='undefined'){toast('OCR engine not loaded — check connection');return;}
+  var t1=istYesterdayYMD();
+  var todo=REPORTS.filter(function(r){
+    if(reportDayYMD(r)!==t1)return false;          // T-1 only
+    if(r.approval_status==='Approved'&&!force)return false; // skip approved unless forced
+    var hasDU=r.photo_du1a||r.photo_du1b||r.photo_du2a||r.photo_du2b;
+    if(!hasDU)return false;
+    return force?true:!r.ocr_done;                 // only un-OCR'd unless forced
+  });
+  if(!todo.length){if(force)toast('No T-1 reports with meter photos to scan');return;}
+  _ocrScanning=true;
+  _ocrSetStatus('🔍 OCR reading ongoing… 0/'+todo.length);
+  var done=0;
+  for(var i=0;i<todo.length;i++){
+    await ocrProcessReport(todo[i]);
+    done++;
+    _ocrSetStatus('🔍 OCR reading ongoing… '+done+'/'+todo.length);
+    if(isPageAllowed('reports'))renderReports(); // live-update chips
+  }
+  _ocrScanning=false;
+  _ocrSetStatus('');
+  toast('✓ OCR scan complete ('+done+' report'+(done===1?'':'s')+')');
+  renderReports();renderDashboard();
+}
+function _ocrSetStatus(txt){
+  var el=document.getElementById('ocr_scan_status');
+  if(el)el.textContent=txt;
+}
+
+function ocrMeter(url,nozzle,label){return _ocrMeterManual(url,nozzle,label);}
+async function _ocrMeterManual(url,nozzle,label){
   var slot=document.getElementById('ocr_'+nozzle);
   if(!slot)return;
   if(typeof Tesseract==='undefined'){slot.innerHTML='<span style="color:#8696A0;">OCR engine not loaded (check connection)</span>';return;}
