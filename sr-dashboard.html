@@ -142,6 +142,10 @@ tr:hover td{background:#FBFCFD;}
     <div class="page active" id="pg_dashboard">
       <div class="sec-head"><div class="sec-title">Overview</div><button class="btn dark sm" onclick="loadAll()">↻ Refresh</button></div>
       <div class="cards" id="dash_cards"></div>
+      <div class="table-wrap" id="coord_rollup_wrap" style="display:none;">
+        <div class="table-head">Coordinator Completion <span style="font-weight:600;color:#8696A0;">· yesterday (T-1)</span></div>
+        <div class="tbl-scroll"><table><thead><tr><th>Coordinator</th><th>Active Stations</th><th>Reported</th><th>Reported %</th><th>Approved</th><th>Approved %</th></tr></thead><tbody id="coord_rollup_tbody"></tbody></table></div>
+      </div>
       <div class="table-wrap">
         <div class="table-head">By State</div>
         <div class="tbl-scroll"><table><thead><tr><th>State</th><th>Stations</th><th>Reported</th><th>Not Reported</th><th>Mismatch</th><th>Total Sale (L)</th><th>Amount</th></tr></thead><tbody id="state_tbody"></tbody></table></div>
@@ -423,6 +427,61 @@ function renderDashboard(){
       notRepCell+
       '<td>'+(d.flags?'<span class="chip mis">'+d.flags+'</span>':'0')+'</td>'+
       '<td>'+Math.round(d.sale).toLocaleString('en-IN')+'</td><td>₹'+Math.round(d.amt).toLocaleString('en-IN')+'</td></tr>';
+  }).join('');
+  renderCoordRollup();
+}
+
+// ── STEP 7: COORDINATOR COMPLETION ROLL-UP (T-1) ──
+function renderCoordRollup(){
+  var wrap=document.getElementById('coord_rollup_wrap');
+  var tb=document.getElementById('coord_rollup_tbody');
+  if(!wrap||!tb)return;
+  var seeAll=(ME.role==='super')||can('view_all_states');
+  // determine which coordinators to show
+  var coords;
+  if(seeAll){
+    coords=(USERS||[]).filter(function(u){return u.role==='coordinator';});
+    // fallback: if USERS not loaded, derive ids from mappings
+    if(!coords.length){
+      var ids=[...new Set(MAPPINGS.map(function(m){return m.coordinator_id;}))];
+      coords=ids.map(function(id){return {id:id,full_name:'Coordinator '+String(id).slice(0,6),email:''};});
+    }
+  } else if(ME.role==='coordinator'){
+    coords=[{id:ME.id,full_name:(ME.full_name||ME.email||'You'),email:ME.email||''}];
+  } else {
+    wrap.style.display='none';return;            // viewers w/o view_all_states: no rollup
+  }
+  if(!coords.length){wrap.style.display='none';return;}
+
+  // reported / approved sets per ERP from current T-1 REPORTS
+  var reportedErp={},approvedErp={};
+  REPORTS.forEach(function(r){
+    reportedErp[r.erp_code]=1;
+    if(r.approval_status==='Approved')approvedErp[r.erp_code]=1;
+  });
+  // only count stations that actually exist/active (in STATIONS)
+  var activeErp={};STATIONS.forEach(function(s){activeErp[s.erp_code]=1;});
+
+  var rows=coords.map(function(c){
+    var erps=MAPPINGS.filter(function(m){return m.coordinator_id===c.id;})
+      .map(function(m){return m.station_erp;})
+      .filter(function(e){return activeErp[e];});
+    var active=erps.length;
+    var rep=erps.filter(function(e){return reportedErp[e];}).length;
+    var app=erps.filter(function(e){return approvedErp[e];}).length;
+    var repPct=active?Math.round(rep/active*100):0;
+    var appPct=active?Math.round(app/active*100):0;
+    return {name:c.full_name||c.email||'—',email:c.email||'',active:active,rep:rep,app:app,repPct:repPct,appPct:appPct};
+  }).filter(function(x){return x.active>0;})
+    .sort(function(a,b){return a.repPct-b.repPct;}); // worst completion first
+
+  if(!rows.length){wrap.style.display='none';return;}
+  wrap.style.display='';
+  function pctChip(p){var cls=p>=100?'app':p>=60?'ok':'mis';return '<span class="chip '+cls+'">'+p+'%</span>';}
+  tb.innerHTML=rows.map(function(x){
+    return '<tr><td><b>'+x.name+'</b>'+(x.email?'<div style="font-size:11px;color:#8696A0;">'+x.email+'</div>':'')+'</td>'+
+      '<td>'+x.active+'</td><td>'+x.rep+'</td><td>'+pctChip(x.repPct)+'</td>'+
+      '<td>'+x.app+'</td><td>'+pctChip(x.appPct)+'</td></tr>';
   }).join('');
 }
 
