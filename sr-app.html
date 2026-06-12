@@ -487,34 +487,47 @@ function switchTab(tab){
           <div style="font-size:13px;font-weight:800;color:#C0381A;">🔄 RSP Change Details</div>
           <button type="button" onclick="toggleRSPChange()" style="background:rgba(255,82,82,0.12);border:none;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;color:#FF3B30;cursor:pointer;">Remove</button>
         </div>
-        <div class="frow two">
-          <div class="ffield"><div class="fflbl">New RSP Rate</div><input class="ffin" id="f_rsp_new" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcRSPSplit()"/></div>
-          <div class="ffield"><div class="fflbl">Meter Reading at Change</div><input class="ffin" id="f_rsp_read" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcRSPSplit()"/></div>
+        <!-- Meter Reading At Change (per nozzle) -->
+        <div style="text-align:center;font-size:12px;font-weight:800;color:#111B21;margin:4px 0 6px;">Meter Reading At Change</div>
+        <div style="background:#fff;border:1px solid #E9EDEF;border-radius:10px;overflow:hidden;">
+          <div class="lrow"><div class="llbl">A1</div><div class="lval"><input class="ffin" id="f_chg_a1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcRSPSplit()"/></div></div>
+          <div class="lrow" id="chg_a2_row"><div class="llbl">A2</div><div class="lval"><input class="ffin" id="f_chg_a2" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcRSPSplit()"/></div></div>
+          <div class="lrow"><div class="llbl">B1</div><div class="lval"><input class="ffin" id="f_chg_b1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcRSPSplit()"/></div></div>
+          <div class="lrow" id="chg_b2_row"><div class="llbl">B2</div><div class="lval"><input class="ffin" id="f_chg_b2" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcRSPSplit()"/></div></div>
         </div>
-        <div class="frow two" style="margin-top:8px;">
-          <div class="ffield"><div class="fflbl">Ltrs at OLD rate</div><input class="ffin" id="f_rsp_lb" type="text" placeholder="auto" readonly style="background:#EEF1F3;"/></div>
-          <div class="ffield"><div class="fflbl">Ltrs at NEW rate</div><input class="ffin" id="f_rsp_la" type="text" placeholder="auto" readonly style="background:#EEF1F3;"/></div>
+        <!-- Two columns: OLD | NEW -->
+        <div class="frow two" style="margin-top:10px;background:#fff;border:1px solid #E9EDEF;border-radius:10px;overflow:hidden;">
+          <div class="ffield" style="background:rgba(0,0,0,0.02);"><div class="fflbl" style="text-align:center;font-size:11px;color:#C0381A;">OLD RSP DETAILS</div></div>
+          <div class="ffield"><div class="fflbl" style="text-align:center;font-size:11px;color:#1b5e20;">NEW RSP DETAILS</div></div>
         </div>
-        <div class="frow two" style="margin-top:8px;">
-          <div class="ffield"><div class="fflbl">Amount OLD rate</div><input class="ffin" id="f_rsp_ab" type="text" placeholder="auto" readonly style="background:#EEF1F3;"/></div>
-          <div class="ffield"><div class="fflbl">Amount NEW rate</div><input class="ffin" id="f_rsp_aa" type="text" placeholder="auto" readonly style="background:#EEF1F3;"/></div>
+        <div class="frow two" style="background:#fff;border:1px solid #E9EDEF;border-top:none;">
+          <div class="ffield"><div class="fflbl">Old RSP</div><input class="ffin" id="f_rsp_old" type="text" placeholder="auto" readonly style="background:#EEF1F3;"/></div>
+          <div class="ffield"><div class="fflbl">New RSP</div><input class="ffin" id="f_rsp_new" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcRSPSplit()"/></div>
         </div>
-        <div style="font-size:10px;color:#8696A0;margin-top:8px;font-weight:600;">Ltrs at old rate = (change reading − opening A1). Ltrs at new rate = (closing A1 − change reading). Both roll into your total.</div>
+        <div class="frow two" style="background:#fff;border:1px solid #E9EDEF;border-top:none;">
+          <div class="ffield"><div class="fflbl">Ltrs at Old Rate</div><input class="ffin" id="f_rsp_lb" type="text" placeholder="auto" readonly style="background:#EEF1F3;"/></div>
+          <div class="ffield"><div class="fflbl">Ltrs at New Rate</div><input class="ffin" id="f_rsp_la" type="text" placeholder="auto" readonly style="background:#EEF1F3;"/></div>
+        </div>
+        <div class="frow two" style="background:#fff;border:1px solid #E9EDEF;border-top:none;border-radius:0 0 10px 10px;">
+          <div class="ffield"><div class="fflbl">Amt Old Rate</div><input class="ffin" id="f_rsp_ab" type="text" placeholder="auto" readonly style="background:#EEF1F3;"/></div>
+          <div class="ffield"><div class="fflbl">Amt New Rate</div><input class="ffin" id="f_rsp_aa" type="text" placeholder="auto" readonly style="background:#EEF1F3;"/></div>
+        </div>
+        <div style="font-size:10px;color:#8696A0;margin-top:8px;font-weight:600;">Old-rate ltrs = Σ(change − opening) per nozzle. New-rate ltrs = Σ(closing − change) per nozzle. Total amount = old amt + new amt.</div>
         <div id="rsp_photo_slot" style="margin-top:10px;"></div>
       </div>
     </div>
     <div class="fsec fadein">
       <div class="fsec-head"><div class="fsec-title">OPENING</div></div>
-      <div class="lrow"><div class="llbl">A1 <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_oa1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div></div>
+      <div class="lrow"><div class="llbl">A1 <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_oa1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill();calcRSPSplit()"/></div></div>
       <div class="lrow"><div class="llbl">A2</div><div class="lval"><input class="ffin" id="f_oa2" type="text" inputmode="decimal" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();"/></div></div>
-      <div class="lrow"><div class="llbl">B1 <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_ob1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div></div>
+      <div class="lrow"><div class="llbl">B1 <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_ob1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill();calcRSPSplit()"/></div></div>
       <div class="lrow"><div class="llbl">B2</div><div class="lval"><input class="ffin" id="f_ob2" type="text" inputmode="decimal" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();"/></div></div>
     </div>
     <div class="fsec fadein">
       <div class="fsec-head"><div class="fsec-title">CLOSING</div></div>
-      <div class="lrow"><div class="llbl">A1 <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_ca1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div></div>
+      <div class="lrow"><div class="llbl">A1 <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_ca1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill();calcRSPSplit()"/></div></div>
       <div class="lrow"><div class="llbl">A2</div><div class="lval"><input class="ffin" id="f_ca2" type="text" inputmode="decimal" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();"/></div></div>
-      <div class="lrow"><div class="llbl">B1 <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_cb1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div></div>
+      <div class="lrow"><div class="llbl">B1 <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_cb1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill();calcRSPSplit()"/></div></div>
       <div class="lrow"><div class="llbl">B2</div><div class="lval"><input class="ffin" id="f_cb2" type="text" inputmode="decimal" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();"/></div></div>
     </div>
     <div class="fsec fadein">
@@ -1442,10 +1455,10 @@ function resetForm(){
   z.forEach(id=>{const e=document.getElementById(id);if(e)e.value='0.00';});
   // Reset photos + RSP change
   photoSlots=[];photoDataUrl=null;photoFile=null;
-  rspChangeOn=false;rspPhotoSlot=null;
+  rspChangeOn=false;rspPhotoList=[];
   const rb=document.getElementById('rsp_change_box');if(rb)rb.style.display='none';
   const rab=document.getElementById('rsp_add_btn');if(rab)rab.style.display='flex';
-  ['f_rsp_new','f_rsp_read','f_rsp_lb','f_rsp_la','f_rsp_ab','f_rsp_aa'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  ['f_rsp_new','f_rsp_old','f_chg_a1','f_chg_a2','f_chg_b1','f_chg_b2','f_rsp_lb','f_rsp_la','f_rsp_ab','f_rsp_aa'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   buildPhotoSlots();
   ['sh1_chk','sh2_chk','sh3_chk'].forEach(id=>{const e=document.getElementById(id);if(e)e.checked=false;});
   ['sh1_row','sh2_row','sh3_row'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none';});
@@ -1509,7 +1522,7 @@ function photoLines(){
   let out='';
   const done=photoSlots.filter(s=>s.dataUrl||s.driveView);
   if(done.length){out+='\n--------------------\n*PHOTOS*\n--------------------';done.forEach(s=>{out+='\n📷 '+s.label+(s.driveView?': '+s.driveView:': attached');});}
-  if(rspChangeOn){out+='\n--------------------\n*RSP CHANGE*\n--------------------\nNew RSP : '+g('f_rsp_new')+'\nChange Reading : '+g('f_rsp_read')+'\nLtrs(old/new) : '+gt('f_rsp_lb')+' / '+gt('f_rsp_la');if(rspPhotoSlot&&rspPhotoSlot.driveView)out+='\n📷 RSP Photo: '+rspPhotoSlot.driveView;}
+  if(rspChangeOn){out+='\n--------------------\n*RSP CHANGE*\n--------------------\nNew RSP : '+g('f_rsp_new')+'\nChange Rdg A1/A2/B1/B2 : '+g('f_chg_a1')+'/'+gt('f_chg_a2')+'/'+g('f_chg_b1')+'/'+gt('f_chg_b2')+'\nLtrs(old/new) : '+gt('f_rsp_lb')+' / '+gt('f_rsp_la');if(rspPhotoList.length)out+='\n📷 RSP Photos: '+rspPhotoList.length;}
   return out;
 }
 function buildText(){
@@ -1554,14 +1567,17 @@ function buildData(status){
     rsp1:g('f_r1'),rsp2:gt('f_r2'),rsp3:gt('f_r3'),rsp4:gt('f_r4'),
     rspChanged:rspChangeOn,
     rspNewRate:rspChangeOn?g('f_rsp_new'):'',
-    rspChangeReading:rspChangeOn?g('f_rsp_read'):'',
+    rspOldRate:rspChangeOn?gt('f_rsp_old'):'',
+    rspChgA1:rspChangeOn?g('f_chg_a1'):'', rspChgA2:rspChangeOn?gt('f_chg_a2'):'',
+    rspChgB1:rspChangeOn?g('f_chg_b1'):'', rspChgB2:rspChangeOn?gt('f_chg_b2'):'',
+    rspChangeReading:rspChangeOn?g('f_chg_a1'):'',
     rspLtrsBefore:rspChangeOn?gt('f_rsp_lb'):'',
     rspLtrsAfter:rspChangeOn?gt('f_rsp_la'):'',
     rspAmtBefore:rspChangeOn?gt('f_rsp_ab'):'',
     rspAmtAfter:rspChangeOn?gt('f_rsp_aa'):'',
     photoDU1A:slotLink('DU1A'),photoDU1B:slotLink('DU1B'),photoDU2A:slotLink('DU2A'),photoDU2B:slotLink('DU2B'),
     photoRoto:slotLink('ROTO'),photoDip:slotLink('DIP'),photoRadar:slotLink('RADAR'),
-    rspPhoto:(rspPhotoSlot&&rspPhotoSlot.driveView)||'',
+    rspPhotos:rspPhotoList.map(p=>p.driveView).filter(Boolean),
     prevCash:g('f_prev'),totalAmt:g('f_ta'),cardSale:g('f_card'),
     paytmSale:g('f_paytm'),freeAmt:g('f_famt'),cashSale:g('f_csale'),
     bankDeposit:g('f_bank'),cashInHand:g('f_cih'),
@@ -1588,12 +1604,15 @@ function saveDraft(){const d=buildData('draft');saveRep(d);editId=d.id;toast('Dr
 
 function validateReport(){
   const errors=[];
-  const oa1=parseFloat(document.getElementById('f_oa1')?.value||0);
-  const ca1=parseFloat(document.getElementById('f_ca1')?.value||0);
-  const ob1=parseFloat(document.getElementById('f_ob1')?.value||0);
-  const cb1=parseFloat(document.getElementById('f_cb1')?.value||0);
-  if(oa1>0&&ca1>0&&ca1>oa1) errors.push('A1 Closing ('+ca1+') cannot exceed Opening ('+oa1+')');
-  if(ob1>0&&cb1>0&&cb1>ob1) errors.push('B1 Closing ('+cb1+') cannot exceed Opening ('+ob1+')');
+  const gv=id=>parseFloat(document.getElementById(id)?.value||0)||0;
+  const isNum=id=>{const v=(document.getElementById(id)?.value||'').trim().toUpperCase();return v&&v!=='NA'&&!isNaN(parseFloat(v));};
+  // Closing must be >= Opening (meter totalizer only goes up; closing - opening = day's sale)
+  [['A1','f_oa1','f_ca1'],['B1','f_ob1','f_cb1'],['A2','f_oa2','f_ca2'],['B2','f_ob2','f_cb2']].forEach(n=>{
+    if(isNum(n[1])&&isNum(n[2])){
+      const o=gv(n[1]),c=gv(n[2]);
+      if(c<o) errors.push(n[0]+' Closing ('+c+') cannot be less than Opening ('+o+')');
+    }
+  });
   const ns=parseFloat(document.getElementById('f_ns')?.value||0);
   if(ns<0) errors.push('Net Sale cannot be negative');
   const cih=parseFloat(document.getElementById('f_cih')?.value||0);
@@ -1652,9 +1671,12 @@ async function pushToSupabase(d){
     photo_roto:d.photoRoto||null, photo_dip:d.photoDip||null, photo_radar:d.photoRadar||null,
     rsp_changed:!!d.rspChanged,
     rsp_new_rate:_n(d.rspNewRate), rsp_change_reading:_n(d.rspChangeReading),
+    rsp_old_rate:_n(d.rspOldRate),
+    chg_a1:_n(d.rspChgA1), chg_a2:_n(d.rspChgA2), chg_b1:_n(d.rspChgB1), chg_b2:_n(d.rspChgB2),
     rsp_ltrs_before:_n(d.rspLtrsBefore), rsp_ltrs_after:_n(d.rspLtrsAfter),
     rsp_amt_before:_n(d.rspAmtBefore), rsp_amt_after:_n(d.rspAmtAfter),
-    rsp_photo:d.rspPhoto||null,
+    rsp_photo:(d.rspPhotos&&d.rspPhotos[0])||null,
+    rsp_photos:(d.rspPhotos&&d.rspPhotos.length)?d.rspPhotos:null,
     submitted_at:d.submittedAt||new Date().toISOString(),
     updated_at:new Date().toISOString()
   };
@@ -1676,7 +1698,7 @@ async function doSubmit(){
   if(miss.length){toast('📷 Please add the '+miss.length+' required meter photo(s) before submitting.');goScreen('s_form');updatePhotoReqNote();return;}
   const d=buildData('sent');
   d.id=editId||d.id;
-  const anyPhoto=photoSlots.some(s=>s.file||s.driveView)||(rspPhotoSlot&&(rspPhotoSlot.file||rspPhotoSlot.driveView));
+  const anyPhoto=photoSlots.some(s=>s.file||s.driveView)||rspPhotoList.some(p=>p.file||p.driveView);
   if(anyPhoto){
     toast('Uploading photos…');
     try{await uploadAllPhotos(d,d.id);}catch(e){}
@@ -1684,7 +1706,7 @@ async function doSubmit(){
   // refresh photo links into d after upload
   d.photoDU1A=slotLink('DU1A');d.photoDU1B=slotLink('DU1B');d.photoDU2A=slotLink('DU2A');d.photoDU2B=slotLink('DU2B');
   d.photoRoto=slotLink('ROTO');d.photoDip=slotLink('DIP');d.photoRadar=slotLink('RADAR');
-  d.rspPhoto=(rspPhotoSlot&&rspPhotoSlot.driveView)||'';
+  d.rspPhotos=rspPhotoList.map(p=>p.driveView).filter(Boolean);
   saveRep(d);
   toast('Saving report…');
   const res=await pushToSupabase(d);
@@ -1700,11 +1722,11 @@ async function doWA(){
   d.id=editId||d.id;
   saveRep(d);
   // upload photos first so links are in the saved row
-  const anyPhoto=photoSlots.some(s=>s.file||s.driveView)||(rspPhotoSlot&&(rspPhotoSlot.file||rspPhotoSlot.driveView));
+  const anyPhoto=photoSlots.some(s=>s.file||s.driveView)||rspPhotoList.some(p=>p.file||p.driveView);
   if(anyPhoto){toast('Uploading photos…');try{await uploadAllPhotos(d,d.id);}catch(e){}}
   d.photoDU1A=slotLink('DU1A');d.photoDU1B=slotLink('DU1B');d.photoDU2A=slotLink('DU2A');d.photoDU2B=slotLink('DU2B');
   d.photoRoto=slotLink('ROTO');d.photoDip=slotLink('DIP');d.photoRadar=slotLink('RADAR');
-  d.rspPhoto=(rspPhotoSlot&&rspPhotoSlot.driveView)||'';
+  d.rspPhotos=rspPhotoList.map(p=>p.driveView).filter(Boolean);
   const res=await pushToSupabase(d);
   if(!res.ok){addToSyncQueue(d);}
   // Open WhatsApp with report text
@@ -1984,7 +2006,7 @@ function editRep(id){
   sv('f_cmt',r.comments);
   sv('f_s1sale',r.s1sale);sv('f_s2sale',r.s2sale);sv('f_s3sale',r.s3sale);
   // rebuild photo slots, then restore existing Drive links
-  photoSlots=[];rspChangeOn=false;rspPhotoSlot=null;
+  photoSlots=[];rspChangeOn=false;rspPhotoList=[];
   buildPhotoSlots();
   const linkMap={DU1A:r.photoDU1A,DU1B:r.photoDU1B,DU2A:r.photoDU2A,DU2B:r.photoDU2B,ROTO:r.photoRoto,DIP:r.photoDip,RADAR:r.photoRadar};
   photoSlots.forEach(s=>{const lk=linkMap[s.key];if(lk){s.driveView=lk;s.driveThumb=lk;s.dataUrl=lk;}});
@@ -1992,8 +2014,8 @@ function editRep(id){
   // restore RSP change if present
   if(r.rspChanged===true||r.rspChanged==='YES'||r.rspChanged==='true'){
     rspChangeOn=false;toggleRSPChange();
-    sv('f_rsp_new',r.rspNewRate);sv('f_rsp_read',r.rspChangeReading);
-    if(r.rspPhoto){rspPhotoSlot.driveView=r.rspPhoto;rspPhotoSlot.dataUrl=r.rspPhoto;renderRSPPhoto();}
+    sv('f_rsp_new',r.rspNewRate);sv('f_chg_a1',r.rspChgA1);sv('f_chg_a2',r.rspChgA2);sv('f_chg_b1',r.rspChgB1);sv('f_chg_b2',r.rspChgB2);
+    if(r.rspPhotos&&r.rspPhotos.length){rspPhotoList=r.rspPhotos.map(u=>({file:null,dataUrl:u,driveView:u,driveThumb:u}));renderRSPPhoto();}else if(r.rspPhoto){rspPhotoList=[{file:null,dataUrl:r.rspPhoto,driveView:r.rspPhoto,driveThumb:r.rspPhoto}];renderRSPPhoto();}
     calcRSPSplit();
   }
   goScreen('s_form');updateFill();
@@ -2151,11 +2173,17 @@ function slotClear(i){
 function onSlotFile(input){
   const file=input.files[0];
   if(!file)return;
-  // RSP photo path
+  // RSP photo path (multi-photo)
   if(_rspPending){
     _rspPending=false;
+    const idx=_rspReplaceIdx; _rspReplaceIdx=-1;
     const reader=new FileReader();
-    reader.onload=e=>{rspPhotoSlot.file=file;rspPhotoSlot.dataUrl=e.target.result;rspPhotoSlot.driveView='';renderRSPPhoto();};
+    reader.onload=e=>{
+      const obj={file:file,dataUrl:e.target.result,driveView:'',driveThumb:''};
+      if(idx>=0 && idx<rspPhotoList.length) rspPhotoList[idx]=obj; // retake/replace
+      else rspPhotoList.push(obj);                                 // add more
+      renderRSPPhoto();
+    };
     reader.readAsDataURL(file);return;
   }
   if(_pendingSlot<0)return;
@@ -2205,69 +2233,97 @@ async function uploadAllPhotos(data,reportId){
       if(r && map[s.key]) data[map[s.key]]=r.view;
     }catch(e){}
   }
-  // RSP change photo
-  if(rspPhotoSlot && (rspPhotoSlot.file||rspPhotoSlot.driveView)){
-    try{
-      const r=await uploadSlot(rspPhotoSlot,reportId);
-      if(r) data.rspPhoto=r.view;
-    }catch(e){}
+  // RSP change photos (multi)
+  const rspViews=[];
+  for(let i=0;i<rspPhotoList.length;i++){
+    const p=rspPhotoList[i];
+    if(p.driveView){rspViews.push(p.driveView);continue;}
+    if(p.file){
+      try{
+        const r=await uploadSlot({key:'RSPCHG'+i,label:'RSP'+i,file:p.file,dataUrl:p.dataUrl,driveView:''},reportId);
+        if(r){p.driveView=r.view;rspViews.push(r.view);}
+      }catch(e){}
+    }
   }
+  data.rspPhotos=rspViews;
   return data;
 }
 
 // ════ RSP CHANGE ════
 let rspChangeOn=false;
-let rspPhotoSlot=null;
 function toggleRSPChange(){
   rspChangeOn=!rspChangeOn;
   document.getElementById('rsp_change_box').style.display=rspChangeOn?'block':'none';
   document.getElementById('rsp_add_btn').style.display=rspChangeOn?'none':'flex';
   if(rspChangeOn){
-    rspPhotoSlot=rspPhotoSlot||{key:'RSPCHG',label:'RSP Change Photo',required:false,file:null,dataUrl:null,driveView:'',driveThumb:''};
+    // show A2/B2 change rows only for double-dispenser stations
+    var dbl=isDoubleDispenser();
+    var a2=document.getElementById('chg_a2_row'),b2=document.getElementById('chg_b2_row');
+    if(a2)a2.style.display=dbl?'flex':'none';
+    if(b2)b2.style.display=dbl?'flex':'none';
     renderRSPPhoto();
     calcRSPSplit();
   } else {
     // clear so it won't be saved
-    document.getElementById('f_rsp_new').value='';
-    document.getElementById('f_rsp_read').value='';
-    rspPhotoSlot=null;
+    ['f_rsp_new','f_chg_a1','f_chg_a2','f_chg_b1','f_chg_b2'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+    rspPhotoList=[];
     calcRSPSplit();
   }
 }
+let rspPhotoList=[]; // array of {file,dataUrl,driveView,driveThumb}
 function renderRSPPhoto(){
   const wrap=document.getElementById('rsp_photo_slot');
-  if(!wrap||!rspPhotoSlot)return;
-  const done=!!rspPhotoSlot.dataUrl;
-  let html='<div style="font-size:11px;font-weight:800;margin-bottom:7px;color:#111B21;">'+(done?'✓ ':'')+'RSP Change Photo <span style="color:#8696A0;font-weight:600;">(optional)</span></div>';
-  if(done){
-    html+='<img src="'+rspPhotoSlot.dataUrl+'" style="width:100%;border-radius:9px;border:1px solid #E9EDEF;max-height:150px;object-fit:cover;"/>';
-    html+='<div style="display:flex;gap:7px;margin-top:7px;"><button type="button" onclick="rspPhotoCapture(true)" style="flex:1;padding:8px;background:#fff;border:1px solid #E9EDEF;border-radius:9px;font-family:inherit;font-size:12px;font-weight:700;color:#54656F;cursor:pointer;">📷 Retake</button><button type="button" onclick="rspPhotoClear()" style="padding:8px 11px;background:rgba(255,82,82,0.1);border:none;border-radius:9px;font-size:12px;font-weight:700;color:#FF3B30;cursor:pointer;">✕</button></div>';
-  } else {
-    html+='<div style="display:flex;gap:7px;"><button type="button" onclick="rspPhotoCapture(true)" style="flex:1;padding:11px;background:#fff;border:2px dashed #D1D7DB;border-radius:10px;font-family:inherit;font-size:12px;font-weight:700;color:#54656F;cursor:pointer;">📷 Take</button><button type="button" onclick="rspPhotoCapture(false)" style="flex:1;padding:11px;background:#fff;border:2px dashed #D1D7DB;border-radius:10px;font-family:inherit;font-size:12px;font-weight:700;color:#54656F;cursor:pointer;">📁 Upload</button></div>';
+  if(!wrap)return;
+  let html='<div style="font-size:11px;font-weight:800;margin-bottom:7px;color:#111B21;">RSP Change Photos <span style="color:#8696A0;font-weight:600;">(one per nozzle side — proof rate changed)</span></div>';
+  // existing photos with ✕ remove + retake each
+  if(rspPhotoList.length){
+    html+='<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:8px;">';
+    rspPhotoList.forEach((p,i)=>{
+      const src=p.dataUrl||p.driveView;
+      html+='<div style="position:relative;">'+
+        '<img src="'+src+'" style="width:100%;height:110px;object-fit:cover;border-radius:9px;border:1px solid #E9EDEF;"/>'+
+        '<button type="button" onclick="rspPhotoRemove('+i+')" style="position:absolute;top:4px;right:4px;width:24px;height:24px;background:rgba(255,59,48,0.92);border:none;border-radius:50%;color:#fff;font-size:13px;font-weight:800;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;">✕</button>'+
+        '<button type="button" onclick="rspPhotoCapture(true,'+i+')" style="position:absolute;bottom:4px;left:4px;background:rgba(0,0,0,0.55);border:none;border-radius:7px;color:#fff;font-size:10px;font-weight:700;padding:3px 7px;cursor:pointer;">📷 Retake</button>'+
+        '</div>';
+    });
+    html+='</div>';
   }
+  // add-more buttons (capture or upload), always available
+  html+='<div style="display:flex;gap:7px;"><button type="button" onclick="rspPhotoCapture(true,-1)" style="flex:1;padding:11px;background:#fff;border:2px dashed #D1D7DB;border-radius:10px;font-family:inherit;font-size:12px;font-weight:700;color:#54656F;cursor:pointer;">📷 '+(rspPhotoList.length?'Add (Camera)':'Take Photo')+'</button><button type="button" onclick="rspPhotoCapture(false,-1)" style="flex:1;padding:11px;background:#fff;border:2px dashed #D1D7DB;border-radius:10px;font-family:inherit;font-size:12px;font-weight:700;color:#54656F;cursor:pointer;">📁 '+(rspPhotoList.length?'Add (Upload)':'Upload')+'</button></div>';
   wrap.innerHTML=html;
 }
-let _rspPending=false;
-function rspPhotoCapture(useCamera){
-  _rspPending=true;
+let _rspPending=false, _rspReplaceIdx=-1;
+function rspPhotoCapture(useCamera,idx){
+  _rspPending=true; _rspReplaceIdx=(idx==null?-1:idx);
   const inp=document.getElementById('photo_file_input');
   if(useCamera)inp.setAttribute('capture','environment');else inp.removeAttribute('capture');
   inp.value='';inp.click();
 }
-function rspPhotoClear(){rspPhotoSlot.file=null;rspPhotoSlot.dataUrl=null;rspPhotoSlot.driveView='';renderRSPPhoto();}
+function rspPhotoRemove(i){rspPhotoList.splice(i,1);renderRSPPhoto();}
 
+function _numv(id){var e=document.getElementById(id);if(!e)return null;var v=parseFloat(e.value);return isFinite(v)?v:null;}
 function calcRSPSplit(){
   if(!rspChangeOn)return;
-  const oa1=parseFloat((document.getElementById('f_oa1')||{}).value||0)||0;
-  const ca1=parseFloat((document.getElementById('f_ca1')||{}).value||0)||0;
-  const rd =parseFloat((document.getElementById('f_rsp_read')||{}).value||0)||0;
-  const oldR=parseFloat((document.getElementById('f_r1')||{}).value||0)||0;
-  const newR=parseFloat((document.getElementById('f_rsp_new')||{}).value||0)||0;
-  let lb=0,la=0;
-  if(rd>0){lb=Math.max(0,rd-oa1);la=Math.max(0,ca1-rd);}
-  const ab=lb*oldR, aa=la*newR;
-  const sv=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v.toFixed(2);};
+  // Old RSP comes from the station's current rate (f_r1 is the primary RSP)
+  var oldR=_numv('f_r1')||0;
+  var newR=_numv('f_rsp_new')||0;
+  var sv=function(id,v){var el=document.getElementById(id);if(el)el.value=(v==null?'':Number(v).toFixed(2));};
+  sv('f_rsp_old',oldR);
+  // per-nozzle: old ltrs = change-opening ; new ltrs = closing-change. Sum across active nozzles.
+  var nz=[['a1','f_oa1','f_chg_a1','f_ca1'],['a2','f_oa2','f_chg_a2','f_ca2'],['b1','f_ob1','f_chg_b1','f_cb1'],['b2','f_ob2','f_chg_b2','f_cb2']];
+  var lb=0,la=0;
+  nz.forEach(function(n){
+    var o=_numv(n[1]),chg=_numv(n[2]),c=_numv(n[3]); // null if NA/blank
+    if(o==null||chg==null)return;          // nozzle not in use / no change reading yet
+    lb+=Math.max(0,chg-o);                  // old-rate litres
+    if(c!=null)la+=Math.max(0,c-chg);       // new-rate litres (fills once closing entered)
+  });
+  var ab=lb*oldR, aa=la*newR;
   sv('f_rsp_lb',lb);sv('f_rsp_la',la);sv('f_rsp_ab',ab);sv('f_rsp_aa',aa);
+  // drive Total Sales Amount = old amt + new amt (split-rate)
+  var ta=document.getElementById('f_ta');
+  if(ta){ta.value=(ab+aa).toFixed(2);}
+  if(typeof updateFill==='function')updateFill();
 }
 
 document.addEventListener('touchmove',e=>{if(!e.target.closest('.scroll-body'))e.preventDefault();},{passive:false});
