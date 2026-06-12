@@ -1693,47 +1693,78 @@ async function pushToSupabase(d){
   return !error ? {ok:true} : {ok:false,error:error.message};
 }
 
+// Track a submitted report whose photos are still uploading in background
+let _pendingReport=null; // {id, erp}
+
 async function doSubmit(){
   const miss=missingRequiredPhotos();
   if(miss.length){toast('📷 Please add the '+miss.length+' required meter photo(s) before submitting.');goScreen('s_form');updatePhotoReqNote();return;}
+  // any photo still uploading?
+  const uploading=photoSlots.some(s=>s.uploading)||rspPhotoList.some(p=>p.uploading);
+  if(uploading){
+    const go=confirm('Some photos are still uploading.\n\nTap OK to "Continue in background upload" — your report will be submitted now and the remaining photos will keep uploading. You can go to Home or share on WhatsApp.\n\nTap Cancel to wait.');
+    if(!go)return;
+  }
+  await _finalizeSubmit(false);
+}
+
+async function _finalizeSubmit(isWA){
   const d=buildData('sent');
   d.id=editId||d.id;
-  const anyPhoto=photoSlots.some(s=>s.file||s.driveView)||rspPhotoList.some(p=>p.file||p.driveView);
-  if(anyPhoto){
-    toast('Uploading photos…');
-    try{await uploadAllPhotos(d,d.id);}catch(e){}
-  }
-  // refresh photo links into d after upload
+  // collect whatever links are already uploaded
   d.photoDU1A=slotLink('DU1A');d.photoDU1B=slotLink('DU1B');d.photoDU2A=slotLink('DU2A');d.photoDU2B=slotLink('DU2B');
   d.photoRoto=slotLink('ROTO');d.photoDip=slotLink('DIP');d.photoRadar=slotLink('RADAR');
   d.rspPhotos=rspPhotoList.map(p=>p.driveView).filter(Boolean);
-  saveRep(d);
+  saveRep(d); editId=d.id;
   toast('Saving report…');
   const res=await pushToSupabase(d);
   if(res.ok){toast('✅ Report submitted!');}
   else {addToSyncQueue(d);toast('Saved offline — will sync when online');}
-  setTimeout(()=>{initHome();goScreen('s_home');},1500);
+  // if any photos still pending, remember this report so completions patch it
+  const stillPending=photoSlots.some(s=>s.file&&!s.driveView)||rspPhotoList.some(p=>p.file&&!p.driveView);
+  if(stillPending){_pendingReport={id:d.id,erp:d.erp};toast('Photos will finish uploading in background');}
+  else {_pendingReport=null;}
+  if(isWA){
+    const txt=buildText();
+    window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank');
+  }
+  setTimeout(()=>{initHome();goScreen('s_home');},1200);
+}
+
+// When a background photo upload completes, patch the already-saved report row.
+async function _patchPendingReportPhotos(){
+  if(!_pendingReport)return;
+  // only patch once nothing is still uploading (avoid racing many updates)
+  const anyUploading=photoSlots.some(s=>s.uploading)||rspPhotoList.some(p=>p.uploading);
+  const patch={
+    photo_du1a:slotLink('DU1A')||null, photo_du1b:slotLink('DU1B')||null,
+    photo_du2a:slotLink('DU2A')||null, photo_du2b:slotLink('DU2B')||null,
+    photo_roto:slotLink('ROTO')||null, photo_dip:slotLink('DIP')||null, photo_radar:slotLink('RADAR')||null,
+    rsp_photos:(()=>{const a=rspPhotoList.map(p=>p.driveView).filter(Boolean);return a.length?a:null;})(),
+    rsp_photo:(rspPhotoList.find(p=>p.driveView)||{}).driveView||null,
+    updated_at:new Date().toISOString()
+  };
+  try{
+    await sb.from('reports').update(patch).eq('report_key',_pendingReport.id); // UPDATE same row — no duplication
+    // also update local copy
+    const lr=reports.find(r=>r.id===_pendingReport.id);
+    if(lr){lr.photoDU1A=patch.photo_du1a;lr.photoDU1B=patch.photo_du1b;lr.photoDU2A=patch.photo_du2a;lr.photoDU2B=patch.photo_du2b;lr.photoRoto=patch.photo_roto;lr.photoDip=patch.photo_dip;lr.photoRadar=patch.photo_radar;lr.rspPhotos=patch.rsp_photos||[];try{localStorage.setItem('sw_reports',JSON.stringify(reports));}catch(e){}}
+  }catch(e){}
+  if(!anyUploading){
+    const allDone=!(photoSlots.some(s=>s.file&&!s.driveView)||rspPhotoList.some(p=>p.file&&!p.driveView));
+    if(allDone)_pendingReport=null;
+  }
 }
 
 async function doWA(){
   const miss=missingRequiredPhotos();
   if(miss.length){toast('📷 Please add the '+miss.length+' required meter photo(s) before submitting.');goScreen('s_form');updatePhotoReqNote();return;}
-  const d=buildData('sent');
-  d.id=editId||d.id;
-  saveRep(d);
-  // upload photos first so links are in the saved row
-  const anyPhoto=photoSlots.some(s=>s.file||s.driveView)||rspPhotoList.some(p=>p.file||p.driveView);
-  if(anyPhoto){toast('Uploading photos…');try{await uploadAllPhotos(d,d.id);}catch(e){}}
-  d.photoDU1A=slotLink('DU1A');d.photoDU1B=slotLink('DU1B');d.photoDU2A=slotLink('DU2A');d.photoDU2B=slotLink('DU2B');
-  d.photoRoto=slotLink('ROTO');d.photoDip=slotLink('DIP');d.photoRadar=slotLink('RADAR');
-  d.rspPhotos=rspPhotoList.map(p=>p.driveView).filter(Boolean);
-  const res=await pushToSupabase(d);
-  if(!res.ok){addToSyncQueue(d);}
-  // Open WhatsApp with report text
-  const txt=buildText();
-  window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank');
-  toast(res.ok?'✅ Submitted & shared on WhatsApp':'Saved offline — shared on WhatsApp');
-  setTimeout(()=>{initHome();goScreen('s_home');},2500);
+  const uploading=photoSlots.some(s=>s.uploading)||rspPhotoList.some(p=>p.uploading);
+  if(uploading){
+    const go=confirm('Some photos are still uploading.\n\nTap OK to "Continue in background upload" — the report submits now, photos keep uploading, and WhatsApp opens with the text report.\n\nTap Cancel to wait.');
+    if(!go)return;
+  }
+  await _finalizeSubmit(true); // true = also open WhatsApp (text only)
 }
 
 // ════════ GOOGLE SHEET SYNC ════════
@@ -2137,10 +2168,15 @@ function renderPhotoSlots(){
     const done=!!s.dataUrl;
     const reqTag=s.required?' <span style="color:#FF3B30;">*</span>':'';
     html+='<div style="margin-bottom:12px;padding:10px;border:1.5px solid '+(done?'rgba(232,84,30,0.4)':'#E9EDEF')+';border-radius:12px;background:'+(done?'rgba(232,84,30,0.06)':'#FBFCFD')+';">';
-    html+='<div style="font-size:12px;font-weight:800;color:#111B21;margin-bottom:8px;">'+(done?'✓ ':'')+s.label+' '+reqTag+'</div>';
+    let statusTag='';
+    if(s.uploading)statusTag=' <span style="color:#E8541E;font-weight:700;">⏳ Uploading…</span>';
+    else if(s.failed)statusTag=' <span style="color:#d32f2f;font-weight:700;">⚠ Poor network — tap Retry</span>';
+    else if(s.driveView)statusTag=' <span style="color:#2e7d32;font-weight:700;">✓ Uploaded</span>';
+    html+='<div style="font-size:12px;font-weight:800;color:#111B21;margin-bottom:8px;">'+(done?'':'')+s.label+reqTag+statusTag+'</div>';
     if(done){
-      html+='<img src="'+s.dataUrl+'" style="width:100%;border-radius:9px;border:1px solid #E9EDEF;max-height:160px;object-fit:cover;"/>';
+      html+='<img src="'+s.dataUrl+'" style="width:100%;border-radius:9px;border:1px solid #E9EDEF;max-height:160px;object-fit:cover;'+(s.uploading?'opacity:0.6;':'')+'"/>';
       html+='<div style="display:flex;gap:7px;margin-top:7px;">';
+      if(s.failed)html+='<button type="button" onclick="slotRetry('+i+')" style="flex:1;padding:8px;background:#fdecea;border:1px solid #d32f2f;border-radius:9px;font-family:inherit;font-size:12px;font-weight:800;color:#d32f2f;cursor:pointer;">🔁 Retry Upload</button>';
       html+='<button type="button" onclick="slotCapture('+i+',true)" style="flex:1;padding:8px;background:#F7F8FA;border:1px solid #E9EDEF;border-radius:9px;font-family:inherit;font-size:12px;font-weight:700;color:#54656F;cursor:pointer;">📷 Retake</button>';
       html+='<button type="button" onclick="slotCapture('+i+',false)" style="flex:1;padding:8px;background:#F7F8FA;border:1px solid #E9EDEF;border-radius:9px;font-family:inherit;font-size:12px;font-weight:700;color:#54656F;cursor:pointer;">📁 Replace</button>';
       html+='<button type="button" onclick="slotClear('+i+')" style="padding:8px 11px;background:rgba(255,82,82,0.1);border:none;border-radius:9px;font-size:12px;font-weight:700;color:#FF3B30;cursor:pointer;">✕</button>';
@@ -2168,8 +2204,10 @@ function slotCapture(i,useCamera){
 }
 function slotClear(i){
   photoSlots[i].file=null;photoSlots[i].dataUrl=null;photoSlots[i].driveView='';photoSlots[i].driveThumb='';
+  photoSlots[i].uploading=false;photoSlots[i].failed=false;
   renderPhotoSlots();
 }
+function slotRetry(i){if(photoSlots[i]&&photoSlots[i].file){uploadSlotLive(photoSlots[i],'photo',i);}}
 function onSlotFile(input){
   const file=input.files[0];
   if(!file)return;
@@ -2179,10 +2217,12 @@ function onSlotFile(input){
     const idx=_rspReplaceIdx; _rspReplaceIdx=-1;
     const reader=new FileReader();
     reader.onload=e=>{
-      const obj={file:file,dataUrl:e.target.result,driveView:'',driveThumb:''};
-      if(idx>=0 && idx<rspPhotoList.length) rspPhotoList[idx]=obj; // retake/replace
-      else rspPhotoList.push(obj);                                 // add more
+      const obj={file:file,dataUrl:e.target.result,driveView:'',driveThumb:'',uploading:true,failed:false,key:'RSPCHG'+Date.now()};
+      let pos;
+      if(idx>=0 && idx<rspPhotoList.length){rspPhotoList[idx]=obj;pos=idx;} // retake/replace
+      else {rspPhotoList.push(obj);pos=rspPhotoList.length-1;}             // add more
       renderRSPPhoto();
+      uploadSlotLive(rspPhotoList[pos],'rsp',pos);
     };
     reader.readAsDataURL(file);return;
   }
@@ -2193,10 +2233,28 @@ function onSlotFile(input){
     photoSlots[i].file=file;
     photoSlots[i].dataUrl=e.target.result;
     photoSlots[i].driveView='';photoSlots[i].driveThumb='';
+    photoSlots[i].uploading=true;photoSlots[i].failed=false;
     renderPhotoSlots();
     if(typeof updateFill==='function')updateFill();
+    // instant background upload of THIS photo
+    uploadSlotLive(photoSlots[i],'photo',i);
   };
   reader.readAsDataURL(file);
+}
+
+// Upload one photo immediately on capture; update its state + re-render.
+async function uploadSlotLive(slot,kind,idx){
+  const rid=(editId||('r'+Date.now()));
+  slot.uploading=true;slot.failed=false;
+  if(kind==='photo')renderPhotoSlots(); else renderRSPPhoto();
+  try{
+    const r=await uploadSlot(slot,rid);
+    if(r&&r.view){slot.driveView=r.view;slot.driveThumb=r.view;slot.uploading=false;slot.failed=false;}
+    else {slot.uploading=false;slot.failed=true;}
+  }catch(e){slot.uploading=false;slot.failed=true;}
+  if(kind==='photo')renderPhotoSlots(); else renderRSPPhoto();
+  // if this completed a pending background report, patch it
+  _patchPendingReportPhotos();
 }
 
 function missingRequiredPhotos(){
@@ -2275,10 +2333,15 @@ function renderRSPPhoto(){
     html+='<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:8px;">';
     rspPhotoList.forEach((p,i)=>{
       const src=p.dataUrl||p.driveView;
+      let badge='';
+      if(p.uploading)badge='<div style="position:absolute;bottom:4px;right:4px;background:rgba(232,84,30,0.92);border-radius:7px;color:#fff;font-size:9px;font-weight:800;padding:3px 6px;">⏳ Uploading</div>';
+      else if(p.failed)badge='<div style="position:absolute;bottom:4px;right:4px;background:rgba(211,47,47,0.92);border-radius:7px;color:#fff;font-size:9px;font-weight:800;padding:3px 6px;cursor:pointer;" onclick="rspPhotoRetry('+i+')">⚠ Retry</div>';
+      else if(p.driveView)badge='<div style="position:absolute;bottom:4px;right:4px;background:rgba(46,125,50,0.92);border-radius:7px;color:#fff;font-size:9px;font-weight:800;padding:3px 6px;">✓</div>';
       html+='<div style="position:relative;">'+
-        '<img src="'+src+'" style="width:100%;height:110px;object-fit:cover;border-radius:9px;border:1px solid #E9EDEF;"/>'+
+        '<img src="'+src+'" style="width:100%;height:110px;object-fit:cover;border-radius:9px;border:1px solid #E9EDEF;'+(p.uploading?'opacity:0.6;':'')+'"/>'+
         '<button type="button" onclick="rspPhotoRemove('+i+')" style="position:absolute;top:4px;right:4px;width:24px;height:24px;background:rgba(255,59,48,0.92);border:none;border-radius:50%;color:#fff;font-size:13px;font-weight:800;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;">✕</button>'+
-        '<button type="button" onclick="rspPhotoCapture(true,'+i+')" style="position:absolute;bottom:4px;left:4px;background:rgba(0,0,0,0.55);border:none;border-radius:7px;color:#fff;font-size:10px;font-weight:700;padding:3px 7px;cursor:pointer;">📷 Retake</button>'+
+        '<button type="button" onclick="rspPhotoCapture(true,'+i+')" style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.55);border:none;border-radius:7px;color:#fff;font-size:10px;font-weight:700;padding:3px 7px;cursor:pointer;">📷</button>'+
+        badge+
         '</div>';
     });
     html+='</div>';
@@ -2295,6 +2358,7 @@ function rspPhotoCapture(useCamera,idx){
   inp.value='';inp.click();
 }
 function rspPhotoRemove(i){rspPhotoList.splice(i,1);renderRSPPhoto();}
+function rspPhotoRetry(i){if(rspPhotoList[i]&&rspPhotoList[i].file){uploadSlotLive(rspPhotoList[i],'rsp',i);}}
 
 function _numv(id){var e=document.getElementById(id);if(!e)return null;var v=parseFloat(e.value);return isFinite(v)?v:null;}
 function calcRSPSplit(){
