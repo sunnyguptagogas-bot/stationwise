@@ -562,7 +562,7 @@ function switchTab(tab){
     <div class="fsec fadein" style="margin:10px 14px 0;">
       <div class="fsec-head"><div class="fsec-title">📷 Required & Supporting Photos</div></div>
       <div style="padding:14px;">
-        <div style="font-size:11px;color:#8696A0;margin-bottom:12px;font-weight:600;">📷 Photograph each DU meter showing the <b>closing reading</b> (end-of-shift totalizer). DU meter photos are required. ROTO / DIP / RADAR are optional. You can take a photo or upload from gallery.</div>
+        <div style="font-size:11px;color:#8696A0;margin-bottom:12px;font-weight:600;">📷 Photograph each DU meter showing the <b>closing reading</b> (end-of-shift totalizer). You can take a photo or upload from gallery.</div>
         <div id="photo_slots"></div>
         <input type="file" id="photo_file_input" accept="image/*" style="display:none;" onchange="onSlotFile(this)"/>
         <div id="photo_req_note" style="margin-top:6px;font-size:11px;font-weight:700;color:#FF8C00;"></div>
@@ -2116,9 +2116,9 @@ function buildPhotoSlots(){
     defs.push({key:'DU2A',label:'DU-2 A-side Meter (Closing Reading)',required:true});
     defs.push({key:'DU2B',label:'DU-2 B-side Meter (Closing Reading)',required:true});
   }
-  defs.push({key:'ROTO',label:'ROTO Gauge (optional)',required:false});
-  defs.push({key:'DIP',label:'DIP Scale (optional)',required:false});
-  defs.push({key:'RADAR',label:'RADAR Meter (optional)',required:false});
+  defs.push({key:'ROTO',label:'ROTO Gauge',required:false});
+  defs.push({key:'DIP',label:'DIP Scale',required:false});
+  defs.push({key:'RADAR',label:'RADAR Meter',required:false});
   // preserve any already-captured photos across re-render
   const prev={};photoSlots.forEach(s=>{prev[s.key]=s;});
   photoSlots=defs.map(d=>{
@@ -2135,7 +2135,7 @@ function renderPhotoSlots(){
   let html='';
   photoSlots.forEach((s,i)=>{
     const done=!!s.dataUrl;
-    const reqTag=s.required?'<span style="color:#FF3B30;">*</span>':'<span style="color:#8696A0;font-weight:600;">(optional)</span>';
+    const reqTag=s.required?' <span style="color:#FF3B30;">*</span>':'';
     html+='<div style="margin-bottom:12px;padding:10px;border:1.5px solid '+(done?'rgba(232,84,30,0.4)':'#E9EDEF')+';border-radius:12px;background:'+(done?'rgba(232,84,30,0.06)':'#FBFCFD')+';">';
     html+='<div style="font-size:12px;font-weight:800;color:#111B21;margin-bottom:8px;">'+(done?'✓ ':'')+s.label+' '+reqTag+'</div>';
     if(done){
