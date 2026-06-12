@@ -1151,16 +1151,39 @@ function closeLightbox(){document.getElementById('lightbox').style.display='none
 // ── STEP 8: OCR ASSIST (Tesseract.js) — assistive only, never blocks approval ──
 // Reads a DU meter photo, extracts the most likely meter number, compares to the
 // entered CLOSING reading for that nozzle. Admin decides; OCR never auto-applies.
-function _ocrPickNumber(text){
+function _ocrPickNumber(text,hint){
   if(!text)return null;
-  var matches=(text.replace(/[oO]/g,'0').match(/[\d][\d.,\s]{2,}/g)||[])
-    .map(function(s){return s.replace(/[^\d.]/g,'');})
-    .map(function(s){var p=s.split('.');return p.length>1?p[0]+'.'+p.slice(1).join(''):s;})
-    .filter(function(s){return s.replace('.','').length>=3;});
-  if(!matches.length)return null;
-  matches.sort(function(a,b){return b.replace('.','').length-a.replace('.','').length;});
-  var v=parseFloat(matches[0]);
-  return isFinite(v)?v:null;
+  // collect candidate digit groups (allow separators), normalize O->0
+  var raw=(text.replace(/[oO]/g,'0').match(/[\d][\d.,\s]{1,}\d|\d{3,}/g)||[]);
+  var cands=raw.map(function(s){
+    // keep digits + at most one decimal point; drop thousands separators/spaces
+    s=s.replace(/\s/g,'');
+    // if there is a dot with 1-2 trailing digits, treat as decimal; else strip dots/commas
+    var dm=s.match(/^(\d[\d,]*)\.(\d{1,2})$/);
+    if(dm){return parseFloat(dm[1].replace(/,/g,'')+'.'+dm[2]);}
+    var digits=s.replace(/[^\d]/g,'');
+    if(digits.length<3)return null;
+    return parseFloat(digits);
+  }).filter(function(v){return v!=null && isFinite(v);});
+  // meter readings are realistically 3–8 significant digits; drop absurd garbage (>8 digits)
+  cands=cands.filter(function(v){var d=String(Math.floor(Math.abs(v))).length;return d>=3 && d<=8;});
+  if(!cands.length)return null;
+  // If we have a hint (prior/entered reading), use it ONLY to discard candidates of the wrong
+  // magnitude (e.g. "108" when the meter is ~3588, or garbage ~49202020). Among candidates of a
+  // plausible magnitude we still pick the best-formed one — we do NOT snap to the hint, so a
+  // genuine mismatch can still be detected.
+  if(hint!=null && isFinite(hint) && hint>0){
+    var lo=hint*0.5, hi=hint*2.0;                 // within half-to-double the expected reading
+    var inBand=cands.filter(function(v){return v>=lo && v<=hi;});
+    if(inBand.length)cands=inBand;                // if any are plausible, restrict to those
+  }
+  // prefer the candidate with the most digits (the main totalizer vs small labels)
+  cands.sort(function(a,b){
+    var da=String(Math.floor(Math.abs(a))).length, db=String(Math.floor(Math.abs(b))).length;
+    if(db!==da)return db-da;
+    return b-a;
+  });
+  return cands[0];
 }
 // Read one image URL -> number|null (pure, no DOM)
 // Uses a single persistent worker (created once) + a hard timeout so one bad image can't hang the scan.
@@ -1188,7 +1211,7 @@ function _withTimeout(promise,ms,onTimeoutVal){
                  function(){if(!done){done=true;clearTimeout(t);resolve(onTimeoutVal);}});
   });
 }
-async function _ocrReadUrl(url){
+async function _ocrReadUrl(url,hint){
   if(typeof Tesseract==='undefined')return undefined; // engine not loaded
   var worker=await _getOcrWorker();
   if(!worker)return undefined;
@@ -1196,7 +1219,7 @@ async function _ocrReadUrl(url){
     // 20s hard cap per image; timeout -> null (treated as "unclear"), never hangs
     var res=await _withTimeout(worker.recognize(url),20000,null);
     if(!res)return null;
-    return _ocrPickNumber(res&&res.data?res.data.text:'');
+    return _ocrPickNumber(res&&res.data?res.data.text:'',hint);
   }catch(e){return null;}
 }
 // Compare reading vs entered -> 'match'|'mismatch'|'unclear'
@@ -1212,14 +1235,14 @@ async function ocrProcessReport(r){
   var results={},flagged=0,anyRead=false;
   for(var i=0;i<map.length;i++){
     var m=map[i];if(!r[m[0]])continue;
+    var entered=parseFloat(r[m[2]]);
     var reading;
-    try{reading=await _ocrReadUrl(r[m[0]]);}catch(e){reading=null;}
+    try{reading=await _ocrReadUrl(r[m[0]],isFinite(entered)?entered:null);}catch(e){reading=null;}
     if(reading===undefined){           // engine glitch on this image — record as unclear, keep going
-      results[m[1]]={reading:null,entered:(isFinite(parseFloat(r[m[2]]))?parseFloat(r[m[2]]):null),status:'unclear'};
+      results[m[1]]={reading:null,entered:(isFinite(entered)?entered:null),status:'unclear'};
       continue;
     }
     anyRead=true;
-    var entered=parseFloat(r[m[2]]);
     var status=_ocrStatus(reading,entered);
     if(status==='mismatch')flagged++;
     results[m[1]]={reading:(reading==null?null:reading),entered:(isFinite(entered)?entered:null),status:status};
@@ -1279,7 +1302,7 @@ async function _ocrMeterManual(url,nozzle,label){
   if(typeof Tesseract==='undefined'){slot.innerHTML='<span style="color:#8696A0;">OCR engine not loaded (check connection)</span>';return;}
   slot.innerHTML='<span style="color:#E8541E;">⏳ Reading…</span>';
   var entered=parseFloat((document.getElementById('d_c'+nozzle)||{}).value);
-  var reading=await _ocrReadUrl(url); // shared worker + 20s timeout
+  var reading=await _ocrReadUrl(url,isFinite(entered)?entered:null); // shared worker + 20s timeout + ballpark hint
   if(reading===undefined){slot.innerHTML='<span style="color:#d32f2f;">⚠ OCR engine could not start — reload the page</span>';return;}
   if(reading==null){slot.innerHTML='<span style="color:#8696A0;">🔍 Couldn\'t read clearly (or timed out) — review manually</span>';return;}
   var rTxt=reading.toLocaleString('en-IN');
