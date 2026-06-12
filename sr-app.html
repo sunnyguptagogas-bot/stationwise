@@ -491,9 +491,9 @@ function switchTab(tab){
         <div style="text-align:center;font-size:12px;font-weight:800;color:#111B21;margin:4px 0 6px;">Meter Reading At Change</div>
         <div style="background:#fff;border:1px solid #E9EDEF;border-radius:10px;overflow:hidden;">
           <div class="lrow"><div class="llbl">A1</div><div class="lval"><input class="ffin" id="f_chg_a1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcRSPSplit()"/></div></div>
-          <div class="lrow" id="chg_a2_row"><div class="llbl">A2</div><div class="lval"><input class="ffin" id="f_chg_a2" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcRSPSplit()"/></div></div>
+          <div class="lrow"><div class="llbl">A2</div><div class="lval"><input class="ffin" id="f_chg_a2" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcRSPSplit()"/></div></div>
           <div class="lrow"><div class="llbl">B1</div><div class="lval"><input class="ffin" id="f_chg_b1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcRSPSplit()"/></div></div>
-          <div class="lrow" id="chg_b2_row"><div class="llbl">B2</div><div class="lval"><input class="ffin" id="f_chg_b2" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcRSPSplit()"/></div></div>
+          <div class="lrow"><div class="llbl">B2</div><div class="lval"><input class="ffin" id="f_chg_b2" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcRSPSplit()"/></div></div>
         </div>
         <!-- Two columns: OLD | NEW -->
         <div class="frow two" style="margin-top:10px;background:#fff;border:1px solid #E9EDEF;border-radius:10px;overflow:hidden;">
@@ -2256,11 +2256,6 @@ function toggleRSPChange(){
   document.getElementById('rsp_change_box').style.display=rspChangeOn?'block':'none';
   document.getElementById('rsp_add_btn').style.display=rspChangeOn?'none':'flex';
   if(rspChangeOn){
-    // show A2/B2 change rows only for double-dispenser stations
-    var dbl=isDoubleDispenser();
-    var a2=document.getElementById('chg_a2_row'),b2=document.getElementById('chg_b2_row');
-    if(a2)a2.style.display=dbl?'flex':'none';
-    if(b2)b2.style.display=dbl?'flex':'none';
     renderRSPPhoto();
     calcRSPSplit();
   } else {
