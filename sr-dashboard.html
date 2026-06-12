@@ -1163,10 +1163,39 @@ function _ocrPickNumber(text){
   return isFinite(v)?v:null;
 }
 // Read one image URL -> number|null (pure, no DOM)
+// Uses a single persistent worker (created once) + a hard timeout so one bad image can't hang the scan.
+var _ocrWorker=null, _ocrWorkerReady=null;
+async function _getOcrWorker(){
+  if(typeof Tesseract==='undefined')return null;
+  if(_ocrWorker)return _ocrWorker;
+  if(_ocrWorkerReady)return _ocrWorkerReady;
+  _ocrWorkerReady=(async function(){
+    try{
+      // Tesseract v5: createWorker(langs, oem, options) returns a ready worker
+      var w=await Tesseract.createWorker('eng',1,{});
+      try{await w.setParameters({tessedit_char_whitelist:'0123456789.,'});}catch(e){}
+      _ocrWorker=w;
+      return w;
+    }catch(e){_ocrWorkerReady=null;return null;}
+  })();
+  return _ocrWorkerReady;
+}
+function _withTimeout(promise,ms,onTimeoutVal){
+  return new Promise(function(resolve){
+    var done=false;
+    var t=setTimeout(function(){if(!done){done=true;resolve(onTimeoutVal);}},ms);
+    promise.then(function(v){if(!done){done=true;clearTimeout(t);resolve(v);}},
+                 function(){if(!done){done=true;clearTimeout(t);resolve(onTimeoutVal);}});
+  });
+}
 async function _ocrReadUrl(url){
   if(typeof Tesseract==='undefined')return undefined; // engine not loaded
+  var worker=await _getOcrWorker();
+  if(!worker)return undefined;
   try{
-    var res=await Tesseract.recognize(url,'eng',{tessedit_char_whitelist:'0123456789.,'});
+    // 20s hard cap per image; timeout -> null (treated as "unclear"), never hangs
+    var res=await _withTimeout(worker.recognize(url),20000,null);
+    if(!res)return null;
     return _ocrPickNumber(res&&res.data?res.data.text:'');
   }catch(e){return null;}
 }
@@ -1180,20 +1209,27 @@ function _ocrStatus(reading,entered){
 // Process a single report's 4 DU meters, write ocr_results/ocr_flagged/ocr_done to DB
 async function ocrProcessReport(r){
   var map=[['photo_du1a','A1','close_a1'],['photo_du1b','B1','close_b1'],['photo_du2a','A2','close_a2'],['photo_du2b','B2','close_b2']];
-  var results={},flagged=0;
+  var results={},flagged=0,anyRead=false;
   for(var i=0;i<map.length;i++){
     var m=map[i];if(!r[m[0]])continue;
-    var reading=await _ocrReadUrl(r[m[0]]);
-    if(reading===undefined)return false; // engine missing — abort, don't mark done
+    var reading;
+    try{reading=await _ocrReadUrl(r[m[0]]);}catch(e){reading=null;}
+    if(reading===undefined){           // engine glitch on this image — record as unclear, keep going
+      results[m[1]]={reading:null,entered:(isFinite(parseFloat(r[m[2]]))?parseFloat(r[m[2]]):null),status:'unclear'};
+      continue;
+    }
+    anyRead=true;
     var entered=parseFloat(r[m[2]]);
     var status=_ocrStatus(reading,entered);
     if(status==='mismatch')flagged++;
     results[m[1]]={reading:(reading==null?null:reading),entered:(isFinite(entered)?entered:null),status:status};
   }
   var upd={ocr_done:true,ocr_results:results,ocr_flagged:flagged};
-  var {error}=await sb.from('reports').update(upd).eq('id',r.id);
-  if(!error)Object.assign(r,upd);
-  return !error;
+  try{
+    var {error}=await sb.from('reports').update(upd).eq('id',r.id);
+    if(!error)Object.assign(r,upd);
+    return !error;
+  }catch(e){return false;}
 }
 // Background/manual scan over T-1 reports
 var _ocrScanning=false;
@@ -1211,17 +1247,24 @@ async function ocrScan(force){
   });
   if(!todo.length){if(force)toast('No T-1 reports with meter photos to scan');return;}
   _ocrScanning=true;
+  _ocrSetStatus('🔍 Starting OCR engine…');
+  // warm the worker once before the loop
+  var w=await _getOcrWorker();
+  if(!w){_ocrScanning=false;_ocrSetStatus('');toast('⚠ OCR engine could not start — reload the page and try again');return;}
   _ocrSetStatus('🔍 OCR reading ongoing… 0/'+todo.length);
-  var done=0;
+  var done=0,failed=0;
   for(var i=0;i<todo.length;i++){
-    await ocrProcessReport(todo[i]);
+    try{
+      var ok=await ocrProcessReport(todo[i]);
+      if(!ok)failed++;
+    }catch(e){failed++;}
     done++;
-    _ocrSetStatus('🔍 OCR reading ongoing… '+done+'/'+todo.length);
+    _ocrSetStatus('🔍 OCR reading ongoing… '+done+'/'+todo.length+(failed?(' ('+failed+' had issues)'):''));
     if(isPageAllowed('reports'))renderReports(); // live-update chips
   }
   _ocrScanning=false;
   _ocrSetStatus('');
-  toast('✓ OCR scan complete ('+done+' report'+(done===1?'':'s')+')');
+  toast('✓ OCR scan complete ('+done+' report'+(done===1?'':'s')+(failed?(', '+failed+' with issues'):'')+')');
   renderReports();renderDashboard();
 }
 function _ocrSetStatus(txt){
@@ -1236,26 +1279,22 @@ async function _ocrMeterManual(url,nozzle,label){
   if(typeof Tesseract==='undefined'){slot.innerHTML='<span style="color:#8696A0;">OCR engine not loaded (check connection)</span>';return;}
   slot.innerHTML='<span style="color:#E8541E;">⏳ Reading…</span>';
   var entered=parseFloat((document.getElementById('d_c'+nozzle)||{}).value);
-  try{
-    var res=await Tesseract.recognize(url,'eng',{tessedit_char_whitelist:'0123456789.,'});
-    var reading=_ocrPickNumber(res&&res.data?res.data.text:'');
-    if(reading==null){slot.innerHTML='<span style="color:#8696A0;">🔍 Couldn\'t read clearly — review manually</span>';return;}
-    var rTxt=reading.toLocaleString('en-IN');
-    if(isFinite(entered)){
-      var diff=Math.abs(reading-entered);
-      var tol=Math.max(2,entered*0.01); // 1% or 2 units tolerance
-      if(diff<=tol){
-        slot.innerHTML='<span style="color:#2e7d32;font-weight:700;">✓ OCR '+rTxt+' — matches</span>';
-      } else {
-        slot.innerHTML='<span style="color:#d32f2f;font-weight:700;">⚠ OCR '+rTxt+' ≠ entered '+entered.toLocaleString('en-IN')+'</span> '+
-          '<button class="btn sm gray" style="font-size:10px;padding:2px 7px;" onclick="useOcr(\''+nozzle+'\','+reading+')">Use OCR</button>';
-      }
+  var reading=await _ocrReadUrl(url); // shared worker + 20s timeout
+  if(reading===undefined){slot.innerHTML='<span style="color:#d32f2f;">⚠ OCR engine could not start — reload the page</span>';return;}
+  if(reading==null){slot.innerHTML='<span style="color:#8696A0;">🔍 Couldn\'t read clearly (or timed out) — review manually</span>';return;}
+  var rTxt=reading.toLocaleString('en-IN');
+  if(isFinite(entered)){
+    var diff=Math.abs(reading-entered);
+    var tol=Math.max(2,entered*0.01); // 1% or 2 units tolerance
+    if(diff<=tol){
+      slot.innerHTML='<span style="color:#2e7d32;font-weight:700;">✓ OCR '+rTxt+' — matches</span>';
     } else {
-      slot.innerHTML='<span style="color:#37474F;">🔍 OCR '+rTxt+'</span> '+
-        '<button class="btn sm gray" style="font-size:10px;padding:2px 7px;" onclick="useOcr(\''+nozzle+'\','+reading+')">Use</button>';
+      slot.innerHTML='<span style="color:#d32f2f;font-weight:700;">⚠ OCR '+rTxt+' ≠ entered '+entered.toLocaleString('en-IN')+'</span> '+
+        '<button class="btn sm gray" style="font-size:10px;padding:2px 7px;" onclick="useOcr(\''+nozzle+'\','+reading+')">Use OCR</button>';
     }
-  }catch(e){
-    slot.innerHTML='<span style="color:#8696A0;">OCR failed — review manually</span>';
+  } else {
+    slot.innerHTML='<span style="color:#37474F;">🔍 OCR '+rTxt+'</span> '+
+      '<button class="btn sm gray" style="font-size:10px;padding:2px 7px;" onclick="useOcr(\''+nozzle+'\','+reading+')">Use</button>';
   }
 }
 function useOcr(nozzle,val){
