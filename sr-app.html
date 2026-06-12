@@ -465,42 +465,6 @@ function switchTab(tab){
       </div>
       <div class="frow"><div class="ffield"><div class="fflbl">Year</div><div class="fflocked" id="fd_year">—</div></div></div>
     </div>
-    <div class="sec-div">Opening</div>
-    <div class="fsec fadein">
-      <div class="fsec-head"><div class="fsec-title">★ OPENING</div></div>
-      <div class="frow two">
-        <div class="ffield"><div class="fflbl">A1 <span class="req">*</span></div><input class="ffin" id="f_oa1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div>
-        <div class="ffield"><div class="fflbl">B1 <span class="req">*</span></div><input class="ffin" id="f_ob1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div>
-      </div>
-      <div class="frow two">
-        <div class="ffield"><div class="fflbl">A2</div><input class="ffin" id="f_oa2" type="text" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();"/></div>
-        <div class="ffield"><div class="fflbl">B2</div><input class="ffin" id="f_ob2" type="text" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();"/></div>
-      </div>
-    </div>
-    <div class="sec-div">Closing</div>
-    <div class="fsec fadein">
-      <div class="fsec-head"><div class="fsec-title">★ CLOSING</div></div>
-      <div class="frow two">
-        <div class="ffield"><div class="fflbl">A1 <span class="req">*</span></div><input class="ffin" id="f_ca1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div>
-        <div class="ffield"><div class="fflbl">B1 <span class="req">*</span></div><input class="ffin" id="f_cb1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div>
-      </div>
-      <div class="frow two">
-        <div class="ffield"><div class="fflbl">A2</div><input class="ffin" id="f_ca2" type="text" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();"/></div>
-        <div class="ffield"><div class="fflbl">B2</div><input class="ffin" id="f_cb2" type="text" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();"/></div>
-      </div>
-    </div>
-    <div class="sec-div">Sales</div>
-    <div class="fsec fadein">
-      <div class="fsec-head"><div class="fsec-title">★ SALES</div></div>
-      <div class="frow two">
-        <div class="ffield"><div class="fflbl">Total Sale <span class="req">*</span></div><input class="ffin" id="f_ts" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill();calcNS()"/></div>
-        <div class="ffield"><div class="fflbl">Rtn Testing</div><input class="ffin" id="f_rtn" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00" oninput="calcNS()"/></div>
-      </div>
-      <div class="frow two">
-        <div class="ffield"><div class="fflbl">Free Sale</div><input class="ffin" id="f_free" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00" oninput="calcNS()"/></div>
-        <div class="ffield"><div class="fflbl">Net Sale <span class="req">*</span></div><input class="ffin" id="f_ns" type="number" inputmode="decimal" step="0.01" placeholder="Auto" oninput="updateFill()"/></div>
-      </div>
-    </div>
     <div class="sec-div">Rate</div>
     <div class="fsec fadein">
       <div class="fsec-head"><div class="fsec-title">★ RATE</div></div>
@@ -539,6 +503,30 @@ function switchTab(tab){
         <div id="rsp_photo_slot" style="margin-top:10px;"></div>
       </div>
     </div>
+    <div class="sec-div">Opening</div>
+    <div class="fsec fadein">
+      <div class="fsec-head"><div class="fsec-title">★ OPENING</div></div>
+      <div class="frow two">
+        <div class="ffield"><div class="fflbl">A1 <span class="req">*</span></div><input class="ffin" id="f_oa1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div>
+        <div class="ffield"><div class="fflbl">B1 <span class="req">*</span></div><input class="ffin" id="f_ob1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div>
+      </div>
+      <div class="frow two">
+        <div class="ffield"><div class="fflbl">A2</div><input class="ffin" id="f_oa2" type="text" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();"/></div>
+        <div class="ffield"><div class="fflbl">B2</div><input class="ffin" id="f_ob2" type="text" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();"/></div>
+      </div>
+    </div>
+    <div class="sec-div">Closing</div>
+    <div class="fsec fadein">
+      <div class="fsec-head"><div class="fsec-title">★ CLOSING</div></div>
+      <div class="frow two">
+        <div class="ffield"><div class="fflbl">A1 <span class="req">*</span></div><input class="ffin" id="f_ca1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div>
+        <div class="ffield"><div class="fflbl">B1 <span class="req">*</span></div><input class="ffin" id="f_cb1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div>
+      </div>
+      <div class="frow two">
+        <div class="ffield"><div class="fflbl">A2</div><input class="ffin" id="f_ca2" type="text" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();"/></div>
+        <div class="ffield"><div class="fflbl">B2</div><input class="ffin" id="f_cb2" type="text" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();"/></div>
+      </div>
+    </div>
     <div class="sec-div">Payments</div>
     <div class="fsec fadein">
       <div class="fsec-head"><div class="fsec-title">★ PAYMENTS</div></div>
@@ -557,6 +545,18 @@ function switchTab(tab){
       <div class="frow two">
         <div class="ffield"><div class="fflbl">Bank Deposit</div><input class="ffin" id="f_bank" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div>
         <div class="ffield"><div class="fflbl">Cash In Hand <span class="req">*</span></div><input class="ffin" id="f_cih" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div>
+      </div>
+    </div>
+    <div class="sec-div">Sales</div>
+    <div class="fsec fadein">
+      <div class="fsec-head"><div class="fsec-title">★ SALES</div></div>
+      <div class="frow two">
+        <div class="ffield"><div class="fflbl">Total Sale <span class="req">*</span></div><input class="ffin" id="f_ts" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill();calcNS()"/></div>
+        <div class="ffield"><div class="fflbl">Rtn Testing</div><input class="ffin" id="f_rtn" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00" oninput="calcNS()"/></div>
+      </div>
+      <div class="frow two">
+        <div class="ffield"><div class="fflbl">Free Sale</div><input class="ffin" id="f_free" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00" oninput="calcNS()"/></div>
+        <div class="ffield"><div class="fflbl">Net Sale <span class="req">*</span></div><input class="ffin" id="f_ns" type="number" inputmode="decimal" step="0.01" placeholder="Auto" oninput="updateFill()"/></div>
       </div>
     </div>
     <div class="sec-div">Stock</div>
@@ -580,7 +580,7 @@ function switchTab(tab){
     <div class="fsec fadein" style="margin:10px 14px 0;">
       <div class="fsec-head"><div class="fsec-title">📷 Required & Supporting Photos</div></div>
       <div style="padding:14px;">
-        <div style="font-size:11px;color:#8696A0;margin-bottom:12px;font-weight:600;">DU meter photos are required. ROTO / DIP / RADAR are optional. You can take a photo or upload from gallery.</div>
+        <div style="font-size:11px;color:#8696A0;margin-bottom:12px;font-weight:600;">📷 Photograph each DU meter showing the <b>closing reading</b> (end-of-shift totalizer). DU meter photos are required. ROTO / DIP / RADAR are optional. You can take a photo or upload from gallery.</div>
         <div id="photo_slots"></div>
         <input type="file" id="photo_file_input" accept="image/*" style="display:none;" onchange="onSlotFile(this)"/>
         <div id="photo_req_note" style="margin-top:6px;font-size:11px;font-weight:700;color:#FF8C00;"></div>
@@ -2119,12 +2119,12 @@ function isDoubleDispenser(){
 function buildPhotoSlots(){
   const dbl=isDoubleDispenser();
   const defs=[
-    {key:'DU1A',label:'DU-1 A-side Meter',required:true},
-    {key:'DU1B',label:'DU-1 B-side Meter',required:true}
+    {key:'DU1A',label:'DU-1 A-side Meter (Closing Reading)',required:true},
+    {key:'DU1B',label:'DU-1 B-side Meter (Closing Reading)',required:true}
   ];
   if(dbl){
-    defs.push({key:'DU2A',label:'DU-2 A-side Meter',required:true});
-    defs.push({key:'DU2B',label:'DU-2 B-side Meter',required:true});
+    defs.push({key:'DU2A',label:'DU-2 A-side Meter (Closing Reading)',required:true});
+    defs.push({key:'DU2B',label:'DU-2 B-side Meter (Closing Reading)',required:true});
   }
   defs.push({key:'ROTO',label:'ROTO Gauge (optional)',required:false});
   defs.push({key:'DIP',label:'DIP Scale (optional)',required:false});
