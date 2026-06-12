@@ -472,7 +472,7 @@ function switchTab(tab){
     </div>
     <div class="fsec fadein">
       <div class="fsec-head"><div class="fsec-title">RATE</div></div>
-      <div class="lrow"><div class="llbl">RSP DU1-N1</div><div class="lval"><input class="ffin" id="f_r1" type="number" inputmode="decimal" step="0.01" placeholder="0.00"/></div></div>
+      <div class="lrow"><div class="llbl">RSP DU1-N1</div><div class="lval"><input class="ffin" id="f_r1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcDerived()"/></div></div>
       <div class="lrow"><div class="llbl">RSP DU1-N2</div><div class="lval"><input class="ffin" id="f_r2" type="text" inputmode="decimal" placeholder="NA" value="NA"/></div></div>
       <div class="lrow"><div class="llbl">RSP DU2-N1</div><div class="lval"><input class="ffin" id="f_r3" type="text" inputmode="decimal" placeholder="NA" value="NA"/></div></div>
       <div class="lrow"><div class="llbl">RSP DU2-N2</div><div class="lval"><input class="ffin" id="f_r4" type="text" inputmode="decimal" placeholder="NA" value="NA"/></div></div>
@@ -518,17 +518,17 @@ function switchTab(tab){
     </div>
     <div class="fsec fadein">
       <div class="fsec-head"><div class="fsec-title">OPENING</div></div>
-      <div class="lrow"><div class="llbl">A1 <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_oa1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill();calcRSPSplit()"/></div></div>
-      <div class="lrow"><div class="llbl">A2</div><div class="lval"><input class="ffin" id="f_oa2" type="text" inputmode="decimal" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();"/></div></div>
-      <div class="lrow"><div class="llbl">B1 <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_ob1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill();calcRSPSplit()"/></div></div>
-      <div class="lrow"><div class="llbl">B2</div><div class="lval"><input class="ffin" id="f_ob2" type="text" inputmode="decimal" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();"/></div></div>
+      <div class="lrow"><div class="llbl">A1 <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_oa1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill();calcRSPSplit();calcDerived()"/></div></div>
+      <div class="lrow"><div class="llbl">A2</div><div class="lval"><input class="ffin" id="f_oa2" type="text" inputmode="decimal" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();calcDerived();"/></div></div>
+      <div class="lrow"><div class="llbl">B1 <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_ob1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill();calcRSPSplit();calcDerived()"/></div></div>
+      <div class="lrow"><div class="llbl">B2</div><div class="lval"><input class="ffin" id="f_ob2" type="text" inputmode="decimal" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();calcDerived();"/></div></div>
     </div>
     <div class="fsec fadein">
       <div class="fsec-head"><div class="fsec-title">CLOSING</div></div>
-      <div class="lrow"><div class="llbl">A1 <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_ca1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill();calcRSPSplit()"/></div></div>
-      <div class="lrow"><div class="llbl">A2</div><div class="lval"><input class="ffin" id="f_ca2" type="text" inputmode="decimal" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();"/></div></div>
-      <div class="lrow"><div class="llbl">B1 <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_cb1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill();calcRSPSplit()"/></div></div>
-      <div class="lrow"><div class="llbl">B2</div><div class="lval"><input class="ffin" id="f_cb2" type="text" inputmode="decimal" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();"/></div></div>
+      <div class="lrow"><div class="llbl">A1 <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_ca1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill();calcRSPSplit();calcDerived()"/></div></div>
+      <div class="lrow"><div class="llbl">A2</div><div class="lval"><input class="ffin" id="f_ca2" type="text" inputmode="decimal" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();calcDerived();"/></div></div>
+      <div class="lrow"><div class="llbl">B1 <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_cb1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill();calcRSPSplit();calcDerived()"/></div></div>
+      <div class="lrow"><div class="llbl">B2</div><div class="lval"><input class="ffin" id="f_cb2" type="text" inputmode="decimal" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();calcDerived();"/></div></div>
     </div>
     <div class="fsec fadein">
       <div class="fsec-head"><div class="fsec-title">SALES</div></div>
@@ -539,11 +539,11 @@ function switchTab(tab){
     </div>
     <div class="fsec fadein">
       <div class="fsec-head"><div class="fsec-title">PAYMENTS</div></div>
-      <div class="lrow"><div class="llbl">Previous Cash Balance</div><div class="lval"><input class="ffin" id="f_prev" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div></div>
+      <div class="lrow"><div class="llbl">Previous Cash Balance</div><div class="lval"><input class="ffin" id="f_prev" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00" oninput="calcDerived()"/></div></div>
       <div class="lrow"><div class="llbl">Total Sales Amt <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_ta" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div></div>
-      <div class="lrow"><div class="llbl">Card Sale</div><div class="lval"><input class="ffin" id="f_card" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div></div>
-      <div class="lrow"><div class="llbl">Paytm Sale</div><div class="lval"><input class="ffin" id="f_paytm" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div></div>
-      <div class="lrow"><div class="llbl">Free Sales Amt</div><div class="lval"><input class="ffin" id="f_famt" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div></div>
+      <div class="lrow"><div class="llbl">Card Sale</div><div class="lval"><input class="ffin" id="f_card" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00" oninput="calcDerived()"/></div></div>
+      <div class="lrow"><div class="llbl">Paytm Sale</div><div class="lval"><input class="ffin" id="f_paytm" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00" oninput="calcDerived()"/></div></div>
+      <div class="lrow"><div class="llbl">Free Sales Amt</div><div class="lval"><input class="ffin" id="f_famt" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00" oninput="calcDerived()"/></div></div>
       <div class="lrow"><div class="llbl">Cash Sale Amt</div><div class="lval"><input class="ffin" id="f_csale" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div></div>
       <div class="lrow"><div class="llbl">Bank Deposit</div><div class="lval"><input class="ffin" id="f_bank" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div></div>
       <div class="lrow"><div class="llbl">Cash In Hand <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_cih" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div></div>
@@ -1413,7 +1413,37 @@ async function startNew(){
   renderDateControl();
   buildPhotoSlots();updateFill();goScreen('s_form');
   loadStationRSP();   // auto-fill Rate fields from station's current RSP
+  loadOpeningFromPrev(); // auto-fill Opening from previous report's closing (read-only)
+  setTimeout(function(){if(typeof calcDerived==='function')calcDerived();},600); // after async loads
   setTimeout(()=>{const fs=document.getElementById('form_scroll');if(fs)fs.scrollTop=0;},50);
+}
+
+// B2: Opening = previous report's closing (yesterday's closing -> today's opening). Read-only.
+async function loadOpeningFromPrev(){
+  try{
+    // most recent report for this station BEFORE the selected report date
+    var selYmd = SELECTED_REPORT_DATE ? (SELECTED_REPORT_DATE.getFullYear()+'-'+String(SELECTED_REPORT_DATE.getMonth()+1).padStart(2,'0')+'-'+String(SELECTED_REPORT_DATE.getDate()).padStart(2,'0')) : null;
+    var q = sb.from('reports').select('close_a1,close_b1,close_a2,close_b2,rep_date_full,submitted_at').eq('erp_code',user.erp).order('submitted_at',{ascending:false}).limit(5);
+    var {data,error}=await q;
+    if(error||!data||!data.length)return;
+    // prefer the latest report strictly before the selected date; else the latest overall
+    var prev=null;
+    if(selYmd){ prev=data.find(function(r){return r.rep_date_full && r.rep_date_full < selYmd;}); }
+    if(!prev)prev=data[0];
+    if(!prev)return;
+    var map=[['close_a1','f_oa1'],['close_b1','f_ob1'],['close_a2','f_oa2'],['close_b2','f_ob2']];
+    map.forEach(function(m){
+      var el=document.getElementById(m[1]);if(!el)return;
+      if(prev[m[0]]!=null){
+        el.value=String(prev[m[0]]);
+        el.readOnly=true;
+        el.style.background='#EEF1F3';
+        el.title='Auto-filled from previous closing';
+      }
+    });
+    if(typeof updateFill==='function')updateFill();
+    if(typeof calcRSPSplit==='function')calcRSPSplit();
+  }catch(e){}
 }
 
 // Fetch the station's current (carried-forward) RSP and pre-fill all active Rate fields.
@@ -1515,13 +1545,42 @@ function getSelectedShifts(){
 }
 
 // ════════ FORM LOGIC ════════
-function calcNS(){
-  const ts=parseFloat(document.getElementById('f_ts').value)||0;
-  const rtn=parseFloat(document.getElementById('f_rtn').value)||0;
-  const fr=parseFloat(document.getElementById('f_free').value)||0;
-  if(ts>0)document.getElementById('f_ns').value=(ts-rtn-fr).toFixed(2);
-  updateFill();
+function _gv(id){var e=document.getElementById(id);if(!e)return null;var v=parseFloat(e.value);return isFinite(v)?v:null;}
+function _isActive(id){var e=document.getElementById(id);if(!e)return false;var v=(e.value||'').trim().toUpperCase();return v&&v!=='NA'&&!isNaN(parseFloat(v));}
+
+// B4/B3: compute Total Sale (ltrs), Net Sale, Total Sales Amt, Cash Sales, Cash in Hand
+function calcDerived(){
+  // Total Sale (litres) = Σ(closing - opening) across active nozzles
+  var nz=[['f_oa1','f_ca1'],['f_oa2','f_ca2'],['f_ob1','f_cb1'],['f_ob2','f_cb2']];
+  var totLtr=0,have=false;
+  nz.forEach(function(p){
+    if(_isActive(p[0])&&_isActive(p[1])){var o=_gv(p[0]),c=_gv(p[1]);if(o!=null&&c!=null){totLtr+=Math.max(0,c-o);have=true;}}
+  });
+  var tsEl=document.getElementById('f_ts');
+  if(tsEl&&have){tsEl.value=totLtr.toFixed(2);tsEl.readOnly=true;tsEl.style.background='#EEF1F3';}
+  // Net Sale = Total Sale - Rtn Testing - Free Sale
+  var ts=_gv('f_ts')||0, rtn=_gv('f_rtn')||0, fr=_gv('f_free')||0;
+  var nsEl=document.getElementById('f_ns');
+  if(nsEl){nsEl.value=(ts-rtn-fr).toFixed(2);nsEl.readOnly=true;nsEl.style.background='#EEF1F3';}
+  // Total Sales Amt: if RSP changed, calcRSPSplit drives f_ta. Else = Total Sale ltrs × current RSP (f_r1)
+  if(!(typeof rspChangeOn!=='undefined' && rspChangeOn)){
+    var rsp=_gv('f_r1')||0;
+    var taEl=document.getElementById('f_ta');
+    if(taEl){taEl.value=(ts*rsp).toFixed(2);taEl.readOnly=true;taEl.style.background='#EEF1F3';}
+  }
+  // Cash Sales Amt = Total Sales Amt - Card - Paytm - Free Sales Amt
+  var ta=_gv('f_ta')||0, card=_gv('f_card')||0, paytm=_gv('f_paytm')||0, famt=_gv('f_famt')||0;
+  var cs=ta-card-paytm-famt;
+  var csEl=document.getElementById('f_csale');
+  if(csEl){csEl.value=cs.toFixed(2);csEl.readOnly=true;csEl.style.background='#EEF1F3';}
+  // Cash in Hand = Cash Sales Amt + Previous Balance
+  var prev=_gv('f_prev')||0;
+  var cihEl=document.getElementById('f_cih');
+  if(cihEl){cihEl.value=(cs+prev).toFixed(2);cihEl.readOnly=true;cihEl.style.background='#EEF1F3';}
+  if(typeof updateFill==='function')updateFill();
 }
+// keep calcNS name working (other handlers call it)
+function calcNS(){calcDerived();}
 
 function updateFill(){
   const shiftOk=getSelectedShifts().length>0;
@@ -2402,7 +2461,8 @@ function calcRSPSplit(){
   sv('f_rsp_lb',lb);sv('f_rsp_la',la);sv('f_rsp_ab',ab);sv('f_rsp_aa',aa);
   // drive Total Sales Amount = old amt + new amt (split-rate)
   var ta=document.getElementById('f_ta');
-  if(ta){ta.value=(ab+aa).toFixed(2);}
+  if(ta){ta.value=(ab+aa).toFixed(2);ta.readOnly=true;ta.style.background='#EEF1F3';}
+  if(typeof calcDerived==='function')calcDerived();
   if(typeof updateFill==='function')updateFill();
 }
 
