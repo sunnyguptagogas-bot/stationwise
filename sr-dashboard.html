@@ -136,6 +136,7 @@ tr:hover td{background:#FBFCFD;}
       <button class="bn-item" id="bn_coords" onclick="showPage('coords')"><span class="ic">🗺️</span><span>Mapping</span></button>
       <button class="bn-item" id="bn_users" onclick="showPage('users')"><span class="ic">👥</span><span>Users</span></button>
       <button class="bn-item" id="bn_backdate" onclick="showPage('backdate')"><span class="ic">📅</span><span>Backdate</span></button>
+      <button class="bn-item" id="bn_bank" onclick="showPage('bank')"><span class="ic">🏦</span><span>Bank Deposits</span></button>
     </div>
     <div class="content">
   <div class="wrap">
@@ -229,6 +230,24 @@ tr:hover td{background:#FBFCFD;}
         <div class="tbl-scroll"><table><thead><tr><th>ERP</th><th>Station</th><th>Allowed Date</th><th>Granted By</th><th>Granted At</th><th>Status</th><th>Actions</th></tr></thead><tbody id="bd_tbody"></tbody></table></div>
       </div>
     </div>
+
+    <!-- BANK DEPOSITS -->
+    <div class="page" id="pg_bank">
+      <div class="sec-head"><div class="sec-title">Bank Deposits</div></div>
+      <div style="font-size:13px;color:#8696A0;margin-bottom:12px;">Verify each deposit against its receipt. On <b>Approve</b>, the remaining balance (pending − deposit) carries to the station's next-day previous balance. Pending deposits are not deducted until approved.</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <select id="bank_filter" onchange="renderBankDeposits()" style="padding:8px;border:1px solid #D1D7DB;border-radius:8px;">
+          <option value="Pending">Pending</option>
+          <option value="Approved">Approved</option>
+          <option value="Rejected">Rejected</option>
+          <option value="">All</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <div class="table-head"><span id="bank_count">0</span> deposits</div>
+        <div class="tbl-scroll"><table><thead><tr><th>ERP</th><th>Station</th><th>Date</th><th>Pending</th><th>Deposit</th><th>Receipt</th><th>Status</th><th>Actions</th></tr></thead><tbody id="bank_tbody"></tbody></table></div>
+      </div>
+    </div>
   </div>
 
     </div><!-- /content -->
@@ -294,7 +313,7 @@ const SB_URL='https://vnzkkysoicrwssewofst.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuemtreXNvaWNyd3NzZXdvZnN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5MDQ0OTUsImV4cCI6MjA5NjQ4MDQ5NX0.tSxnAqGPtdnQGc4oLmfz9yyVZ263L9lXzgPbTwbDBUM';
 const sb=supabase.createClient(SB_URL,SB_KEY);
 
-let ME=null, STATIONS=[], REPORTS=[], USERS=[], MAPPINGS=[], GRANTS=[];
+let ME=null, STATIONS=[], REPORTS=[], USERS=[], MAPPINGS=[], GRANTS=[], BANK=[];
 
 function toast(m){var t=document.getElementById('toast_el');t.textContent=m;t.classList.add('on');setTimeout(function(){t.classList.remove('on');},2600);}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
@@ -347,6 +366,7 @@ function isPageAllowed(page,role){
   if(page==='coords')return can('map_stations');
   if(page==='users')return can('create_users');
   if(page==='backdate')return can('grant_backdate');
+  if(page==='bank')return can('approve')||can('view');
   return false;
 }
 function applyRoleVisibility(role){
@@ -356,9 +376,10 @@ function applyRoleVisibility(role){
     history:isPageAllowed('history'),
     coords:isPageAllowed('coords'),
     users:isPageAllowed('users'),
-    backdate:isPageAllowed('backdate')
+    backdate:isPageAllowed('backdate'),
+    bank:isPageAllowed('bank')
   };
-  ['dashboard','reports','history','coords','users','backdate'].forEach(function(p){
+  ['dashboard','reports','history','coords','users','backdate','bank'].forEach(function(p){
     var b=document.getElementById('bn_'+p);
     if(b)b.style.display=show[p]?'':'none';
   });
@@ -381,6 +402,7 @@ async function loadAll(){
   REPORTS=(await sb.from('reports').select('*').order('submitted_at',{ascending:false}).limit(3000)).data||[];
   USERS = can('create_users') ? ((await sb.from('app_users').select('*').order('role')).data||[]) : [];
   GRANTS = can('grant_backdate') ? ((await sb.from('backdate_grants').select('*').order('granted_at',{ascending:false})).data||[]) : [];
+  BANK = (can('approve')||can('view')) ? ((await sb.from('bank_deposits').select('*').order('submitted_at',{ascending:false})).data||[]) : [];
   fillStateFilters();
   renderDashboard();
   if(isPageAllowed('reports'))renderReports();
@@ -582,6 +604,7 @@ function showPage(name){
   if(name==='reports')renderReports();
   if(name==='history')renderHistory();
   if(name==='backdate')renderBackdate();
+  if(name==='bank')loadBankDeposits();
   try{localStorage.setItem('sr_dash_page',name);}catch(e){}
 }
 
@@ -1030,6 +1053,63 @@ async function revokeBackdate(id){
   toast('Revoked');
   GRANTS=GRANTS.filter(function(x){return x.id!==id;});
   renderBackdate();
+}
+
+// ── BANK DEPOSITS (approval-gated cash ledger) ──
+async function loadBankDeposits(){
+  try{BANK=(await sb.from('bank_deposits').select('*').order('submitted_at',{ascending:false})).data||[];}catch(e){}
+  renderBankDeposits();
+}
+function renderBankDeposits(){
+  var tb=document.getElementById('bank_tbody');if(!tb)return;
+  var f=(document.getElementById('bank_filter')||{}).value;
+  var rows=BANK.filter(function(d){return f?d.status===f:true;});
+  document.getElementById('bank_count').textContent=rows.length;
+  if(!rows.length){tb.innerHTML='<tr><td colspan="8" style="text-align:center;color:#8696A0;padding:18px;">No deposits</td></tr>';return;}
+  tb.innerHTML=rows.map(function(d){
+    var clr=d.status==='Approved'?'app':d.status==='Rejected'?'mis':'pend';
+    var receipt=d.receipt_url?'<a href="'+d.receipt_url+'" target="_blank"><img src="'+d.receipt_url+'" style="width:42px;height:42px;object-fit:cover;border-radius:7px;border:1px solid #E9EDEF;cursor:zoom-in;"/></a>':'<span style="color:#8696A0;font-size:11px;">none</span>';
+    var actions='';
+    if(d.status==='Pending'&&can('approve')){
+      actions='<button class="btn sm green" onclick="approveBank('+d.id+')">✓ Approve</button> <button class="btn sm red" onclick="rejectBank('+d.id+')">Reject</button>';
+    } else if(d.status==='Approved'){
+      actions='<span style="font-size:11px;color:#1b5e20;">Remaining ₹'+(parseFloat(d.remaining)||0).toFixed(2)+'</span>';
+    } else if(d.status==='Rejected'){
+      actions='<span style="font-size:11px;color:#8696A0;">'+(d.approved_by||'')+'</span>';
+    }
+    return '<tr><td><span class="erp">'+d.erp_code+'</span></td>'+
+      '<td style="font-size:12px;">'+(d.station_name||'')+'</td>'+
+      '<td class="time">'+(d.dep_date||'')+'</td>'+
+      '<td>₹'+(parseFloat(d.total_pending)||0).toFixed(2)+'</td>'+
+      '<td><b>₹'+(parseFloat(d.deposit_amount)||0).toFixed(2)+'</b></td>'+
+      '<td>'+receipt+'</td>'+
+      '<td><span class="chip '+clr+'">'+d.status+'</span></td>'+
+      '<td>'+actions+'</td></tr>';
+  }).join('');
+}
+async function approveBank(id){
+  if(!can('approve')){toast('No permission');return;}
+  var d=BANK.filter(function(x){return x.id===id;})[0];if(!d)return;
+  var remaining=(parseFloat(d.total_pending)||0)-(parseFloat(d.deposit_amount)||0);
+  var by=(ME.full_name||ME.email||'Admin');
+  toast('Approving deposit…');
+  var {error}=await sb.from('bank_deposits').update({status:'Approved',approved_by:by,approved_at:new Date().toISOString(),remaining:remaining}).eq('id',id);
+  if(error){toast('Failed: '+error.message);return;}
+  // carry-forward: remaining becomes station's next-day previous balance
+  try{await sb.from('stations').update({prev_cash_balance:remaining}).eq('erp_code',d.erp_code);}catch(e){}
+  toast('✓ Approved · ₹'+remaining.toFixed(2)+' carried to next day');
+  Object.assign(d,{status:'Approved',approved_by:by,remaining:remaining});
+  renderBankDeposits();
+}
+async function rejectBank(id){
+  if(!can('approve')){toast('No permission');return;}
+  if(!confirm('Reject this deposit? The amount will NOT be deducted; the full pending balance stays with the station.'))return;
+  var by=(ME.full_name||ME.email||'Admin');
+  var {error}=await sb.from('bank_deposits').update({status:'Rejected',approved_by:by,approved_at:new Date().toISOString()}).eq('id',id);
+  if(error){toast('Failed: '+error.message);return;}
+  var d=BANK.filter(function(x){return x.id===id;})[0];if(d)d.status='Rejected';
+  toast('Deposit rejected');
+  renderBankDeposits();
 }
 
 // ── EXPORT ──
