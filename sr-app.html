@@ -111,6 +111,17 @@ body{font-family:'Segoe UI',Arial,sans-serif;color:#111B21;height:100%;overflow:
 .ffin{width:100%;border:none;background:transparent;font-family:'Courier New',monospace;font-size:14px;font-weight:500;color:#111B21;outline:none;padding:0;-webkit-appearance:none;}
 .ffin::placeholder{color:#8696A0;font-size:12px;font-family:'Segoe UI',Arial,sans-serif;}
 .ffin:focus{color:#E8541E;}
+/* ── Ledger row style: label left, value/input right ── */
+.lrow{display:flex;align-items:center;border-bottom:1px solid #E9EDEF;padding:9px 14px;gap:10px;}
+.lrow:last-child{border-bottom:none;}
+.lrow:focus-within{background:rgba(232,84,30,0.03);}
+.llbl{flex:0 0 42%;font-size:12px;font-weight:700;color:#54656F;display:flex;align-items:center;gap:4px;}
+.llbl .req{color:#FF3B30;font-size:12px;}
+.lval{flex:1;text-align:right;}
+.lval .ffin{text-align:right;font-family:'Courier New',monospace;font-size:15px;}
+.lval .fflocked{font-size:15px;font-weight:700;color:#54656F;text-align:right;}
+.lval .ffin[readonly]{color:#54656F;}
+.lrow:focus-within .llbl{color:#E8541E;}
 .ffsel{width:100%;border:none;background:transparent;font-family:'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:600;color:#111B21;outline:none;padding:0;-webkit-appearance:none;appearance:none;}
 .ffsel option{background:#F7F8FA;}
 .comment-wrap{margin:10px 14px 0;}
@@ -430,10 +441,8 @@ function switchTab(tab){
     <div class="sec-div" style="margin-top:14px;">Station Info</div>
     <div class="fsec fadein">
       <div class="fsec-head"><div class="fsec-title">★ GOGAS DAILY REPORT</div><div class="fsec-badge">Locked</div></div>
-      <div class="frow two">
-        <div class="ffield"><div class="fflbl">ERP Code</div><div class="fflocked" id="fd_erp">—</div></div>
-        <div class="ffield"><div class="fflbl">Station Name</div><div class="fflocked" id="fd_stn">—</div></div>
-      </div>
+      <div class="lrow"><div class="llbl">ERP Code</div><div class="lval"><div class="fflocked" id="fd_erp">—</div></div></div>
+      <div class="lrow"><div class="llbl">Station Name</div><div class="lval"><div class="fflocked" id="fd_stn">—</div></div></div>
       <div class="frow">
         <div class="ffield" style="grid-column:1/-1;">
           <div class="fflbl">Shift(s) Being Reported <span class="req">*</span></div>
@@ -459,23 +468,17 @@ function switchTab(tab){
     </div>
     <div class="sec-div">Date</div>
     <div class="fsec fadein">
-      <div class="frow two">
-        <div class="ffield" id="date_control_wrap"><div id="date_control"></div><input type="hidden" id="f_date"/></div>
-        <div class="ffield"><div class="fflbl">Month (Fixed)</div><div class="fflocked" id="fd_month">—</div></div>
-      </div>
-      <div class="frow"><div class="ffield"><div class="fflbl">Year</div><div class="fflocked" id="fd_year">—</div></div></div>
+      <div class="lrow" id="date_control_wrap"><div class="llbl">Date</div><div class="lval" style="text-align:left;"><div id="date_control"></div><input type="hidden" id="f_date"/></div></div>
+      <div class="lrow"><div class="llbl">Month (Fixed)</div><div class="lval"><div class="fflocked" id="fd_month">—</div></div></div>
+      <div class="lrow"><div class="llbl">Year</div><div class="lval"><div class="fflocked" id="fd_year">—</div></div></div>
     </div>
     <div class="sec-div">Rate</div>
     <div class="fsec fadein">
       <div class="fsec-head"><div class="fsec-title">★ RATE</div></div>
-      <div class="frow two">
-        <div class="ffield"><div class="fflbl">RSP DU1-N1</div><input class="ffin" id="f_r1" type="number" inputmode="decimal" step="0.01" placeholder="0.00"/></div>
-        <div class="ffield"><div class="fflbl">RSP DU1-N2</div><input class="ffin" id="f_r2" type="text" placeholder="NA" value="NA"/></div>
-      </div>
-      <div class="frow two">
-        <div class="ffield"><div class="fflbl">RSP DU2-N1</div><input class="ffin" id="f_r3" type="text" placeholder="NA" value="NA"/></div>
-        <div class="ffield"><div class="fflbl">RSP DU2-N2</div><input class="ffin" id="f_r4" type="text" placeholder="NA" value="NA"/></div>
-      </div>
+      <div class="lrow"><div class="llbl">RSP DU1-N1</div><div class="lval"><input class="ffin" id="f_r1" type="number" inputmode="decimal" step="0.01" placeholder="0.00"/></div></div>
+      <div class="lrow"><div class="llbl">RSP DU1-N2</div><div class="lval"><input class="ffin" id="f_r2" type="text" inputmode="decimal" placeholder="NA" value="NA"/></div></div>
+      <div class="lrow"><div class="llbl">RSP DU2-N1</div><div class="lval"><input class="ffin" id="f_r3" type="text" inputmode="decimal" placeholder="NA" value="NA"/></div></div>
+      <div class="lrow"><div class="llbl">RSP DU2-N2</div><div class="lval"><input class="ffin" id="f_r4" type="text" inputmode="decimal" placeholder="NA" value="NA"/></div></div>
       <div id="rsp_add_wrap" style="margin-top:12px;">
         <button type="button" onclick="toggleRSPChange()" id="rsp_add_btn" style="width:100%;padding:13px;background:#F7F8FA;border:2px dashed #E8541E;border-radius:12px;font-family:'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:800;color:#C0381A;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
           <span style="font-size:20px;">➕</span><span>Add RSP Change (rate changed mid-day)</span>
@@ -506,75 +509,51 @@ function switchTab(tab){
     <div class="sec-div">Opening</div>
     <div class="fsec fadein">
       <div class="fsec-head"><div class="fsec-title">★ OPENING</div></div>
-      <div class="frow two">
-        <div class="ffield"><div class="fflbl">A1 <span class="req">*</span></div><input class="ffin" id="f_oa1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div>
-        <div class="ffield"><div class="fflbl">B1 <span class="req">*</span></div><input class="ffin" id="f_ob1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div>
-      </div>
-      <div class="frow two">
-        <div class="ffield"><div class="fflbl">A2</div><input class="ffin" id="f_oa2" type="text" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();"/></div>
-        <div class="ffield"><div class="fflbl">B2</div><input class="ffin" id="f_ob2" type="text" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();"/></div>
-      </div>
+      <div class="lrow"><div class="llbl">A1 <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_oa1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div></div>
+      <div class="lrow"><div class="llbl">A2</div><div class="lval"><input class="ffin" id="f_oa2" type="text" inputmode="decimal" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();"/></div></div>
+      <div class="lrow"><div class="llbl">B1 <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_ob1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div></div>
+      <div class="lrow"><div class="llbl">B2</div><div class="lval"><input class="ffin" id="f_ob2" type="text" inputmode="decimal" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();"/></div></div>
     </div>
     <div class="sec-div">Closing</div>
     <div class="fsec fadein">
       <div class="fsec-head"><div class="fsec-title">★ CLOSING</div></div>
-      <div class="frow two">
-        <div class="ffield"><div class="fflbl">A1 <span class="req">*</span></div><input class="ffin" id="f_ca1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div>
-        <div class="ffield"><div class="fflbl">B1 <span class="req">*</span></div><input class="ffin" id="f_cb1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div>
-      </div>
-      <div class="frow two">
-        <div class="ffield"><div class="fflbl">A2</div><input class="ffin" id="f_ca2" type="text" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();"/></div>
-        <div class="ffield"><div class="fflbl">B2</div><input class="ffin" id="f_cb2" type="text" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();"/></div>
-      </div>
+      <div class="lrow"><div class="llbl">A1 <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_ca1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div></div>
+      <div class="lrow"><div class="llbl">A2</div><div class="lval"><input class="ffin" id="f_ca2" type="text" inputmode="decimal" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();"/></div></div>
+      <div class="lrow"><div class="llbl">B1 <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_cb1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div></div>
+      <div class="lrow"><div class="llbl">B2</div><div class="lval"><input class="ffin" id="f_cb2" type="text" inputmode="decimal" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();"/></div></div>
     </div>
     <div class="sec-div">Payments</div>
     <div class="fsec fadein">
       <div class="fsec-head"><div class="fsec-title">★ PAYMENTS</div></div>
-      <div class="frow two">
-        <div class="ffield"><div class="fflbl">Prev Cash Bal</div><input class="ffin" id="f_prev" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div>
-        <div class="ffield"><div class="fflbl">Total Sales Amt <span class="req">*</span></div><input class="ffin" id="f_ta" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div>
-      </div>
-      <div class="frow two">
-        <div class="ffield"><div class="fflbl">Card Sale</div><input class="ffin" id="f_card" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div>
-        <div class="ffield"><div class="fflbl">Paytm Sale</div><input class="ffin" id="f_paytm" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div>
-      </div>
-      <div class="frow two">
-        <div class="ffield"><div class="fflbl">Free Sales Amt</div><input class="ffin" id="f_famt" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div>
-        <div class="ffield"><div class="fflbl">Cash Sale Amt</div><input class="ffin" id="f_csale" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div>
-      </div>
-      <div class="frow two">
-        <div class="ffield"><div class="fflbl">Bank Deposit</div><input class="ffin" id="f_bank" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div>
-        <div class="ffield"><div class="fflbl">Cash In Hand <span class="req">*</span></div><input class="ffin" id="f_cih" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div>
-      </div>
+      <div class="lrow"><div class="llbl">Previous Cash Balance</div><div class="lval"><input class="ffin" id="f_prev" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div></div>
+      <div class="lrow"><div class="llbl">Total Sales Amt <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_ta" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div></div>
+      <div class="lrow"><div class="llbl">Card Sale</div><div class="lval"><input class="ffin" id="f_card" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div></div>
+      <div class="lrow"><div class="llbl">Paytm Sale</div><div class="lval"><input class="ffin" id="f_paytm" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div></div>
+      <div class="lrow"><div class="llbl">Free Sales Amt</div><div class="lval"><input class="ffin" id="f_famt" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div></div>
+      <div class="lrow"><div class="llbl">Cash Sale Amt</div><div class="lval"><input class="ffin" id="f_csale" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div></div>
+      <div class="lrow"><div class="llbl">Bank Deposit</div><div class="lval"><input class="ffin" id="f_bank" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div></div>
+      <div class="lrow"><div class="llbl">Cash In Hand <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_cih" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div></div>
     </div>
     <div class="sec-div">Sales</div>
     <div class="fsec fadein">
       <div class="fsec-head"><div class="fsec-title">★ SALES</div></div>
-      <div class="frow two">
-        <div class="ffield"><div class="fflbl">Total Sale <span class="req">*</span></div><input class="ffin" id="f_ts" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill();calcNS()"/></div>
-        <div class="ffield"><div class="fflbl">Rtn Testing</div><input class="ffin" id="f_rtn" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00" oninput="calcNS()"/></div>
-      </div>
-      <div class="frow two">
-        <div class="ffield"><div class="fflbl">Free Sale</div><input class="ffin" id="f_free" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00" oninput="calcNS()"/></div>
-        <div class="ffield"><div class="fflbl">Net Sale <span class="req">*</span></div><input class="ffin" id="f_ns" type="number" inputmode="decimal" step="0.01" placeholder="Auto" oninput="updateFill()"/></div>
-      </div>
+      <div class="lrow"><div class="llbl">Total Sale <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_ts" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill();calcNS()"/></div></div>
+      <div class="lrow"><div class="llbl">Rtn Testing</div><div class="lval"><input class="ffin" id="f_rtn" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00" oninput="calcNS()"/></div></div>
+      <div class="lrow"><div class="llbl">Free Sale</div><div class="lval"><input class="ffin" id="f_free" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00" oninput="calcNS()"/></div></div>
+      <div class="lrow"><div class="llbl">Net Sale <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_ns" type="number" inputmode="decimal" step="0.01" placeholder="Auto" oninput="updateFill()"/></div></div>
     </div>
     <div class="sec-div">Stock</div>
     <div class="fsec fadein">
       <div class="fsec-head"><div class="fsec-title">★ STOCK</div></div>
-      <div class="frow two">
-        <div class="ffield"><div class="fflbl">Dip Reading (mm) <span class="req">*</span></div><input class="ffin" id="f_dip" type="number" inputmode="numeric" placeholder="0" oninput="updateFill()"/></div>
-        <div class="ffield"><div class="fflbl">Stock in Ltrs <span class="req">*</span></div><input class="ffin" id="f_stk" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div>
-      </div>
+      <div class="lrow"><div class="llbl">Dip Reading (mm) <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_dip" type="number" inputmode="numeric" placeholder="0" oninput="updateFill()"/></div></div>
+      <div class="lrow"><div class="llbl">Stock in Ltrs <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_stk" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div></div>
     </div>
     <div class="sec-div">DG Meter</div>
     <div class="fsec fadein">
       <div class="fsec-head"><div class="fsec-title">★ DG METER</div></div>
-      <div class="frow two">
-        <div class="ffield"><div class="fflbl">Opening DG</div><input class="ffin" id="f_dgo" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div>
-        <div class="ffield"><div class="fflbl">Closing DG</div><input class="ffin" id="f_dgc" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div>
-      </div>
-      <div class="frow"><div class="ffield"><div class="fflbl">Hours</div><input class="ffin" id="f_dgh" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div></div>
+      <div class="lrow"><div class="llbl">Opening DG</div><div class="lval"><input class="ffin" id="f_dgo" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div></div>
+      <div class="lrow"><div class="llbl">Closing DG</div><div class="lval"><input class="ffin" id="f_dgc" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div></div>
+      <div class="lrow"><div class="llbl">Hours</div><div class="lval"><input class="ffin" id="f_dgh" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div></div>
     </div>
     <div class="sec-div">Photos</div>
     <div class="fsec fadein" style="margin:10px 14px 0;">
