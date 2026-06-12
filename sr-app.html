@@ -531,6 +531,13 @@ function switchTab(tab){
       <div class="lrow"><div class="llbl">B2</div><div class="lval"><input class="ffin" id="f_cb2" type="text" inputmode="decimal" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();"/></div></div>
     </div>
     <div class="fsec fadein">
+      <div class="fsec-head"><div class="fsec-title">SALES</div></div>
+      <div class="lrow"><div class="llbl">Total Sale <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_ts" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill();calcNS()"/></div></div>
+      <div class="lrow"><div class="llbl">Rtn Testing</div><div class="lval"><input class="ffin" id="f_rtn" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00" oninput="calcNS()"/></div></div>
+      <div class="lrow"><div class="llbl">Free Sale</div><div class="lval"><input class="ffin" id="f_free" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00" oninput="calcNS()"/></div></div>
+      <div class="lrow"><div class="llbl">Net Sale <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_ns" type="number" inputmode="decimal" step="0.01" placeholder="Auto" oninput="updateFill()"/></div></div>
+    </div>
+    <div class="fsec fadein">
       <div class="fsec-head"><div class="fsec-title">PAYMENTS</div></div>
       <div class="lrow"><div class="llbl">Previous Cash Balance</div><div class="lval"><input class="ffin" id="f_prev" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div></div>
       <div class="lrow"><div class="llbl">Total Sales Amt <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_ta" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div></div>
@@ -540,13 +547,6 @@ function switchTab(tab){
       <div class="lrow"><div class="llbl">Cash Sale Amt</div><div class="lval"><input class="ffin" id="f_csale" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div></div>
       <div class="lrow"><div class="llbl">Bank Deposit</div><div class="lval"><input class="ffin" id="f_bank" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div></div>
       <div class="lrow"><div class="llbl">Cash In Hand <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_cih" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div></div>
-    </div>
-    <div class="fsec fadein">
-      <div class="fsec-head"><div class="fsec-title">SALES</div></div>
-      <div class="lrow"><div class="llbl">Total Sale <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_ts" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill();calcNS()"/></div></div>
-      <div class="lrow"><div class="llbl">Rtn Testing</div><div class="lval"><input class="ffin" id="f_rtn" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00" oninput="calcNS()"/></div></div>
-      <div class="lrow"><div class="llbl">Free Sale</div><div class="lval"><input class="ffin" id="f_free" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00" oninput="calcNS()"/></div></div>
-      <div class="lrow"><div class="llbl">Net Sale <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_ns" type="number" inputmode="decimal" step="0.01" placeholder="Auto" oninput="updateFill()"/></div></div>
     </div>
     <div class="fsec fadein">
       <div class="fsec-head"><div class="fsec-title">STOCK</div></div>
@@ -1412,7 +1412,28 @@ async function startNew(){
   // build the date control (locked T-1, or dropdown if backdates granted)
   renderDateControl();
   buildPhotoSlots();updateFill();goScreen('s_form');
+  loadStationRSP();   // auto-fill Rate fields from station's current RSP
   setTimeout(()=>{const fs=document.getElementById('form_scroll');if(fs)fs.scrollTop=0;},50);
+}
+
+// Fetch the station's current (carried-forward) RSP and pre-fill all active Rate fields.
+async function loadStationRSP(){
+  try{
+    const {data,error}=await sb.from('stations').select('current_rsp,prev_cash_balance').eq('erp_code',user.erp).single();
+    if(error||!data)return;
+    if(data.current_rsp!=null){
+      const rate=String(data.current_rsp);
+      // fill primary (f_r1); fill f_r2/f_r3/f_r4 only if they're currently active (not NA)
+      const r1=document.getElementById('f_r1');if(r1)r1.value=rate;
+      ['f_r2','f_r3','f_r4'].forEach(id=>{
+        const e=document.getElementById(id);
+        if(e){const v=(e.value||'').trim().toUpperCase();if(v&&v!=='NA')e.value=rate;}
+      });
+      if(typeof calcRSPSplit==='function')calcRSPSplit();
+    }
+    // also pre-fill Previous Cash Balance (read-only display from master)
+    if(data.prev_cash_balance!=null){const pc=document.getElementById('f_prev');if(pc)pc.value=String(data.prev_cash_balance);}
+  }catch(e){}
 }
 
 function applyReportDate(d){

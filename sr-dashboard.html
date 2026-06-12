@@ -755,7 +755,15 @@ async function approveDetail(){
   toast('Approving…');
   var {error}=await sb.from('reports').update(upd).eq('id',r.id);
   if(error){toast('Failed: '+error.message);return;}
-  toast('✓ Approved & saved');
+  // RSP carry-forward: if this report changed the RSP, the new rate becomes the station's official current RSP on approval
+  if(r.rsp_changed && r.rsp_new_rate!=null && !isNaN(parseFloat(r.rsp_new_rate))){
+    try{
+      await sb.from('stations').update({current_rsp:parseFloat(r.rsp_new_rate)}).eq('erp_code',r.erp_code);
+      toast('✓ Approved · station RSP updated to '+r.rsp_new_rate);
+    }catch(e){toast('✓ Approved (RSP update failed: '+e.message+')');}
+  } else {
+    toast('✓ Approved & saved');
+  }
   Object.assign(r,upd);
   closeModal('detail_modal');renderReports();renderDashboard();
 }
@@ -944,7 +952,13 @@ async function bulkApprove(){
   for(var i=0;i<targets.length;i++){
     var r=targets[i];
     var {error}=await sb.from('reports').update({approval_status:'Approved',approved_by:by,approved_at:new Date().toISOString()}).eq('id',r.id);
-    if(!error){r.approval_status='Approved';r.approved_by=by;r.approved_at=new Date().toISOString();ok++;}
+    if(!error){
+      r.approval_status='Approved';r.approved_by=by;r.approved_at=new Date().toISOString();ok++;
+      // RSP carry-forward on approval
+      if(r.rsp_changed && r.rsp_new_rate!=null && !isNaN(parseFloat(r.rsp_new_rate))){
+        try{await sb.from('stations').update({current_rsp:parseFloat(r.rsp_new_rate)}).eq('erp_code',r.erp_code);}catch(e){}
+      }
+    }
   }
   toast('✓ Approved '+ok+' reports');
   renderReports();renderDashboard();
