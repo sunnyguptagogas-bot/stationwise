@@ -2158,7 +2158,14 @@ function editRep(id){
   photoSlots=[];rspChangeOn=false;rspPhotoList=[];
   buildPhotoSlots();
   const linkMap={DU1A:r.photoDU1A,DU1B:r.photoDU1B,DU2A:r.photoDU2A,DU2B:r.photoDU2B,ROTO:r.photoRoto,DIP:r.photoDip,RADAR:r.photoRadar};
-  photoSlots.forEach(s=>{const lk=linkMap[s.key];if(lk){s.driveView=lk;s.driveThumb=lk;s.dataUrl=lk;}});
+  photoSlots.forEach(s=>{
+    const lk=linkMap[s.key];
+    if(lk){s.driveView=lk;s.driveThumb=lk;s.dataUrl=lk;s.uploading=false;s.failed=false;}
+    else if(s.required && r.status==='sent'){
+      // submitted report but this required photo has no uploaded link → it failed to upload
+      s.failed=true;s.missingUpload=true;
+    }
+  });
   renderPhotoSlots();
   // restore RSP change if present
   if(r.rspChanged===true||r.rspChanged==='YES'||r.rspChanged==='true'){
@@ -2288,6 +2295,7 @@ function renderPhotoSlots(){
     html+='<div style="margin-bottom:12px;padding:10px;border:1.5px solid '+(done?'rgba(232,84,30,0.4)':'#E9EDEF')+';border-radius:12px;background:'+(done?'rgba(232,84,30,0.06)':'#FBFCFD')+';">';
     let statusTag='';
     if(s.uploading)statusTag=' <span style="color:#E8541E;font-weight:700;">⏳ Uploading…</span>';
+    else if(s.missingUpload)statusTag=' <span style="color:#d32f2f;font-weight:700;">⚠ Not uploaded (poor network) — please re-add</span>';
     else if(s.failed)statusTag=' <span style="color:#d32f2f;font-weight:700;">⚠ Poor network — tap Retry</span>';
     else if(s.driveView)statusTag=' <span style="color:#2e7d32;font-weight:700;">✓ Uploaded</span>';
     html+='<div style="font-size:12px;font-weight:800;color:#111B21;margin-bottom:8px;">'+(done?'':'')+s.label+reqTag+statusTag+'</div>';
@@ -2322,7 +2330,7 @@ function slotCapture(i,useCamera){
 }
 function slotClear(i){
   photoSlots[i].file=null;photoSlots[i].dataUrl=null;photoSlots[i].driveView='';photoSlots[i].driveThumb='';
-  photoSlots[i].uploading=false;photoSlots[i].failed=false;
+  photoSlots[i].uploading=false;photoSlots[i].failed=false;photoSlots[i].missingUpload=false;
   renderPhotoSlots();
 }
 function slotRetry(i){if(photoSlots[i]&&photoSlots[i].file){uploadSlotLive(photoSlots[i],'photo',i);}}
@@ -2351,7 +2359,7 @@ function onSlotFile(input){
     photoSlots[i].file=file;
     photoSlots[i].dataUrl=e.target.result;
     photoSlots[i].driveView='';photoSlots[i].driveThumb='';
-    photoSlots[i].uploading=true;photoSlots[i].failed=false;
+    photoSlots[i].uploading=true;photoSlots[i].failed=false;photoSlots[i].missingUpload=false;
     renderPhotoSlots();
     if(typeof updateFill==='function')updateFill();
     // instant background upload of THIS photo
