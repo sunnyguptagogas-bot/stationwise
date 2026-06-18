@@ -478,9 +478,9 @@ function switchTab(tab){
     <div class="fsec fadein">
       <div class="fsec-head"><div class="fsec-title">RATE</div></div>
       <div class="lrow"><div class="llbl">RSP DU1-N1</div><div class="lval"><input class="ffin" id="f_r1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcDerived()"/></div></div>
-      <div class="lrow"><div class="llbl">RSP DU1-N2</div><div class="lval"><input class="ffin" id="f_r2" type="text" inputmode="decimal" placeholder="NA" value="NA"/></div></div>
-      <div class="lrow"><div class="llbl">RSP DU2-N1</div><div class="lval"><input class="ffin" id="f_r3" type="text" inputmode="decimal" placeholder="NA" value="NA"/></div></div>
-      <div class="lrow"><div class="llbl">RSP DU2-N2</div><div class="lval"><input class="ffin" id="f_r4" type="text" inputmode="decimal" placeholder="NA" value="NA"/></div></div>
+      <div class="lrow"><div class="llbl">RSP DU1-N2</div><div class="lval"><input class="ffin" id="f_r2" type="text" inputmode="decimal" placeholder=""/></div></div>
+      <div class="lrow"><div class="llbl">RSP DU2-N1</div><div class="lval"><input class="ffin" id="f_r3" type="text" inputmode="decimal" placeholder=""/></div></div>
+      <div class="lrow"><div class="llbl">RSP DU2-N2</div><div class="lval"><input class="ffin" id="f_r4" type="text" inputmode="decimal" placeholder=""/></div></div>
       <div id="rsp_add_wrap" style="margin-top:12px;">
         <button type="button" onclick="toggleRSPChange()" id="rsp_add_btn" style="width:100%;padding:13px;background:#F7F8FA;border:2px dashed #E8541E;border-radius:12px;font-family:'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:800;color:#C0381A;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
           <span style="font-size:20px;">➕</span><span>Add RSP Change (rate changed mid-day)</span>
@@ -524,22 +524,24 @@ function switchTab(tab){
     <div class="fsec fadein">
       <div class="fsec-head"><div class="fsec-title">OPENING</div></div>
       <div class="lrow"><div class="llbl">A1 <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_oa1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill();calcRSPSplit();calcDerived()"/></div></div>
-      <div class="lrow"><div class="llbl">A2</div><div class="lval"><input class="ffin" id="f_oa2" type="text" inputmode="decimal" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();calcDerived();"/></div></div>
+      <div class="lrow"><div class="llbl">A2</div><div class="lval"><input class="ffin" id="f_oa2" type="text" inputmode="decimal" placeholder="" onchange="buildPhotoSlots();calcRSPSplit();calcDerived();"/></div></div>
       <div class="lrow"><div class="llbl">B1 <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_ob1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill();calcRSPSplit();calcDerived()"/></div></div>
-      <div class="lrow"><div class="llbl">B2</div><div class="lval"><input class="ffin" id="f_ob2" type="text" inputmode="decimal" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();calcDerived();"/></div></div>
+      <div class="lrow"><div class="llbl">B2</div><div class="lval"><input class="ffin" id="f_ob2" type="text" inputmode="decimal" placeholder="" onchange="buildPhotoSlots();calcRSPSplit();calcDerived();"/></div></div>
     </div>
     <div class="fsec fadein">
       <div class="fsec-head"><div class="fsec-title">CLOSING</div></div>
       <div class="lrow"><div class="llbl">A1 <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_ca1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill();calcRSPSplit();calcDerived()"/></div></div>
-      <div class="lrow"><div class="llbl">A2</div><div class="lval"><input class="ffin" id="f_ca2" type="text" inputmode="decimal" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();calcDerived();"/></div></div>
+      <div class="lrow"><div class="llbl">A2</div><div class="lval"><input class="ffin" id="f_ca2" type="text" inputmode="decimal" placeholder="" onchange="buildPhotoSlots();calcRSPSplit();calcDerived();"/></div></div>
       <div class="lrow"><div class="llbl">B1 <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_cb1" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill();calcRSPSplit();calcDerived()"/></div></div>
-      <div class="lrow"><div class="llbl">B2</div><div class="lval"><input class="ffin" id="f_cb2" type="text" inputmode="decimal" placeholder="NA" value="NA" onchange="buildPhotoSlots();calcRSPSplit();calcDerived();"/></div></div>
+      <div class="lrow"><div class="llbl">B2</div><div class="lval"><input class="ffin" id="f_cb2" type="text" inputmode="decimal" placeholder="" onchange="buildPhotoSlots();calcRSPSplit();calcDerived();"/></div></div>
     </div>
     <div class="fsec fadein">
       <div class="fsec-head"><div class="fsec-title">SALES</div></div>
       <div class="lrow"><div class="llbl">Total Sale <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_ts" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill();calcNS()"/></div></div>
       <div class="lrow"><div class="llbl">Rtn Testing</div><div class="lval"><input class="ffin" id="f_rtn" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00" oninput="calcNS()"/></div></div>
-      <div class="lrow"><div class="llbl">Free Sale</div><div class="lval"><input class="ffin" id="f_free" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00" oninput="calcNS()"/></div></div>
+      <div class="lrow"><div class="llbl">Free Sale</div><div class="lval"><input class="ffin" id="f_free" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00" oninput="calcFreeSplit();calcNS()"/></div></div>
+      <div class="lrow" id="free_old_row" style="display:none;background:rgba(0,0,0,0.02);"><div class="llbl" style="font-size:11px;">↳ Free Ltrs @ Old Rate</div><div class="lval"><input class="ffin" id="f_free_old" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcFreeSplit();calcNS()"/></div></div>
+      <div class="lrow" id="free_new_row" style="display:none;background:rgba(0,0,0,0.02);"><div class="llbl" style="font-size:11px;">↳ Free Ltrs @ New Rate</div><div class="lval"><input class="ffin" id="f_free_new" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcFreeSplit();calcNS()"/></div></div>
       <div class="lrow"><div class="llbl">Net Sale <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_ns" type="number" inputmode="decimal" step="0.01" placeholder="Auto" oninput="updateFill()"/></div></div>
     </div>
     <div class="fsec fadein">
@@ -548,7 +550,7 @@ function switchTab(tab){
       <div class="lrow"><div class="llbl">Total Sales Amt <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_ta" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div></div>
       <div class="lrow"><div class="llbl">Card Sale</div><div class="lval"><input class="ffin" id="f_card" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00" oninput="calcDerived()"/></div></div>
       <div class="lrow"><div class="llbl">Paytm Sale</div><div class="lval"><input class="ffin" id="f_paytm" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00" oninput="calcDerived()"/></div></div>
-      <div class="lrow"><div class="llbl">Free Sales Amt</div><div class="lval"><input class="ffin" id="f_famt" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00" oninput="calcDerived()"/></div></div>
+      <div class="lrow"><div class="llbl">Free Sales Amt</div><div class="lval"><input class="ffin" id="f_famt" type="number" inputmode="decimal" step="0.01" placeholder="Auto" readonly style="background:#EEF1F3;"/></div></div>
       <div class="lrow"><div class="llbl">Cash Sale Amt</div><div class="lval"><input class="ffin" id="f_csale" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div></div>
       <div class="lrow"><div class="llbl">Bank Deposit</div><div class="lval"><input class="ffin" id="f_bank" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div></div>
       <div class="lrow"><div class="llbl">Cash In Hand <span class="req">*</span></div><div class="lval"><input class="ffin" id="f_cih" type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="updateFill()"/></div></div>
@@ -560,9 +562,9 @@ function switchTab(tab){
     </div>
     <div class="fsec fadein">
       <div class="fsec-head"><div class="fsec-title">DG METER</div></div>
-      <div class="lrow"><div class="llbl">Opening DG</div><div class="lval"><input class="ffin" id="f_dgo" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div></div>
-      <div class="lrow"><div class="llbl">Closing DG</div><div class="lval"><input class="ffin" id="f_dgc" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div></div>
-      <div class="lrow"><div class="llbl">Hours</div><div class="lval"><input class="ffin" id="f_dgh" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00"/></div></div>
+      <div class="lrow"><div class="llbl">Opening DG</div><div class="lval"><input class="ffin" id="f_dgo" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00" oninput="calcDGHours()"/></div></div>
+      <div class="lrow"><div class="llbl">Closing DG</div><div class="lval"><input class="ffin" id="f_dgc" type="number" inputmode="decimal" step="0.01" placeholder="0.00" value="0.00" oninput="calcDGHours()"/></div></div>
+      <div class="lrow"><div class="llbl">Hours</div><div class="lval"><input class="ffin" id="f_dgh" type="number" inputmode="decimal" step="0.01" placeholder="Auto" readonly style="background:#EEF1F3;"/></div></div>
     </div>
     <div class="fsec fadein" style="margin:10px 14px 0;">
       <div class="fsec-head"><div class="fsec-title">📷 Required & Supporting Photos</div></div>
@@ -571,6 +573,18 @@ function switchTab(tab){
         <div id="photo_slots"></div>
         <input type="file" id="photo_file_input" accept="image/*" style="display:none;" onchange="onSlotFile(this)"/>
         <div id="photo_req_note" style="margin-top:6px;font-size:11px;font-weight:700;color:#FF8C00;"></div>
+      </div>
+    </div>
+
+    <!-- Unloading Photos (collapsible, multi-photo) -->
+    <div class="fsec fadein">
+      <div class="fsec-head" onclick="toggleUnloading()" style="cursor:pointer;">
+        <div class="fsec-title">🚚 Unloading Photos <span id="unload_caret" style="color:#8696A0;font-weight:600;">▼</span></div>
+      </div>
+      <div id="unload_body" style="padding:14px;display:none;">
+        <div style="font-size:11px;color:#8696A0;margin-bottom:10px;font-weight:600;">Add one or more photos of the tanker unloading. Take or upload as many as needed.</div>
+        <div id="unload_slot"></div>
+        <input type="file" id="unload_file_input" accept="image/*" style="display:none;" onchange="onUnloadFile(this)"/>
       </div>
     </div>
 
@@ -1461,7 +1475,7 @@ async function loadOpeningFromPrev(){
   try{
     // most recent report for this station BEFORE the selected report date
     var selYmd = SELECTED_REPORT_DATE ? (SELECTED_REPORT_DATE.getFullYear()+'-'+String(SELECTED_REPORT_DATE.getMonth()+1).padStart(2,'0')+'-'+String(SELECTED_REPORT_DATE.getDate()).padStart(2,'0')) : null;
-    var q = sb.from('reports').select('close_a1,close_b1,close_a2,close_b2,rep_date_full,submitted_at').eq('erp_code',user.erp).order('submitted_at',{ascending:false}).limit(5);
+    var q = sb.from('reports').select('close_a1,close_b1,close_a2,close_b2,dg_close,rep_date_full,submitted_at').eq('erp_code',user.erp).order('submitted_at',{ascending:false}).limit(5);
     var {data,error}=await q;
     if(error||!data||!data.length)return;
     // prefer the latest report strictly before the selected date; else the latest overall
@@ -1479,6 +1493,12 @@ async function loadOpeningFromPrev(){
         el.title='Auto-filled from previous closing';
       }
     });
+    // DG opening = previous DG closing (read-only)
+    if(prev.dg_close!=null){
+      var dgo=document.getElementById('f_dgo');
+      if(dgo){dgo.value=String(prev.dg_close);dgo.readOnly=true;dgo.style.background='#EEF1F3';dgo.title='Auto-filled from previous DG closing';}
+    }
+    if(typeof calcDGHours==='function')calcDGHours();
     if(typeof updateFill==='function')updateFill();
     if(typeof calcRSPSplit==='function')calcRSPSplit();
   }catch(e){}
@@ -1539,12 +1559,12 @@ function resetForm(){
   const ids=['f_date','f_oa1','f_ob1','f_ca1','f_cb1','f_ts','f_ns','f_ta','f_cih','f_dip','f_stk','f_cmt','f_r1','f_s1sale','f_s2sale','f_s3sale'];
   ids.forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   const na=['f_oa2','f_ob2','f_ca2','f_cb2','f_r2','f_r3','f_r4'];
-  na.forEach(id=>{const e=document.getElementById(id);if(e)e.value='NA';});
-  const z=['f_rtn','f_free','f_prev','f_card','f_paytm','f_famt','f_csale','f_bank','f_dgo','f_dgc','f_dgh'];
+  na.forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  const z=['f_rtn','f_free','f_prev','f_card','f_paytm','f_famt','f_csale','f_bank','f_dgo','f_dgc','f_dgh','f_free_old','f_free_new'];
   z.forEach(id=>{const e=document.getElementById(id);if(e)e.value='0.00';});
   // Reset photos + RSP change
   photoSlots=[];photoDataUrl=null;photoFile=null;
-  rspChangeOn=false;rspPhotoList=[];
+  rspChangeOn=false;rspPhotoList=[];unloadList=[];
   const rb=document.getElementById('rsp_change_box');if(rb)rb.style.display='none';
   const rab=document.getElementById('rsp_add_btn');if(rab)rab.style.display='flex';
   ['f_rsp_new','f_rsp_old','f_chg_a1','f_chg_a2','f_chg_b1','f_chg_b2','f_rsp_lb','f_rsp_la','f_rsp_ab','f_rsp_aa'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
@@ -1587,7 +1607,34 @@ function _gv(id){var e=document.getElementById(id);if(!e)return null;var v=parse
 function _isActive(id){var e=document.getElementById(id);if(!e)return false;var v=(e.value||'').trim().toUpperCase();return v&&v!=='NA'&&!isNaN(parseFloat(v));}
 
 // B4/B3: compute Total Sale (ltrs), Net Sale, Total Sales Amt, Cash Sales, Cash in Hand
+// Free Sales Amt = Free Sale ltrs × RSP. On RSP-change day, split into old/new rate litres.
+function calcDGHours(){
+  var o=_gv('f_dgo')||0, c=_gv('f_dgc')||0;
+  var h=document.getElementById('f_dgh');
+  if(h)h.value=Math.max(0,c-o).toFixed(2);
+}
+function calcFreeSplit(){
+  var on=(typeof rspChangeOn!=='undefined' && rspChangeOn);
+  var oldR=_gv('f_r1')||0;
+  var newR=_gv('f_rsp_new')||0;
+  var famt=document.getElementById('f_famt');
+  // show/hide split rows
+  var fo=document.getElementById('free_old_row'),fn=document.getElementById('free_new_row');
+  if(fo)fo.style.display=on?'flex':'none';
+  if(fn)fn.style.display=on?'flex':'none';
+  var amt;
+  if(on){
+    var fl_old=_gv('f_free_old')||0, fl_new=_gv('f_free_new')||0;
+    amt=fl_old*oldR + fl_new*newR;
+  } else {
+    var fr=_gv('f_free')||0;
+    amt=fr*oldR;
+  }
+  if(famt)famt.value=amt.toFixed(2);
+  return amt;
+}
 function calcDerived(){
+  if(typeof calcFreeSplit==='function')calcFreeSplit(); // refresh Free Sales Amt first
   // Total Sale (litres) = Σ(closing - opening) across active nozzles
   var nz=[['f_oa1','f_ca1'],['f_oa2','f_ca2'],['f_ob1','f_cb1'],['f_ob2','f_cb2']];
   var totLtr=0,have=false;
@@ -1701,6 +1748,8 @@ function buildData(status){
     bankDeposit:g('f_bank'),cashInHand:g('f_cih'),
     dipReading:g('f_dip'),stockLtrs:g('f_stk'),
     dgOpen:g('f_dgo'),dgClose:g('f_dgc'),dgHours:g('f_dgh'),
+    freeOldLtr:g('f_free_old'),freeNewLtr:g('f_free_new'),
+    unloadPhotos:unloadList.map(p=>p.driveView).filter(Boolean),
     comments:document.getElementById('f_cmt').value.trim(),
     reportText:buildText(),
     submittedAt:now.toISOString(),
@@ -1782,6 +1831,8 @@ async function pushToSupabase(d){
     rsp1:String(d.rsp1||''), rsp2:String(d.rsp2||''), rsp3:String(d.rsp3||''), rsp4:String(d.rsp4||''),
     prev_cash:_n(d.prevCash), total_amt:_n(d.totalAmt), card_sale:_n(d.cardSale), paytm_sale:_n(d.paytmSale),
     free_amt:_n(d.freeAmt), cash_sale:_n(d.cashSale), bank_deposit:_n(d.bankDeposit), cash_in_hand:_n(d.cashInHand),
+    free_old_ltr:_n(d.freeOldLtr), free_new_ltr:_n(d.freeNewLtr),
+    unload_photos:(d.unloadPhotos&&d.unloadPhotos.length)?d.unloadPhotos:null,
     dip_reading:_n(d.dipReading), stock_ltrs:_n(d.stockLtrs),
     dg_open:_n(d.dgOpen), dg_close:_n(d.dgClose), dg_hours:_n(d.dgHours),
     comments:d.comments||'',
@@ -2155,7 +2206,7 @@ function editRep(id){
   sv('f_cmt',r.comments);
   sv('f_s1sale',r.s1sale);sv('f_s2sale',r.s2sale);sv('f_s3sale',r.s3sale);
   // rebuild photo slots, then restore existing Drive links
-  photoSlots=[];rspChangeOn=false;rspPhotoList=[];
+  photoSlots=[];rspChangeOn=false;rspPhotoList=[];unloadList=[];
   buildPhotoSlots();
   const linkMap={DU1A:r.photoDU1A,DU1B:r.photoDU1B,DU2A:r.photoDU2A,DU2B:r.photoDU2B,ROTO:r.photoRoto,DIP:r.photoDip,RADAR:r.photoRadar};
   photoSlots.forEach(s=>{
@@ -2172,6 +2223,7 @@ function editRep(id){
     rspChangeOn=false;toggleRSPChange();
     sv('f_rsp_new',r.rspNewRate);sv('f_chg_a1',r.rspChgA1);sv('f_chg_a2',r.rspChgA2);sv('f_chg_b1',r.rspChgB1);sv('f_chg_b2',r.rspChgB2);
     if(r.rspPhotos&&r.rspPhotos.length){rspPhotoList=r.rspPhotos.map(u=>({file:null,dataUrl:u,driveView:u,driveThumb:u}));renderRSPPhoto();}else if(r.rspPhoto){rspPhotoList=[{file:null,dataUrl:r.rspPhoto,driveView:r.rspPhoto,driveThumb:r.rspPhoto}];renderRSPPhoto();}
+  if(r.unloadPhotos&&r.unloadPhotos.length){unloadList=r.unloadPhotos.map(u=>({file:null,dataUrl:u,driveView:u,uploading:false,failed:false}));renderUnload();}
     calcRSPSplit();
   }
   goScreen('s_form');updateFill();
@@ -2442,11 +2494,13 @@ function toggleRSPChange(){
   if(rspChangeOn){
     renderRSPPhoto();
     calcRSPSplit();
+    if(typeof calcFreeSplit==='function')calcFreeSplit();
   } else {
     // clear so it won't be saved
-    ['f_rsp_new','f_chg_a1','f_chg_a2','f_chg_b1','f_chg_b2'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+    ['f_rsp_new','f_chg_a1','f_chg_a2','f_chg_b1','f_chg_b2','f_free_old','f_free_new'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
     rspPhotoList=[];
     calcRSPSplit();
+    if(typeof calcFreeSplit==='function')calcFreeSplit();
   }
 }
 let rspPhotoList=[]; // array of {file,dataUrl,driveView,driveThumb}
@@ -2485,6 +2539,61 @@ function rspPhotoCapture(useCamera,idx){
 }
 function rspPhotoRemove(i){rspPhotoList.splice(i,1);renderRSPPhoto();}
 function rspPhotoRetry(i){if(rspPhotoList[i]&&rspPhotoList[i].file){uploadSlotLive(rspPhotoList[i],'rsp',i);}}
+
+// ── UNLOADING PHOTOS (collapsible, multi-photo) ──
+let unloadList=[]; // {file,dataUrl,driveView,uploading,failed}
+function toggleUnloading(){
+  const b=document.getElementById('unload_body');const c=document.getElementById('unload_caret');
+  if(!b)return;const open=b.style.display==='none';
+  b.style.display=open?'block':'none';if(c)c.textContent=open?'▲':'▼';
+  if(open)renderUnload();
+}
+function renderUnload(){
+  const wrap=document.getElementById('unload_slot');if(!wrap)return;
+  let html='';
+  if(unloadList.length){
+    html+='<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:8px;">';
+    unloadList.forEach((p,i)=>{
+      const src=p.dataUrl||p.driveView;
+      let badge='';
+      if(p.uploading)badge='<div style="position:absolute;bottom:4px;right:4px;background:rgba(232,84,30,0.9);border-radius:7px;color:#fff;font-size:9px;font-weight:800;padding:3px 6px;">⏳</div>';
+      else if(p.failed)badge='<div style="position:absolute;bottom:4px;right:4px;background:rgba(211,47,47,0.9);border-radius:7px;color:#fff;font-size:9px;font-weight:800;padding:3px 6px;cursor:pointer;" onclick="unloadRetry('+i+')">⚠ Retry</div>';
+      else if(p.driveView)badge='<div style="position:absolute;bottom:4px;right:4px;background:rgba(46,125,50,0.9);border-radius:7px;color:#fff;font-size:9px;font-weight:800;padding:3px 6px;">✓</div>';
+      html+='<div style="position:relative;"><img src="'+src+'" style="width:100%;height:110px;object-fit:cover;border-radius:9px;border:1px solid #E9EDEF;'+(p.uploading?'opacity:0.6;':'')+'"/>'+
+        '<button type="button" onclick="unloadRemove('+i+')" style="position:absolute;top:4px;right:4px;width:24px;height:24px;background:rgba(255,59,48,0.92);border:none;border-radius:50%;color:#fff;font-size:13px;font-weight:800;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;">✕</button>'+badge+'</div>';
+    });
+    html+='</div>';
+  }
+  html+='<div style="display:flex;gap:7px;"><button type="button" onclick="unloadCapture(true)" style="flex:1;padding:11px;background:#fff;border:2px dashed #D1D7DB;border-radius:10px;font-family:inherit;font-size:12px;font-weight:700;color:#54656F;cursor:pointer;">📷 '+(unloadList.length?'Add (Camera)':'Take Photo')+'</button><button type="button" onclick="unloadCapture(false)" style="flex:1;padding:11px;background:#fff;border:2px dashed #D1D7DB;border-radius:10px;font-family:inherit;font-size:12px;font-weight:700;color:#54656F;cursor:pointer;">📁 '+(unloadList.length?'Add (Upload)':'Upload')+'</button></div>';
+  wrap.innerHTML=html;
+}
+function unloadCapture(cam){
+  const inp=document.getElementById('unload_file_input');
+  if(cam)inp.setAttribute('capture','environment');else inp.removeAttribute('capture');
+  inp.value='';inp.click();
+}
+function unloadRemove(i){unloadList.splice(i,1);renderUnload();}
+function unloadRetry(i){if(unloadList[i]&&unloadList[i].file){uploadUnloadLive(unloadList[i]);}}
+function onUnloadFile(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const obj={file:file,dataUrl:e.target.result,driveView:'',uploading:true,failed:false};
+    unloadList.push(obj);renderUnload();
+    uploadUnloadLive(obj);
+  };
+  reader.readAsDataURL(file);
+}
+async function uploadUnloadLive(p){
+  p.uploading=true;p.failed=false;renderUnload();
+  try{
+    const path=user.erp+'/unload_'+Date.now()+'_'+Math.floor(Math.random()*1000)+'.jpg';
+    const {error}=await sb.storage.from('report-photos').upload(path,p.file,{contentType:p.file.type||'image/jpeg',upsert:true});
+    if(error){p.uploading=false;p.failed=true;}
+    else{const {data:pub}=sb.storage.from('report-photos').getPublicUrl(path);p.driveView=pub.publicUrl;p.uploading=false;p.failed=false;}
+  }catch(e){p.uploading=false;p.failed=true;}
+  renderUnload();
+}
 
 function _numv(id){var e=document.getElementById(id);if(!e)return null;var v=parseFloat(e.value);return isFinite(v)?v:null;}
 function calcRSPSplit(){
