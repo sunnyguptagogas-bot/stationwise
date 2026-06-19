@@ -1741,7 +1741,7 @@ function buildData(status){
     rspAmtBefore:rspChangeOn?gt('f_rsp_ab'):'',
     rspAmtAfter:rspChangeOn?gt('f_rsp_aa'):'',
     photoDU1A:slotLink('DU1A'),photoDU1B:slotLink('DU1B'),photoDU2A:slotLink('DU2A'),photoDU2B:slotLink('DU2B'),
-    photoRoto:slotLink('ROTO'),photoDip:slotLink('DIP'),photoRadar:slotLink('RADAR'),
+    photoRoto:slotLink('ROTO'),photoDip:slotLink('DIP'),photoRadar:slotLink('RADAR'),photoPaytm:slotLink('PAYTM'),
     rspPhotos:rspPhotoList.map(p=>p.driveView).filter(Boolean),
     prevCash:g('f_prev'),totalAmt:g('f_ta'),cardSale:g('f_card'),
     paytmSale:g('f_paytm'),freeAmt:g('f_famt'),cashSale:g('f_csale'),
@@ -1837,7 +1837,7 @@ async function pushToSupabase(d){
     dg_open:_n(d.dgOpen), dg_close:_n(d.dgClose), dg_hours:_n(d.dgHours),
     comments:d.comments||'',
     photo_du1a:d.photoDU1A||null, photo_du1b:d.photoDU1B||null, photo_du2a:d.photoDU2A||null, photo_du2b:d.photoDU2B||null,
-    photo_roto:d.photoRoto||null, photo_dip:d.photoDip||null, photo_radar:d.photoRadar||null,
+    photo_roto:d.photoRoto||null, photo_dip:d.photoDip||null, photo_radar:d.photoRadar||null, photo_paytm:d.photoPaytm||null,
     rsp_changed:!!d.rspChanged,
     rsp_new_rate:_n(d.rspNewRate), rsp_change_reading:_n(d.rspChangeReading),
     rsp_old_rate:_n(d.rspOldRate),
@@ -1882,7 +1882,7 @@ async function _finalizeSubmit(isWA){
   d.id=editId||d.id;
   // collect whatever links are already uploaded
   d.photoDU1A=slotLink('DU1A');d.photoDU1B=slotLink('DU1B');d.photoDU2A=slotLink('DU2A');d.photoDU2B=slotLink('DU2B');
-  d.photoRoto=slotLink('ROTO');d.photoDip=slotLink('DIP');d.photoRadar=slotLink('RADAR');
+  d.photoRoto=slotLink('ROTO');d.photoDip=slotLink('DIP');d.photoRadar=slotLink('RADAR');d.photoPaytm=slotLink('PAYTM');
   d.rspPhotos=rspPhotoList.map(p=>p.driveView).filter(Boolean);
   saveRep(d); editId=d.id;
   toast('Saving report…');
@@ -1908,7 +1908,7 @@ async function _patchPendingReportPhotos(){
   const patch={
     photo_du1a:slotLink('DU1A')||null, photo_du1b:slotLink('DU1B')||null,
     photo_du2a:slotLink('DU2A')||null, photo_du2b:slotLink('DU2B')||null,
-    photo_roto:slotLink('ROTO')||null, photo_dip:slotLink('DIP')||null, photo_radar:slotLink('RADAR')||null,
+    photo_roto:slotLink('ROTO')||null, photo_dip:slotLink('DIP')||null, photo_radar:slotLink('RADAR')||null, photo_paytm:slotLink('PAYTM')||null,
     rsp_photos:(()=>{const a=rspPhotoList.map(p=>p.driveView).filter(Boolean);return a.length?a:null;})(),
     rsp_photo:(rspPhotoList.find(p=>p.driveView)||{}).driveView||null,
     updated_at:new Date().toISOString()
@@ -2208,7 +2208,7 @@ function editRep(id){
   // rebuild photo slots, then restore existing Drive links
   photoSlots=[];rspChangeOn=false;rspPhotoList=[];unloadList=[];
   buildPhotoSlots();
-  const linkMap={DU1A:r.photoDU1A,DU1B:r.photoDU1B,DU2A:r.photoDU2A,DU2B:r.photoDU2B,ROTO:r.photoRoto,DIP:r.photoDip,RADAR:r.photoRadar};
+  const linkMap={DU1A:r.photoDU1A,DU1B:r.photoDU1B,DU2A:r.photoDU2A,DU2B:r.photoDU2B,ROTO:r.photoRoto,DIP:r.photoDip,RADAR:r.photoRadar,PAYTM:r.photoPaytm};
   photoSlots.forEach(s=>{
     const lk=linkMap[s.key];
     if(lk){s.driveView=lk;s.driveThumb=lk;s.dataUrl=lk;s.uploading=false;s.failed=false;}
@@ -2324,6 +2324,7 @@ function buildPhotoSlots(){
     defs.push({key:'DU2A',label:'DU-2 A-side Meter (Closing Reading)',required:true});
     defs.push({key:'DU2B',label:'DU-2 B-side Meter (Closing Reading)',required:true});
   }
+  defs.push({key:'PAYTM',label:'Paytm Settlement Slip',required:false});
   defs.push({key:'ROTO',label:'ROTO Gauge',required:false});
   defs.push({key:'DIP',label:'DIP Scale',required:false});
   defs.push({key:'RADAR',label:'RADAR Meter',required:false});
@@ -2462,7 +2463,7 @@ async function uploadSlot(slot,reportId){
 
 // Upload all photos (DU + equipment + rsp) and attach links onto data object
 async function uploadAllPhotos(data,reportId){
-  const map={DU1A:'photoDU1A',DU1B:'photoDU1B',DU2A:'photoDU2A',DU2B:'photoDU2B',ROTO:'photoRoto',DIP:'photoDip',RADAR:'photoRadar'};
+  const map={DU1A:'photoDU1A',DU1B:'photoDU1B',DU2A:'photoDU2A',DU2B:'photoDU2B',ROTO:'photoRoto',DIP:'photoDip',RADAR:'photoRadar',PAYTM:'photoPaytm'};
   for(const s of photoSlots){
     try{
       const r=await uploadSlot(s,reportId);
