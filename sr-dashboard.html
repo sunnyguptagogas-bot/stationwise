@@ -142,7 +142,7 @@ tr:hover td{background:#FBFCFD;}
   <div class="wrap">
     <!-- DASHBOARD -->
     <div class="page active" id="pg_dashboard">
-      <div class="sec-head"><div class="sec-title">Overview</div><button class="btn dark sm" onclick="loadAll()">↻ Refresh</button></div>
+      <div class="sec-head"><div class="sec-title">Overview</div><div style="display:flex;gap:8px;align-items:center;"><select id="dash_coord" onchange="renderDashboard()" style="display:none;padding:7px;border:1px solid #D1D7DB;border-radius:8px;"><option value="">All Coordinators</option></select><button class="btn dark sm" onclick="loadAll()">↻ Refresh</button></div></div>
       <div class="cards" id="dash_cards"></div>
       <div class="table-wrap" id="coord_rollup_wrap" style="display:none;">
         <div class="table-head">Coordinator Completion <span style="font-weight:600;color:#8696A0;">· yesterday (T-1)</span> <span id="coord_rollup_count" style="font-weight:600;color:#8696A0;"></span><input id="coord_rollup_q" oninput="renderCoordRollup()" placeholder="Filter coordinator…" style="float:right;padding:5px 9px;border:1px solid #D1D7DB;border-radius:8px;font-size:12px;width:170px;"/></div>
@@ -165,6 +165,7 @@ tr:hover td{background:#FBFCFD;}
         </div>
       </div>
       <div class="filter-bar">
+        <select id="rep_coord" onchange="renderReports()" style="display:none;"><option value="">All Coordinators</option></select>
         <select id="rep_state" onchange="renderReports()"><option value="">All States</option></select>
         <select id="rep_flag" onchange="renderReports()"><option value="">All Flags</option><option value="mismatch">⚠ Mismatch</option><option value="ok">✓ OK</option><option value="Approved">Approved</option><option value="Pending">Pending</option></select>
       </div>
@@ -179,6 +180,7 @@ tr:hover td{background:#FBFCFD;}
       <div class="sec-head"><div class="sec-title">History</div><button class="btn dark sm" onclick="exportExcelHistory()">⬇ Excel</button></div>
       <div class="filter-bar">
         <input type="date" id="hist_date" onchange="renderHistory()"/>
+        <select id="hist_coord" onchange="renderHistory()" style="display:none;"><option value="">All Coordinators</option></select>
         <select id="hist_state" onchange="renderHistory()"><option value="">All States</option></select>
         <select id="hist_flag" onchange="renderHistory()"><option value="">All Flags</option><option value="mismatch">⚠ Mismatch</option><option value="ok">✓ OK</option><option value="Approved">Approved</option><option value="Pending">Pending</option></select>
       </div>
@@ -416,27 +418,55 @@ function fillStateFilters(){
   var states=[...new Set(STATIONS.map(function(x){return x.state;}))].sort();
   var opts='<option value="">All States</option>'+states.map(function(s){return '<option value="'+s+'">'+s+'</option>';}).join('');
   ['rep_state','hist_state','map_state_filter'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML=opts;});
+  fillCoordFilters();
+}
+// Coordinator filter — only Super / view_all_states see it
+function fillCoordFilters(){
+  var seeAll=(ME&&ME.role==='super')||can('view_all_states');
+  var coords=(USERS||[]).filter(function(u){return u.role==='coordinator';});
+  // fallback to mapping-derived ids if USERS not loaded
+  if(!coords.length){
+    var ids=[...new Set(MAPPINGS.map(function(m){return m.coordinator_id;}))];
+    coords=ids.map(function(id){return {id:id,full_name:'Coordinator '+String(id).slice(0,6)};});
+  }
+  var copts='<option value="">All Coordinators</option>'+coords.map(function(c){return '<option value="'+c.id+'">'+(c.full_name||c.email||c.id)+'</option>';}).join('');
+  ['dash_coord','rep_coord','hist_coord'].forEach(function(id){
+    var el=document.getElementById(id);if(!el)return;
+    el.innerHTML=copts;
+    el.style.display=seeAll?'':'none';
+  });
+}
+// ERPs mapped to a coordinator id (for filtering)
+function _coordErps(coordId){
+  if(!coordId)return null; // null = no filter
+  var set={};
+  MAPPINGS.filter(function(m){return String(m.coordinator_id)===String(coordId);}).forEach(function(m){set[m.station_erp]=1;});
+  return set;
 }
 
 // ── DASHBOARD ──
 function renderDashboard(){
   var t1=istYesterdayYMD();
   var R=REPORTS.filter(function(r){return reportDayYMD(r)===t1;}); // T-1 ONLY
+  var cf=(document.getElementById('dash_coord')||{}).value;
+  var cErps=_coordErps(cf);
+  if(cErps)R=R.filter(function(r){return cErps[r.erp_code];});
   var todayReports=R.length;
   var stationsReported=[...new Set(R.map(function(r){return r.erp_code;}))].length;
   var mismatch=R.filter(function(r){return chainCheck(r).flag==='mismatch'&&r.approval_status!=='Approved';}).length;
   var totalSale=R.reduce(function(a,r){return a+(num(r.net_sale)||0);},0);
   var totalAmt=R.reduce(function(a,r){return a+(num(r.total_amt)||0);},0);
   document.getElementById('dash_cards').innerHTML=
-    card(STATIONS.length,'Total Stations')+
+    card((cErps?Object.keys(cErps).length:STATIONS.length),'Total Stations')+
     card(stationsReported,'Stations Reported')+
     card(todayReports,'Total Reports')+
     card(mismatch,'⚠ Mismatch Flags')+
     card(Math.round(totalSale).toLocaleString('en-IN'),'Total Sale (L)')+
     card('₹'+Math.round(totalAmt).toLocaleString('en-IN'),'Total Amount');
-  // by state — T-1 only
+  // by state — T-1 only; scope stations to selected coordinator if filtered
   var states={};
-  STATIONS.forEach(function(s){states[s.state]=states[s.state]||{stations:0,reported:{},flags:0,sale:0,amt:0};states[s.state].stations++;});
+  var stnList=cErps?STATIONS.filter(function(s){return cErps[s.erp_code];}):STATIONS;
+  stnList.forEach(function(s){states[s.state]=states[s.state]||{stations:0,reported:{},flags:0,sale:0,amt:0};states[s.state].stations++;});
   R.forEach(function(r){
     if(!states[r.state])return;
     states[r.state].reported[r.erp_code]=1;
@@ -639,8 +669,11 @@ function renderReports(){
   var lbl=document.getElementById('t1_label');if(lbl)lbl.textContent='· '+t1;
   var sf=document.getElementById('rep_state').value;
   var ff=document.getElementById('rep_flag').value;
+  var cf=(document.getElementById('rep_coord')||{}).value;
   var rows=REPORTS.filter(function(r){return reportDayYMD(r)===t1;}); // T-1 ONLY
   if(sf)rows=rows.filter(function(r){return r.state===sf;});
+  var cErps=_coordErps(cf);
+  if(cErps)rows=rows.filter(function(r){return cErps[r.erp_code];});
   if(ff)rows=rows.filter(function(r){
     if(ff==='Approved')return r.approval_status==='Approved';
     if(ff==='Pending')return r.approval_status!=='Approved';
@@ -664,9 +697,12 @@ function renderHistory(){
   var df=document.getElementById('hist_date').value; // YYYY-MM-DD
   var sf=document.getElementById('hist_state').value;
   var ff=document.getElementById('hist_flag').value;
+  var cf=(document.getElementById('hist_coord')||{}).value;
   var rows=REPORTS.slice();
   if(df)rows=rows.filter(function(r){return reportDayYMD(r)===df;});
   if(sf)rows=rows.filter(function(r){return r.state===sf;});
+  var cErps=_coordErps(cf);
+  if(cErps)rows=rows.filter(function(r){return cErps[r.erp_code];});
   if(ff)rows=rows.filter(function(r){
     if(ff==='Approved')return r.approval_status==='Approved';
     if(ff==='Pending')return r.approval_status!=='Approved';
