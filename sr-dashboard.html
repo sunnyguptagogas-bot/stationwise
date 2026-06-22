@@ -727,47 +727,56 @@ function openDetail(i,arrName){
   }).join('');
   if(!phtml)phtml='<div style="grid-column:1/-1;text-align:center;color:#8696A0;padding:18px;">No photos</div>';
   var ocrAllBtn=anyDU?'<button class="btn sm dark" style="font-size:11px;" onclick="ocrAllMeters()">🔍 Read all DU meters</button> <span style="font-size:11px;color:#8696A0;">OCR is assistive only — it never blocks approval.</span>':'';
-  // ── helper: ledger section (label left, value right) ──
-  function _row(lbl,val,hi){ if(val==null||val===''||val==='—')val='—';
-    return '<div style="display:flex;justify-content:space-between;padding:6px 10px;border-bottom:1px solid #EEF1F4;font-size:12px;'+(hi?'background:rgba(232,84,30,0.05);font-weight:700;':'')+'"><span style="color:#54656F;">'+lbl+'</span><span style="font-weight:600;color:#111B21;">'+val+'</span></div>'; }
+  var editable=canApprove && !isLocked(r);
+  // ── helper: editable ledger row. col = DB column; every field is an input when editable ──
+  function _row(lbl,col,val,hi){
+    var v=(val==null?'':val);
+    var inp=editable
+      ? '<input class="d_edit" data-col="'+col+'" value="'+String(v).replace(/"/g,'&quot;')+'" style="width:120px;text-align:right;padding:5px 7px;border:1px solid #D1D7DB;border-radius:6px;font-size:12px;'+(hi?'font-weight:700;':'')+'"/>'
+      : '<span style="font-weight:600;color:#111B21;">'+(v===''?'—':v)+'</span>';
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-bottom:1px solid #EEF1F4;font-size:12px;'+(hi?'background:rgba(232,84,30,0.05);':'')+'"><span style="color:#54656F;">'+lbl+'</span>'+inp+'</div>';
+  }
   function _sec(title,rowsHtml){ return '<div style="margin-top:12px;border:1px solid #E9EDEF;border-radius:10px;overflow:hidden;"><div style="background:#F7F8FA;padding:8px 10px;font-weight:800;font-size:12px;text-align:center;">'+title+'</div>'+rowsHtml+'</div>'; }
-  function _f(v){ return (v==null||v==='')?'—':v; }
-  function _rs(v){ return (v==null||v==='')?'—':('₹'+v); }
+  function _f(v){ return (v==null||v==='')?'':v; }
   // Full RSP-change block
   var rsp='';
   if(r.rsp_changed){
     rsp=_sec('🔄 RSP CHANGE',
-      _row('Old RSP',_f(r.rsp_old_rate))+_row('New RSP',_f(r.rsp_new_rate),true)+
-      _row('Change Rdg A1',_f(r.chg_a1))+_row('Change Rdg A2',_f(r.chg_a2))+
-      _row('Change Rdg B1',_f(r.chg_b1))+_row('Change Rdg B2',_f(r.chg_b2))+
-      _row('Ltrs @ Old Rate',_f(r.rsp_ltrs_before))+_row('Ltrs @ New Rate',_f(r.rsp_ltrs_after))+
-      _row('Amt @ Old Rate',_rs(r.rsp_amt_before))+_row('Amt @ New Rate',_rs(r.rsp_amt_after)));
+      _row('Old RSP','rsp_old_rate',_f(r.rsp_old_rate))+_row('New RSP','rsp_new_rate',_f(r.rsp_new_rate),true)+
+      _row('Change Rdg A1','chg_a1',_f(r.chg_a1))+_row('Change Rdg A2','chg_a2',_f(r.chg_a2))+
+      _row('Change Rdg B1','chg_b1',_f(r.chg_b1))+_row('Change Rdg B2','chg_b2',_f(r.chg_b2))+
+      _row('Ltrs @ Old Rate','rsp_ltrs_before',_f(r.rsp_ltrs_before))+_row('Ltrs @ New Rate','rsp_ltrs_after',_f(r.rsp_ltrs_after))+
+      _row('Amt @ Old Rate','rsp_amt_before',_f(r.rsp_amt_before))+_row('Amt @ New Rate','rsp_amt_after',_f(r.rsp_amt_after)));
   }
   // Rate
   var rateSec=_sec('RATE',
-    _row('RSP DU1-N1',_f(r.rsp1))+_row('RSP DU1-N2',_f(r.rsp2))+
-    _row('RSP DU2-N1',_f(r.rsp3))+_row('RSP DU2-N2',_f(r.rsp4)));
+    _row('RSP DU1-N1','rsp1',_f(r.rsp1))+_row('RSP DU1-N2','rsp2',_f(r.rsp2))+
+    _row('RSP DU2-N1','rsp3',_f(r.rsp3))+_row('RSP DU2-N2','rsp4',_f(r.rsp4)));
   // Sales
   var salesSec=_sec('SALES',
-    _row('Total Sale (L)',_f(r.total_sale))+_row('Rtn Testing',_f(r.rtn_testing))+
-    _row('Free Sale (L)',_f(r.free_sale))+
-    (r.free_old_ltr!=null?_row('↳ Free @ Old Rate',_f(r.free_old_ltr)):'')+
-    (r.free_new_ltr!=null?_row('↳ Free @ New Rate',_f(r.free_new_ltr)):'')+
-    _row('Net Sale (L)',_f(r.net_sale),true));
+    _row('Total Sale (L)','total_sale',_f(r.total_sale))+_row('Rtn Testing','rtn_testing',_f(r.rtn_testing))+
+    _row('Free Sale (L)','free_sale',_f(r.free_sale))+
+    _row('Free @ Old Rate','free_old_ltr',_f(r.free_old_ltr))+
+    _row('Free @ New Rate','free_new_ltr',_f(r.free_new_ltr))+
+    _row('Net Sale (L)','net_sale',_f(r.net_sale),true));
   // Payments
   var paySec=_sec('PAYMENTS',
-    _row('Previous Cash Bal',_rs(r.prev_cash))+_row('Total Sales Amt',_rs(r.total_amt),true)+
-    _row('Card Sale',_rs(r.card_sale))+_row('Paytm Sale',_rs(r.paytm_sale))+
-    _row('Free Sales Amt',_rs(r.free_amt))+_row('Cash Sale Amt',_rs(r.cash_sale))+
-    _row('Bank Deposit',_rs(r.bank_deposit))+_row('Cash In Hand',_rs(r.cash_in_hand),true));
+    _row('Previous Cash Bal','prev_cash',_f(r.prev_cash))+_row('Total Sales Amt','total_amt',_f(r.total_amt),true)+
+    _row('Card Sale','card_sale',_f(r.card_sale))+_row('Paytm Sale','paytm_sale',_f(r.paytm_sale))+
+    _row('Free Sales Amt','free_amt',_f(r.free_amt))+_row('Cash Sale Amt','cash_sale',_f(r.cash_sale))+
+    _row('Bank Deposit','bank_deposit',_f(r.bank_deposit))+_row('Cash In Hand','cash_in_hand',_f(r.cash_in_hand),true));
   // Stock
   var stockSec=_sec('STOCK',
-    _row('Dip Reading (mm)',_f(r.dip_reading))+_row('Stock in Ltrs',_f(r.stock_ltrs)));
+    _row('Dip Reading (mm)','dip_reading',_f(r.dip_reading))+_row('Stock in Ltrs','stock_ltrs',_f(r.stock_ltrs)));
   // DG
   var dgSec=_sec('DG METER',
-    _row('Opening DG',_f(r.dg_open))+_row('Closing DG',_f(r.dg_close))+_row('Hours',_f(r.dg_hours),true));
+    _row('Opening DG','dg_open',_f(r.dg_open))+_row('Closing DG','dg_close',_f(r.dg_close))+_row('Hours','dg_hours',_f(r.dg_hours),true));
   // Comments
-  var cmtSec=r.comments?_sec('COMMENTS','<div style="padding:8px 10px;font-size:12px;color:#111B21;">'+r.comments+'</div>'):'';
+  var cmtSec=_sec('COMMENTS', editable
+    ? '<div style="padding:8px 10px;"><textarea class="d_edit" data-col="comments" style="width:100%;border:1px solid #D1D7DB;border-radius:6px;padding:6px;font-size:12px;" rows="2">'+(r.comments||'')+'</textarea></div>'
+    : '<div style="padding:8px 10px;font-size:12px;color:#111B21;">'+(r.comments||'—')+'</div>');
+  // Save-all-edits bar
+  var saveBar=editable?'<div style="margin-top:12px;"><button class="btn dark" style="width:100%;" onclick="saveAllEdits()">💾 Save All Changes</button><div style="font-size:11px;color:#8696A0;margin-top:5px;text-align:center;">Edits save to the database immediately. Auto-calc fields are not recomputed — your values are kept as entered.</div></div>':'';
   var locked=isLocked(r);
   // unlock / re-lock controls (only for users with unlock permission)
   var lockBar='';
@@ -804,7 +813,7 @@ function openDetail(i,arrName){
     rateSec+
     '<div style="font-weight:800;margin:14px 0 8px;">Meter Readings &amp; Chain Check</div>'+readHtml+
     rsp+
-    salesSec+paySec+stockSec+dgSec+cmtSec+
+    salesSec+paySec+stockSec+dgSec+cmtSec+saveBar+
     '<div style="font-weight:800;margin:14px 0 8px;">Photos <span style="font-size:11px;font-weight:600;color:#8696A0;">'+(isT1?'(tap to enlarge)':'(older report — tap a photo to load, or)')+'</span>'+(isT1?'':' <button class="btn sm gray" style="font-size:10px;" onclick="loadAllLazyPhotos()">👁 Preview all photos</button>')+'</div>'+
     (ocrAllBtn?'<div style="margin-bottom:8px;">'+ocrAllBtn+'</div>':'')+
     '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">'+phtml+'</div>'+approveBar+lockBar;
@@ -837,6 +846,44 @@ async function approveDetail(){
     toast('✓ Approved & saved');
   }
   Object.assign(r,upd);
+  closeModal('detail_modal');renderReports();renderDashboard();
+}
+
+// Save ALL edited fields (coordinator full override). Writes immediately, no recalculation.
+var _numCols={total_sale:1,rtn_testing:1,free_sale:1,free_old_ltr:1,free_new_ltr:1,net_sale:1,
+  prev_cash:1,total_amt:1,card_sale:1,paytm_sale:1,free_amt:1,cash_sale:1,bank_deposit:1,cash_in_hand:1,
+  dip_reading:1,stock_ltrs:1,dg_open:1,dg_close:1,dg_hours:1,
+  rsp_old_rate:1,rsp_new_rate:1,chg_a1:1,chg_a2:1,chg_b1:1,chg_b2:1,
+  rsp_ltrs_before:1,rsp_ltrs_after:1,rsp_amt_before:1,rsp_amt_after:1};
+async function saveAllEdits(){
+  var r=window._det;if(!r)return;
+  if(isLocked(r)){toast('🔒 Locked — unlock first');return;}
+  if(!can('approve')){toast('No permission');return;}
+  var upd={};
+  // ledger inputs (data-col)
+  document.querySelectorAll('#detail_body .d_edit').forEach(function(el){
+    var col=el.getAttribute('data-col');if(!col)return;
+    var v=(el.value||'').trim();
+    if(_numCols[col]){ upd[col]=(v===''?null:(isNaN(parseFloat(v))?null:parseFloat(v))); }
+    else if(col==='comments'){ upd[col]=v; }
+    else { upd[col]=(v===''?null:v); } // rsp1-4 stored as text
+  });
+  // meter readings (d_o / d_c)
+  [['A1','open_a1','close_a1'],['B1','open_b1','close_b1'],['A2','open_a2','close_a2'],['B2','open_b2','close_b2']].forEach(function(p){
+    var oe=document.getElementById('d_o'+p[0]);var ce=document.getElementById('d_c'+p[0]);
+    if(oe)upd[p[1]]=(oe.value===''?null:parseFloat(oe.value));
+    if(ce)upd[p[2]]=(ce.value===''?null:parseFloat(ce.value));
+  });
+  // preserve original values once, for audit
+  if(!r.original_values){
+    upd.original_values={open_a1:r.open_a1,open_b1:r.open_b1,open_a2:r.open_a2,open_b2:r.open_b2,close_a1:r.close_a1,close_b1:r.close_b1,close_a2:r.close_a2,close_b2:r.close_b2,edited_by:(ME.full_name||ME.email||'Admin'),edited_at:new Date().toISOString()};
+  }
+  upd.updated_at=new Date().toISOString();
+  toast('Saving changes…');
+  var {error}=await sb.from('reports').update(upd).eq('id',r.id);
+  if(error){toast('Failed: '+error.message);return;}
+  Object.assign(r,upd);
+  toast('✓ All changes saved');
   closeModal('detail_modal');renderReports();renderDashboard();
 }
 
