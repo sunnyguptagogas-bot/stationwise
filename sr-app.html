@@ -394,6 +394,9 @@ function switchTab(tab){
       <button id="sync_retry_btn" onclick="event.stopPropagation();syncPending();toast('Syncing...');" style="display:none;margin-left:8px;padding:3px 10px;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);border-radius:10px;font-size:11px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;">Retry</button>
     </div>
 
+    <!-- SENT BACK BY COORDINATOR (filled by loadReturnedReports) -->
+    <div id="returned_box" style="display:none;padding:14px 14px 0;"></div>
+
     <div style="padding:14px 14px 0;">
       <div class="today-strip">
         <div class="ts-title">Today's Activity</div>
@@ -436,9 +439,10 @@ function switchTab(tab){
   <div class="status-bar"></div>
   <div class="topbar">
     <div class="tb-back" onclick="goHome()">←</div>
-    <div><div class="tb-title">New Report</div><div class="tb-sub" id="form_sub">GOGAS Daily Report</div></div>
+    <div><div class="tb-title" id="form_title">New Report</div><div class="tb-sub" id="form_sub">GOGAS Daily Report</div></div>
   </div>
   <div class="scroll-body" id="form_scroll">
+    <div id="fix_banner" style="display:none;margin:12px 14px 0;padding:12px 13px;background:#fdecea;border:1.5px solid #d32f2f;border-radius:12px;font-size:12px;color:#7f1d1d;line-height:1.45;"></div>
     <div class="fill-bar-wrap fadein">
       <div class="fb-bg"><div class="fb-fill" id="fb_fill" style="width:0%"></div></div>
       <div class="fb-txt" id="fb_txt">0 / 12 required</div>
@@ -1432,6 +1436,7 @@ function initHome(){
   updateSyncBanner();
   // Auto-sync on open
   syncPending();
+  loadReturnedReports();   // reports sent back by coordinator for correction
 }
 
 function updateSyncBanner(){
@@ -1454,7 +1459,7 @@ function updateSyncBanner(){
 
 // ════════ NEW REPORT ════════
 async function startNew(){
-  editId=null;resetForm();
+  editId=null;_fixRow=null;_hideFixBanner();resetForm();
   await loadAllowedDates();
   // default to T-1
   SELECTED_REPORT_DATE=ALLOWED_DATES[0].date;
@@ -1823,7 +1828,7 @@ async function pushToSupabase(d){
     report_key:d.id,
     erp_code:d.erp, station_name:d.stationName, state:d.state, ss_name:d.ssName,
     shift:d.shift, rep_date:String(d.date||''), rep_month:d.month, rep_year:String(d.year||''),
-    rep_date_full: (SELECTED_REPORT_DATE? (SELECTED_REPORT_DATE.getFullYear()+'-'+String(SELECTED_REPORT_DATE.getMonth()+1).padStart(2,'0')+'-'+String(SELECTED_REPORT_DATE.getDate()).padStart(2,'0')) : null),
+    rep_date_full: d.repDateFull || (SELECTED_REPORT_DATE? (SELECTED_REPORT_DATE.getFullYear()+'-'+String(SELECTED_REPORT_DATE.getMonth()+1).padStart(2,'0')+'-'+String(SELECTED_REPORT_DATE.getDate()).padStart(2,'0')) : null),
     s1_sale:_n(d.s1sale), s2_sale:_n(d.s2sale), s3_sale:_n(d.s3sale),
     open_a1:_n(d.openA1), open_b1:_n(d.openB1), open_a2:_n(d.openA2), open_b2:_n(d.openB2),
     close_a1:_n(d.closeA1), close_b1:_n(d.closeB1), close_a2:_n(d.closeA2), close_b2:_n(d.closeB2),
@@ -1849,6 +1854,8 @@ async function pushToSupabase(d){
     submitted_at:d.submittedAt||new Date().toISOString(),
     updated_at:new Date().toISOString()
   };
+  // Resubmitting a report the coordinator sent back → goes back to Pending for review
+  if(d.isResubmit){row.approval_status='Pending';row.resubmitted_at=new Date().toISOString();}
   var {error}=await sb.from('reports').upsert(row,{onConflict:'report_key'});
   if(!error && SELECTED_REPORT_DATE){
     // if this date was a backdate grant, mark it used
@@ -1884,10 +1891,15 @@ async function _finalizeSubmit(isWA){
   d.photoDU1A=slotLink('DU1A');d.photoDU1B=slotLink('DU1B');d.photoDU2A=slotLink('DU2A');d.photoDU2B=slotLink('DU2B');
   d.photoRoto=slotLink('ROTO');d.photoDip=slotLink('DIP');d.photoRadar=slotLink('RADAR');d.photoPaytm=slotLink('PAYTM');
   d.rspPhotos=rspPhotoList.map(p=>p.driveView).filter(Boolean);
+  if(SELECTED_REPORT_DATE)d.repDateFull=_ymdOf(SELECTED_REPORT_DATE);
+  d.isResubmit=!!_returnedByKey[d.id];
   saveRep(d); editId=d.id;
   toast('Saving report…');
   const res=await pushToSupabase(d);
-  if(res.ok){toast('✅ Report submitted!');}
+  if(res.ok){
+    if(d.isResubmit){delete _returnedByKey[d.id];_fixRow=null;_hideFixBanner();toast('✅ Corrected report resubmitted!');}
+    else toast('✅ Report submitted!');
+  }
   else {addToSyncQueue(d);toast('Saved offline — will sync when online');}
   // if any photos still pending, remember this report so completions patch it
   const stillPending=photoSlots.some(s=>s.file&&!s.driveView)||rspPhotoList.some(p=>p.file&&!p.driveView);
@@ -2188,7 +2200,8 @@ function viewRep(id){
 
 function editRep(id){
   const r=reports.find(x=>x.id===id);if(!r)return;
-  editId=id;
+  editId=id;_fixRow=null;
+  if(_returnedByKey[id])_showFixBanner(_returnedByKey[id]);else _hideFixBanner();
   document.getElementById('fd_erp').textContent=r.erp||user.erp;
   document.getElementById('fd_stn').textContent=r.stationName||r.station||user.station;
   document.getElementById('fd_month').textContent=r.month||'';
@@ -2409,7 +2422,7 @@ function onSlotFile(input){
   const i=_pendingSlot;_pendingSlot=-1;
   const reader=new FileReader();
   reader.onload=e=>{
-    photoSlots[i].file=file;
+    photoSlots[i].file=file;photoSlots[i].small=null;
     photoSlots[i].dataUrl=e.target.result;
     photoSlots[i].driveView='';photoSlots[i].driveThumb='';
     photoSlots[i].uploading=true;photoSlots[i].failed=false;photoSlots[i].missingUpload=false;
@@ -2453,7 +2466,8 @@ async function uploadSlot(slot,reportId){
   if(slot.driveView)return {view:slot.driveView,thumb:slot.driveView}; // already uploaded
   // upload to Supabase Storage 'report-photos'
   const path=user.erp+'/'+reportId+'_'+slot.key+'_'+Date.now()+'.jpg';
-  const {data,error}=await sb.storage.from('report-photos').upload(path,slot.file,{contentType:slot.file.type||'image/jpeg',upsert:true});
+  if(!slot.small)slot.small=await shrinkImage(slot.file);   // compress once, reuse on retry
+  const {data,error}=await sb.storage.from('report-photos').upload(path,slot.small,{contentType:slot.small.type||'image/jpeg',upsert:true});
   if(error){return null;}
   const {data:pub}=sb.storage.from('report-photos').getPublicUrl(path);
   const url=pub.publicUrl;
@@ -2589,7 +2603,8 @@ async function uploadUnloadLive(p){
   p.uploading=true;p.failed=false;renderUnload();
   try{
     const path=user.erp+'/unload_'+Date.now()+'_'+Math.floor(Math.random()*1000)+'.jpg';
-    const {error}=await sb.storage.from('report-photos').upload(path,p.file,{contentType:p.file.type||'image/jpeg',upsert:true});
+    if(!p.small)p.small=await shrinkImage(p.file);
+    const {error}=await sb.storage.from('report-photos').upload(path,p.small,{contentType:p.small.type||'image/jpeg',upsert:true});
     if(error){p.uploading=false;p.failed=true;}
     else{const {data:pub}=sb.storage.from('report-photos').getPublicUrl(path);p.driveView=pub.publicUrl;p.uploading=false;p.failed=false;}
   }catch(e){p.uploading=false;p.failed=true;}
@@ -2686,7 +2701,8 @@ async function bankReceiptUpload(){
   bankReceipt.uploading=true;bankReceipt.failed=false;renderBankReceipt();
   try{
     const path=user.erp+'/bank_'+Date.now()+'.jpg';
-    const {error}=await sb.storage.from('report-photos').upload(path,bankReceipt.file,{contentType:bankReceipt.file.type||'image/jpeg',upsert:true});
+    if(!bankReceipt.small)bankReceipt.small=await shrinkImage(bankReceipt.file);
+    const {error}=await sb.storage.from('report-photos').upload(path,bankReceipt.small,{contentType:bankReceipt.small.type||'image/jpeg',upsert:true});
     if(error){bankReceipt.uploading=false;bankReceipt.failed=true;}
     else{const {data:pub}=sb.storage.from('report-photos').getPublicUrl(path);bankReceipt.driveView=pub.publicUrl;bankReceipt.uploading=false;bankReceipt.failed=false;}
   }catch(e){bankReceipt.uploading=false;bankReceipt.failed=true;}
@@ -2750,7 +2766,138 @@ window.addEventListener('popstate',()=>{
 history.pushState(null,'',location.href);
 </script>
 <script>
-const APP_VERSION='v2.0';
+
+// ════════ PHOTO COMPRESSION ════════
+// Phone cameras produce 3–8 MB photos. Shrink to max 1600px, JPEG ~0.75 (≈200–400 KB)
+// before upload — meter digits stay readable, dashboards load far faster.
+const PHOTO_MAX_PX=1600, PHOTO_QUALITY=0.75;
+function shrinkImage(file){
+  return new Promise(function(resolve){
+    try{
+      if(!file||!file.type||file.type.indexOf('image/')!==0){resolve(file);return;}
+      if(file.size<350*1024){resolve(file);return;}           // already small
+      var url=URL.createObjectURL(file);
+      var img=new Image();
+      img.onload=function(){
+        try{
+          var w=img.naturalWidth,h=img.naturalHeight;
+          var sc=Math.min(1,PHOTO_MAX_PX/Math.max(w,h));
+          var cw=Math.round(w*sc),ch=Math.round(h*sc);
+          var cv=document.createElement('canvas');cv.width=cw;cv.height=ch;
+          var cx=cv.getContext('2d');cx.fillStyle='#FFFFFF';cx.fillRect(0,0,cw,ch);cx.drawImage(img,0,0,cw,ch);
+          cv.toBlob(function(b){
+            URL.revokeObjectURL(url);
+            if(!b||b.size>=file.size){resolve(file);return;}    // never make it bigger
+            resolve(new File([b],(file.name||'photo').replace(/\.[^.]+$/,'')+'.jpg',{type:'image/jpeg'}));
+          },'image/jpeg',PHOTO_QUALITY);
+        }catch(e){URL.revokeObjectURL(url);resolve(file);}
+      };
+      img.onerror=function(){URL.revokeObjectURL(url);resolve(file);};
+      img.src=url;
+    }catch(e){resolve(file);}
+  });
+}
+
+// ════════ SENT BACK BY COORDINATOR ════════
+let _returnedList=[];      // rows from DB with approval_status='Returned'
+let _returnedByKey={};     // report_key -> row
+let _fixRow=null;          // row currently being fixed
+function _esc(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function _ymdOf(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function _repDateLabel(r){
+  if(r.rep_date_full){var p=String(r.rep_date_full).split('-');if(p.length===3)return parseInt(p[2],10)+' '+MONTHS_S[parseInt(p[1],10)-1]+' '+p[0];}
+  return (r.rep_date||'')+' '+(r.rep_month||'')+' '+(r.rep_year||'');
+}
+function _fmtWhen(ts){if(!ts)return '';try{return new Date(ts).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});}catch(e){return '';}}
+
+async function loadReturnedReports(){
+  var box=document.getElementById('returned_box');
+  if(!box||!user)return;
+  try{
+    var {data,error}=await sb.from('reports').select('*').eq('erp_code',user.erp).eq('approval_status','Returned').order('returned_at',{ascending:false});
+    if(error)return;
+    _returnedList=data||[];_returnedByKey={};
+    _returnedList.forEach(function(r){_returnedByKey[r.report_key]=r;});
+    if(!_returnedList.length){box.style.display='none';box.innerHTML='';return;}
+    box.innerHTML=_returnedList.map(function(r,i){
+      return '<div style="background:#fff;border:2px solid #d32f2f;border-radius:14px;padding:13px;margin-bottom:10px;box-shadow:0 2px 10px rgba(211,47,47,0.12);">'+
+        '<div style="font-size:13px;font-weight:800;color:#d32f2f;margin-bottom:4px;">⚠ Report sent back — please correct</div>'+
+        '<div style="font-size:12px;font-weight:700;color:#111B21;">'+_esc(_repDateLabel(r))+' · Shift '+_esc(r.shift||'-')+'</div>'+
+        '<div style="margin-top:8px;padding:9px 10px;background:#fdecea;border-radius:9px;font-size:12px;color:#7f1d1d;line-height:1.45;"><b>Reason:</b> '+_esc(r.return_reason||'—')+'</div>'+
+        '<div style="font-size:11px;color:#8696A0;margin-top:6px;">By '+_esc(r.returned_by||'Coordinator')+(r.returned_at?' · '+_esc(_fmtWhen(r.returned_at)):'')+'</div>'+
+        '<button type="button" onclick="fixReturned('+i+')" style="margin-top:10px;width:100%;padding:12px;background:#d32f2f;border:none;border-radius:10px;color:#fff;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;">✏️ Fix &amp; Resubmit</button>'+
+      '</div>';
+    }).join('');
+    box.style.display='block';
+  }catch(e){}
+}
+
+function _showFixBanner(r){
+  var b=document.getElementById('fix_banner');if(!b)return;
+  b.innerHTML='<b style="color:#d32f2f;">⚠ Sent back by '+_esc(r.returned_by||'Coordinator')+'</b><br><b>Fix:</b> '+_esc(r.return_reason||'—')+'<br><span style="color:#8696A0;">Correct the report below and submit again.</span>';
+  b.style.display='block';
+  var t=document.getElementById('form_title');if(t)t.textContent='Fix Sent-back Report';
+}
+function _hideFixBanner(){var b=document.getElementById('fix_banner');if(b){b.style.display='none';b.innerHTML='';}var t=document.getElementById('form_title');if(t)t.textContent='New Report';}
+
+// Load a sent-back report from the database into the form (works on any phone).
+function fixReturned(i){
+  var r=_returnedList[i];if(!r)return;
+  resetForm();
+  editId=r.report_key;_fixRow=r;
+  // date: fixed to the report's own date
+  var d=null;
+  if(r.rep_date_full){var p=String(r.rep_date_full).split('-');if(p.length===3)d=new Date(parseInt(p[0],10),parseInt(p[1],10)-1,parseInt(p[2],10));}
+  if(!d){var mi=MONTHS.indexOf(r.rep_month);if(mi<0)mi=MONTHS_S.indexOf(r.rep_month);d=new Date(parseInt(r.rep_year,10)||new Date().getFullYear(),mi<0?0:mi,parseInt(r.rep_date,10)||1);}
+  applyReportDate(d);
+  var dc=document.getElementById('date_control');
+  if(dc)dc.innerHTML='<div class="fflbl">Report Date</div><div style="padding:11px 12px;border:1px solid #E2E6EA;border-radius:10px;background:#F4F6F8;font-weight:700;color:#2B2F36;">'+d.getDate()+' '+MONTHS[d.getMonth()]+' '+d.getFullYear()+' <span style="font-size:11px;color:#d32f2f;font-weight:700;">(sent back — date locked)</span></div>';
+  document.getElementById('fd_erp').textContent=r.erp_code||user.erp;
+  document.getElementById('fd_stn').textContent=r.station_name||user.station;
+  // shifts
+  var sh=String(r.shift||'').split('+');
+  ['1','2','3'].forEach(function(n){var c=document.getElementById('sh'+n+'_chk');if(c)c.checked=sh.indexOf(n)>=0;});
+  onShiftChange();
+  // fields
+  var sv=function(id,v){var e=document.getElementById(id);if(!e)return;e.value=(v==null?'':String(v));e.readOnly=false;e.style.background='';e.title='';};
+  sv('f_s1sale',r.s1_sale);sv('f_s2sale',r.s2_sale);sv('f_s3sale',r.s3_sale);
+  sv('f_oa1',r.open_a1);sv('f_ob1',r.open_b1);sv('f_oa2',r.open_a2);sv('f_ob2',r.open_b2);
+  sv('f_ca1',r.close_a1);sv('f_cb1',r.close_b1);sv('f_ca2',r.close_a2);sv('f_cb2',r.close_b2);
+  sv('f_r1',r.rsp1);sv('f_r2',r.rsp2);sv('f_r3',r.rsp3);sv('f_r4',r.rsp4);
+  sv('f_rtn',r.rtn_testing);sv('f_free',r.free_sale);
+  sv('f_prev',r.prev_cash);sv('f_card',r.card_sale);sv('f_paytm',r.paytm_sale);sv('f_bank',r.bank_deposit);
+  sv('f_dip',r.dip_reading);sv('f_stk',r.stock_ltrs);
+  sv('f_dgo',r.dg_open);sv('f_dgc',r.dg_close);
+  sv('f_free_old',r.free_old_ltr);sv('f_free_new',r.free_new_ltr);
+  var cm=document.getElementById('f_cmt');if(cm)cm.value=r.comments||'';
+  // photos (already uploaded links)
+  buildPhotoSlots();
+  var linkMap={DU1A:r.photo_du1a,DU1B:r.photo_du1b,DU2A:r.photo_du2a,DU2B:r.photo_du2b,ROTO:r.photo_roto,DIP:r.photo_dip,RADAR:r.photo_radar,PAYTM:r.photo_paytm};
+  photoSlots.forEach(function(s){var lk=linkMap[s.key];if(lk){s.driveView=lk;s.driveThumb=lk;s.dataUrl=lk;s.uploading=false;s.failed=false;}});
+  renderPhotoSlots();
+  // RSP change
+  if(r.rsp_changed){
+    rspChangeOn=false;toggleRSPChange();
+    sv('f_rsp_new',r.rsp_new_rate);sv('f_chg_a1',r.chg_a1);sv('f_chg_a2',r.chg_a2);sv('f_chg_b1',r.chg_b1);sv('f_chg_b2',r.chg_b2);
+    var rp=(r.rsp_photos&&r.rsp_photos.length)?r.rsp_photos:(r.rsp_photo?[r.rsp_photo]:[]);
+    rspPhotoList=rp.map(function(u){return {file:null,dataUrl:u,driveView:u,driveThumb:u};});
+    renderRSPPhoto();
+  }
+  // unloading photos
+  if(r.unload_photos&&r.unload_photos.length){
+    unloadList=r.unload_photos.map(function(u){return {file:null,dataUrl:u,driveView:u,uploading:false,failed:false};});
+    renderUnload();
+  }
+  // recompute totals from the loaded readings
+  if(typeof calcDGHours==='function')calcDGHours();
+  if(typeof calcRSPSplit==='function')calcRSPSplit();
+  if(typeof calcDerived==='function')calcDerived();
+  _showFixBanner(r);
+  updateFill();goScreen('s_form');
+  setTimeout(function(){var fs=document.getElementById('form_scroll');if(fs)fs.scrollTop=0;},50);
+}
+
+const APP_VERSION='v2.1';
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+APP_VERSION).then(reg=>{

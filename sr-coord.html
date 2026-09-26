@@ -147,7 +147,7 @@ tr:hover td{background:#FBFCFD;}
       <div class="filter-bar">
         <input type="date" id="rep_date" onchange="renderReports()"/>
         <select id="rep_state" onchange="renderReports()"><option value="">All States</option></select>
-        <select id="rep_flag" onchange="renderReports()"><option value="">All Flags</option><option value="mismatch">⚠ Mismatch</option><option value="ok">✓ OK</option><option value="Approved">Approved</option><option value="Pending">Pending</option></select>
+        <select id="rep_flag" onchange="renderReports()"><option value="">All Flags</option><option value="mismatch">⚠ Mismatch</option><option value="ok">✓ OK</option><option value="Approved">Approved</option><option value="Pending">Pending</option><option value="Returned">↩ Sent back</option><option value="Resubmitted">🔁 Resubmitted</option></select>
       </div>
       <div class="table-wrap">
         <div class="table-head"><span id="rep_count">0</span></div>
@@ -339,6 +339,8 @@ function renderReports(){
     rows=rows.filter(function(r){
       if(ff==='Approved')return r.approval_status==='Approved';
       if(ff==='Pending')return r.approval_status!=='Approved';
+      if(ff==='Returned')return isReturned(r);
+      if(ff==='Resubmitted')return isResubmitted(r);
       return chainCheck(r).flag===ff;
     });
   }
@@ -350,7 +352,7 @@ function renderReports(){
       : chk.flag==='mismatch'?'<span class="chip mis">⚠ MISMATCH</span>'
       : chk.flag==='ok'?'<span class="chip ok">✓ OK</span>'
       : '<span class="chip first">FIRST</span>';
-    var status = ap?'<span class="chip app">✓</span>':'<span class="chip pend">Pending</span>';
+    var status = ap?'<span class="chip app">✓</span>':(sbStatusChip(r)||'<span class="chip pend">Pending</span>');
     return '<tr><td class="time">'+(r.rep_date||'')+' '+(r.rep_month||'')+'</td>'+
       '<td><b>'+(r.ss_name||'—')+'</b></td><td><span class="erp">'+r.erp_code+'</span></td>'+
       '<td style="font-size:12px;">'+(r.station_name||'')+'</td>'+
@@ -366,6 +368,11 @@ function renderReports(){
 function openDetail(i){
   var r=_repShown[i];if(!r)return;window._det=r;
   var chk=chainCheck(r);var ap=(r.approval_status==='Approved');
+  var esc=_sbEsc;
+  function f(v){return (v==null||v==='')?'—':esc(v);}
+  function row(lbl,v,hi){return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-bottom:1px solid #EEF1F4;font-size:12px;'+(hi?'background:rgba(232,84,30,0.05);':'')+'"><span style="color:#54656F;">'+lbl+'</span><span style="font-weight:'+(hi?'800':'600')+';color:#111B21;">'+f(v)+'</span></div>';}
+  function sec(t,h){return '<div style="margin-top:12px;border:1px solid #E9EDEF;border-radius:10px;overflow:hidden;"><div style="background:#F7F8FA;padding:8px 10px;font-weight:800;font-size:12px;text-align:center;">'+t+'</div>'+h+'</div>';}
+  // meter readings (editable, as before)
   var pairs=[['A1','open_a1','close_a1'],['B1','open_b1','close_b1'],['A2','open_a2','close_a2'],['B2','open_b2','close_b2']];
   var readHtml='';
   pairs.forEach(function(p){
@@ -373,33 +380,58 @@ function openDetail(i){
     if((o==null||o==='')&&(c==null||c===''))return;
     var det=chk.details.filter(function(d){return d.nozzle===p[0];})[0];
     var fl=det?(det.match?'<span style="color:#2e7d32;font-weight:700;">✓ matches prev close ('+det.prev+')</span>':'<span style="color:#d32f2f;font-weight:800;">⚠ prev close was '+det.prev+'</span>'):'';
+    var sale=(o!=null&&o!==''&&c!=null&&c!=='')?(parseFloat(c)-parseFloat(o)):null;
     readHtml+='<div style="padding:8px 10px;border:1px solid #E9EDEF;border-radius:9px;background:#FBFCFD;margin-bottom:7px;">'+
-      '<div style="font-size:11px;font-weight:800;margin-bottom:5px;">Nozzle '+p[0]+'</div>'+
+      '<div style="font-size:11px;font-weight:800;margin-bottom:5px;">Nozzle '+p[0]+(sale!=null&&!isNaN(sale)?' <span style="font-weight:600;color:#54656F;">· sale '+sale.toFixed(2)+' L</span>':'')+'</div>'+
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'+
       '<label style="font-size:11px;color:#54656F;">Open <input id="d_o'+p[0]+'" value="'+(o==null?'':o)+'" style="width:80px;padding:5px;border:1px solid #D1D7DB;border-radius:6px;"/></label>'+
       '<label style="font-size:11px;color:#54656F;">Close <input id="d_c'+p[0]+'" value="'+(c==null?'':c)+'" style="width:80px;padding:5px;border:1px solid #D1D7DB;border-radius:6px;"/></label></div>'+
       (fl?'<div style="font-size:11px;margin-top:5px;">'+fl+'</div>':'')+'</div>';
   });
-  var photos=[['photo_du1a','DU-1 A'],['photo_du1b','DU-1 B'],['photo_du2a','DU-2 A'],['photo_du2b','DU-2 B'],['photo_roto','ROTO'],['photo_dip','DIP'],['photo_radar','RADAR'],['rsp_photo','RSP']];
-  var phtml=photos.filter(function(d){return r[d[0]];}).map(function(d){
-    return '<div style="text-align:center;"><img src="'+r[d[0]]+'" loading="lazy" onclick="openLightbox(\''+r[d[0]]+'\')" style="width:100%;height:110px;object-fit:cover;border-radius:10px;border:1px solid #E9EDEF;cursor:zoom-in;"/><div style="font-size:11px;font-weight:700;color:#54656F;margin-top:4px;">'+d[1]+'</div></div>';
+  var rateSec=sec('RATE',row('RSP DU1-N1',r.rsp1)+row('RSP DU1-N2',r.rsp2)+row('RSP DU2-N1',r.rsp3)+row('RSP DU2-N2',r.rsp4));
+  var rspSec=r.rsp_changed?sec('🔄 RSP CHANGE',
+      row('Old RSP',r.rsp_old_rate)+row('New RSP',r.rsp_new_rate,true)+
+      row('Change Rdg A1',r.chg_a1)+row('Change Rdg A2',r.chg_a2)+row('Change Rdg B1',r.chg_b1)+row('Change Rdg B2',r.chg_b2)+
+      row('Ltrs @ Old Rate',r.rsp_ltrs_before)+row('Ltrs @ New Rate',r.rsp_ltrs_after)+
+      row('Amt @ Old Rate',r.rsp_amt_before)+row('Amt @ New Rate',r.rsp_amt_after)):'';
+  var shiftSec=(r.s1_sale||r.s2_sale||r.s3_sale)?sec('SHIFT SALES',row('Shift 1',r.s1_sale)+row('Shift 2',r.s2_sale)+row('Shift 3',r.s3_sale)):'';
+  var salesSec=sec('SALES',row('Total Sale (L)',r.total_sale)+row('Rtn Testing',r.rtn_testing)+row('Free Sale (L)',r.free_sale)+
+      (r.rsp_changed?row('Free @ Old Rate',r.free_old_ltr)+row('Free @ New Rate',r.free_new_ltr):'')+row('Net Sale (L)',r.net_sale,true));
+  var paySec=sec('PAYMENTS',row('Previous Cash Bal',r.prev_cash)+row('Total Sales Amt',r.total_amt,true)+row('Card Sale',r.card_sale)+row('Paytm Sale',r.paytm_sale)+
+      row('Free Sales Amt',r.free_amt)+row('Cash Sale Amt',r.cash_sale)+row('Bank Deposit',r.bank_deposit)+row('Cash In Hand',r.cash_in_hand,true));
+  var stockSec=sec('STOCK',row('Dip Reading (mm)',r.dip_reading)+row('Stock in Ltrs',r.stock_ltrs));
+  var dgSec=sec('DG METER',row('Opening DG',r.dg_open)+row('Closing DG',r.dg_close)+row('Hours',r.dg_hours,true));
+  var cmtSec=sec('COMMENTS','<div style="padding:8px 10px;font-size:12px;color:#111B21;white-space:pre-wrap;">'+f(r.comments)+'</div>');
+  var metaSec=sec('SUBMISSION',row('SS Name',r.ss_name)+row('Submitted',r.submitted_at?new Date(r.submitted_at).toLocaleString('en-IN'):'')+row('Last updated',r.updated_at?new Date(r.updated_at).toLocaleString('en-IN'):''));
+  // all photos: DU, Paytm, equipment, every RSP photo, every unloading photo
+  var photos=[['photo_du1a','DU-1 A'],['photo_du1b','DU-1 B'],['photo_du2a','DU-2 A'],['photo_du2b','DU-2 B'],['photo_paytm','Paytm Slip'],['photo_roto','ROTO'],['photo_dip','DIP'],['photo_radar','RADAR']];
+  var list=photos.filter(function(d){return r[d[0]];}).map(function(d){return [r[d[0]],d[1]];});
+  var rspArr=(r.rsp_photos&&r.rsp_photos.length)?r.rsp_photos:(r.rsp_photo?[r.rsp_photo]:[]);
+  rspArr.forEach(function(u,k){list.push([u,'RSP '+(k+1)]);});
+  (r.unload_photos||[]).forEach(function(u,k){list.push([u,'Unloading '+(k+1)]);});
+  var phtml=list.map(function(p){
+    return '<div style="text-align:center;"><img src="'+p[0]+'" loading="lazy" decoding="async" onclick="openLightbox(\''+p[0]+'\')" style="width:100%;height:110px;object-fit:cover;border-radius:10px;border:1px solid #E9EDEF;background:#EEF1F4;cursor:zoom-in;"/><div style="font-size:11px;font-weight:700;color:#54656F;margin-top:4px;">'+p[1]+'</div></div>';
   }).join('');
   if(!phtml)phtml='<div style="grid-column:1/-1;text-align:center;color:#8696A0;padding:18px;">No photos</div>';
-  var rsp=r.rsp_changed?'<div style="margin-top:10px;padding:10px;background:rgba(232,84,30,0.06);border:1px solid rgba(232,84,30,0.3);border-radius:10px;font-size:12px;"><b style="color:#C0381A;">🔄 RSP Changed:</b> New '+(r.rsp_new_rate||'-')+' @ '+(r.rsp_change_reading||'-')+' · old '+(r.rsp_ltrs_before||'-')+'L / new '+(r.rsp_ltrs_after||'-')+'L</div>':'';
   var approveBar=ap
-    ?'<div style="margin-top:14px;padding:11px;background:#e8f5e9;border-radius:10px;font-size:12px;font-weight:700;color:#2e7d32;text-align:center;">✓ Approved by '+(r.approved_by||'')+' on '+(r.approved_at?new Date(r.approved_at).toLocaleString():'')+'</div>'
-    :'<div style="margin-top:14px;display:flex;gap:8px;"><input id="d_by" value="'+(ME.full_name||'Admin')+'" style="flex:1;padding:9px;border:1px solid #D1D7DB;border-radius:9px;"/><button class="btn green" onclick="approveDetail()">✓ Approve</button></div><div style="font-size:11px;color:#8696A0;margin-top:6px;">Edit any reading if the photo shows different, then Approve. Saved to the database.</div>';
+    ?'<div style="margin-top:14px;padding:11px;background:#e8f5e9;border-radius:10px;font-size:12px;font-weight:700;color:#2e7d32;text-align:center;">✓ Approved by '+esc(r.approved_by||'')+' on '+(r.approved_at?new Date(r.approved_at).toLocaleString():'')+'</div>'
+    :isReturned(r)?''
+    :'<div style="margin-top:14px;display:flex;gap:8px;"><input id="d_by" value="'+esc(ME.full_name||'Admin')+'" style="flex:1;padding:9px;border:1px solid #D1D7DB;border-radius:9px;"/><button class="btn green" onclick="approveDetail()">✓ Approve</button></div><div style="font-size:11px;color:#8696A0;margin-top:6px;">Edit any reading if the photo shows different, then Approve. Saved to the database.</div>';
   document.getElementById('detail_title').textContent='📋 '+(r.ss_name||r.station_name||r.erp_code);
   document.getElementById('detail_body').innerHTML=
-    '<div style="font-size:13px;color:#54656F;margin-bottom:8px;">'+(r.station_name||'')+' · '+r.erp_code+' · '+(r.rep_date||'')+' '+(r.rep_month||'')+' · Shift '+(r.shift||'')+'</div>'+
-    '<div style="font-weight:800;margin:6px 0 8px;">Meter Readings &amp; Chain Check</div>'+readHtml+rsp+
+    '<div style="font-size:13px;color:#54656F;margin-bottom:8px;">'+esc(r.station_name||'')+' · '+esc(r.erp_code)+' · '+esc(r.rep_date||'')+' '+esc(r.rep_month||'')+' '+esc(r.rep_year||'')+' · Shift '+esc(r.shift||'')+'</div>'+
+    (isReturned(r)?'<div style="margin-bottom:10px;padding:10px;background:#fdecea;border:1px solid #d32f2f;border-radius:10px;font-size:12px;font-weight:700;color:#b71c1c;">↩ Sent back to SS — '+esc(r.return_reason||'')+'</div>':'')+
+    rateSec+
+    '<div style="font-weight:800;margin:14px 0 8px;">Meter Readings &amp; Chain Check</div>'+readHtml+
+    rspSec+shiftSec+salesSec+paySec+stockSec+dgSec+cmtSec+metaSec+
     '<div style="font-weight:800;margin:14px 0 8px;">Photos <span style="font-size:11px;font-weight:600;color:#8696A0;">(tap to enlarge)</span></div>'+
-    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">'+phtml+'</div>'+approveBar;
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">'+phtml+'</div>'+approveBar+sendBackBarHtml(r);
   document.getElementById('detail_modal').classList.add('open');
 }
 
 async function approveDetail(){
   var r=window._det;if(!r)return;
+  if(isReturned(r)){toast('Sent back to SS — wait for resubmission or undo send-back');return;}
   var by=(document.getElementById('d_by').value||'Admin').trim();
   var upd={approval_status:'Approved',approved_by:by,approved_at:new Date().toISOString()};
   if(!r.original_values){
@@ -438,6 +470,155 @@ function closeLightbox(){document.getElementById('lightbox').style.display='none
   var {data}=await sb.auth.getSession();
   if(data&&data.session){await afterLogin();}
 })();
+
+// ════════ SEND BACK TO SS (coordinator asks SS to correct a report) ════════
+// Shared by sr-dashboard / sr-admin / sr-coord. Needs: sb, ME, toast(), window._det.
+var SB_REASONS=['Meter photo unclear / not readable','Closing reading does not match photo','Opening does not match previous closing','Wrong shift or date','Payment figures wrong','Paytm slip missing','Stock / DIP reading missing','Photo missing'];
+function _sbEsc(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function _sbWhen(ts){if(!ts)return '';try{return new Date(ts).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});}catch(e){return '';}}
+function _sbLocked(r){return (typeof isLocked==='function')?isLocked(r):false;}
+function _sbCanAct(){return (typeof can==='function')?can('approve'):true;}
+function _sbRefresh(){
+  ['renderReports','renderHistory','renderDashboard'].forEach(function(f){try{if(typeof window[f]==='function')window[f]();}catch(e){}});
+}
+function isReturned(r){return r&&r.approval_status==='Returned';}
+function isResubmitted(r){return r&&r.approval_status!=='Approved'&&r.approval_status!=='Returned'&&!!r.resubmitted_at;}
+// status chip for report lists
+function sbStatusChip(r){
+  if(isReturned(r))return '<span class="chip" style="background:#fdecea;color:#d32f2f;">↩ SENT BACK</span>';
+  if(isResubmitted(r))return '<span class="chip" style="background:#E3F2FD;color:#1565C0;">🔁 RESUBMITTED</span>';
+  return '';
+}
+// block shown inside the report detail view
+function sendBackBarHtml(r){
+  if(!r)return '';
+  if(isReturned(r)){
+    if(!_sbSS||_sbSS.erp_code_for!==r.erp_code)_sbLoadSS(r.erp_code);   // prefetch mobile for the WhatsApp button
+    return '<div style="margin-top:14px;padding:12px;background:#fdecea;border:1.5px solid #d32f2f;border-radius:10px;">'+
+      '<div style="font-size:13px;font-weight:800;color:#d32f2f;">↩ Sent back to SS — waiting for correction</div>'+
+      '<div style="font-size:12px;color:#7f1d1d;margin-top:6px;line-height:1.45;"><b>Reason:</b> '+_sbEsc(r.return_reason||'—')+'</div>'+
+      '<div style="font-size:11px;color:#8696A0;margin-top:5px;">By '+_sbEsc(r.returned_by||'')+(r.returned_at?' · '+_sbWhen(r.returned_at):'')+((r.return_count||0)>1?' · sent back '+r.return_count+' times':'')+'</div>'+
+      '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">'+
+        '<button class="btn sm" style="background:#25D366;color:#fff;" onclick="sbWhatsApp()">💬 Remind SS on WhatsApp</button>'+
+        (_sbCanAct()?'<button class="btn sm gray" onclick="undoSendBack()">Undo send-back</button>':'')+
+      '</div></div>';
+  }
+  var html='';
+  if(isResubmitted(r)){
+    html+='<div style="margin-top:14px;padding:11px;background:#E3F2FD;border:1px solid #90CAF9;border-radius:10px;font-size:12px;color:#0D47A1;line-height:1.45;">'+
+      '<b>🔁 Corrected & resubmitted by SS</b> on '+_sbWhen(r.resubmitted_at)+
+      (r.return_reason?'<br><span style="color:#54656F;">Earlier asked to fix: '+_sbEsc(r.return_reason)+'</span>':'')+'</div>';
+  }
+  if(r.approval_status!=='Approved' && _sbCanAct() && !_sbLocked(r)){
+    html+='<div style="margin-top:10px;"><button class="btn" style="width:100%;background:#fff;color:#d32f2f;border:1.5px solid #d32f2f;" onclick="openSendBack()">↩ Send back to SS for correction</button>'+
+      '<div style="font-size:11px;color:#8696A0;margin-top:5px;text-align:center;">The SS sees your reason in their app and resubmits the corrected report.</div></div>';
+  }
+  return html;
+}
+
+function _sbEnsureModal(){
+  if(document.getElementById('sb_modal'))return;
+  var m=document.createElement('div');
+  m.id='sb_modal';
+  m.style.cssText='display:none;position:fixed;inset:0;background:rgba(17,27,33,0.55);z-index:9999;align-items:center;justify-content:center;padding:16px;';
+  m.innerHTML='<div style="background:#fff;border-radius:16px;max-width:480px;width:100%;max-height:92vh;overflow:auto;padding:18px;box-shadow:0 10px 40px rgba(0,0,0,0.3);">'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;"><div style="font-size:16px;font-weight:800;color:#111B21;">↩ Send back to SS</div>'+
+    '<button onclick="closeSendBack()" style="border:none;background:#F0F2F5;border-radius:50%;width:30px;height:30px;font-size:15px;cursor:pointer;">✕</button></div>'+
+    '<div id="sb_body"></div></div>';
+  m.addEventListener('click',function(e){if(e.target===m)closeSendBack();});
+  document.body.appendChild(m);
+}
+function closeSendBack(){var m=document.getElementById('sb_modal');if(m)m.style.display='none';}
+var _sbPicked={};var _sbSS=null;
+async function _sbLoadSS(erp){
+  _sbSS=null;
+  try{var q=await sb.from('ss_profiles').select('ss_name,mobile').eq('erp_code',erp).maybeSingle();if(q&&q.data){_sbSS=q.data;_sbSS.erp_code_for=erp;}}catch(e){}
+  return _sbSS;
+}
+function openSendBack(){
+  var r=window._det;if(!r)return;
+  if(!_sbCanAct()){toast('No permission');return;}
+  if(_sbLocked(r)){toast('🔒 Locked — unlock first');return;}
+  _sbEnsureModal();_sbPicked={};
+  var chips=SB_REASONS.map(function(t,i){
+    return '<button type="button" id="sb_chip_'+i+'" onclick="sbToggleChip('+i+')" style="padding:7px 11px;border:1.5px solid #D1D7DB;background:#fff;border-radius:18px;font-size:12px;font-weight:600;color:#54656F;cursor:pointer;font-family:inherit;">'+_sbEsc(t)+'</button>';
+  }).join('');
+  document.getElementById('sb_body').innerHTML=
+    '<div style="font-size:12px;color:#54656F;margin-bottom:12px;">'+_sbEsc(r.station_name||'')+' · '+_sbEsc(r.erp_code)+' · '+_sbEsc((r.rep_date||'')+' '+(r.rep_month||''))+' · Shift '+_sbEsc(r.shift||'')+'<br><span id="sb_ss_line" style="color:#8696A0;">SS: '+_sbEsc(r.ss_name||'—')+'</span></div>'+
+    '<div style="font-size:12px;font-weight:800;margin-bottom:7px;">What needs fixing? <span style="font-weight:600;color:#8696A0;">(tap all that apply)</span></div>'+
+    '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">'+chips+'</div>'+
+    '<div style="font-size:12px;font-weight:800;margin-bottom:6px;">Details for the SS</div>'+
+    '<textarea id="sb_text" rows="3" placeholder="e.g. DU-1 A closing photo shows 45,210 but you entered 45,120. Retake photo and correct the reading." style="width:100%;box-sizing:border-box;padding:9px;border:1px solid #D1D7DB;border-radius:9px;font-family:inherit;font-size:13px;"></textarea>'+
+    '<div style="display:flex;gap:8px;margin-top:14px;"><button class="btn gray" style="flex:1;" onclick="closeSendBack()">Cancel</button>'+
+    '<button class="btn" id="sb_go" style="flex:2;background:#d32f2f;color:#fff;" onclick="doSendBack()">↩ Send back</button></div>';
+  document.getElementById('sb_modal').style.display='flex';
+  _sbLoadSS(r.erp_code).then(function(p){
+    var el=document.getElementById('sb_ss_line');
+    if(el&&p)el.textContent='SS: '+(p.ss_name||r.ss_name||'—')+(p.mobile?' · 📱 '+p.mobile:' · no mobile saved');
+  });
+}
+function sbToggleChip(i){
+  var b=document.getElementById('sb_chip_'+i);if(!b)return;
+  if(_sbPicked[i]){delete _sbPicked[i];b.style.background='#fff';b.style.borderColor='#D1D7DB';b.style.color='#54656F';}
+  else{_sbPicked[i]=1;b.style.background='#fdecea';b.style.borderColor='#d32f2f';b.style.color='#d32f2f';}
+}
+async function doSendBack(){
+  var r=window._det;if(!r)return;
+  var parts=Object.keys(_sbPicked).sort(function(a,b){return a-b;}).map(function(i){return SB_REASONS[i];});
+  var txt=(document.getElementById('sb_text').value||'').trim();
+  if(txt)parts.push(txt);
+  if(!parts.length){toast('Pick a reason or type what needs fixing');return;}
+  var reason=parts.join('; ');
+  var by=(ME&&(ME.full_name||ME.email))||'Coordinator';
+  var now=new Date().toISOString();
+  var upd={approval_status:'Returned',return_reason:reason,returned_by:by,returned_at:now,
+    return_count:(parseInt(r.return_count,10)||0)+1,
+    locked:false,unlocked_by:by+' (sent back)',unlocked_at:now};   // keep it open so SS can edit and you can approve later
+  var btn=document.getElementById('sb_go');if(btn){btn.disabled=true;btn.textContent='Sending…';}
+  var res=await sb.from('reports').update(upd).eq('id',r.id);
+  if(res.error){
+    if(btn){btn.disabled=false;btn.textContent='↩ Send back';}
+    var msg=res.error.message||'';
+    if(/return_reason|returned_by|returned_at|return_count|column/i.test(msg))msg='Database not updated yet — run 13_send_back.sql in Supabase first. ('+msg+')';
+    toast('Failed: '+msg);return;
+  }
+  Object.assign(r,upd);
+  // success screen with a WhatsApp button (a direct tap always opens WhatsApp)
+  document.getElementById('sb_body').innerHTML=
+    '<div style="text-align:center;padding:8px 0 4px;"><div style="font-size:36px;">✅</div>'+
+    '<div style="font-size:15px;font-weight:800;margin-top:6px;">Sent back to SS</div>'+
+    '<div style="font-size:12px;color:#54656F;margin-top:6px;">They will see it on their app home screen with your reason.</div>'+
+    '<button class="btn" style="width:100%;margin-top:16px;background:#25D366;color:#fff;" onclick="sbWhatsApp()">💬 Also tell SS on WhatsApp</button>'+
+    '<button class="btn gray" style="width:100%;margin-top:8px;" onclick="closeSendBack();if(typeof closeModal===\'function\')closeModal(\'detail_modal\');">Done</button></div>';
+  _sbRefresh();
+}
+async function sbWhatsApp(){
+  var r=window._det;if(!r)return;
+  var p=_sbSS;
+  if(!p||p.erp_code_for!==r.erp_code)p=await _sbLoadSS(r.erp_code);
+  var mob=p&&p.mobile?String(p.mobile).replace(/\D/g,''):'';
+  if(mob.length===10)mob='91'+mob;
+  var msg='GOGAS Station Reporting\n\n'+
+    'Your report for '+(r.rep_date||'')+' '+(r.rep_month||'')+' '+(r.rep_year||'')+' · Shift '+(r.shift||'')+'\n'+
+    (r.station_name||'')+' ('+r.erp_code+')\n'+
+    'has been SENT BACK for correction.\n\n'+
+    'Reason: '+(r.return_reason||'')+'\n\n'+
+    'Please open the Station Reporting app → tap "Fix & Resubmit".\n— '+((ME&&(ME.full_name||ME.email))||'Coordinator');
+  var url=(mob.length>=11?'https://wa.me/'+mob:'https://wa.me/')+'?text='+encodeURIComponent(msg);
+  if(!mob)toast('No mobile saved for this SS — pick the contact in WhatsApp');
+  window.open(url,'_blank');
+}
+async function undoSendBack(){
+  var r=window._det;if(!r)return;
+  if(!confirm('Undo send-back? The report goes back to Pending and the SS no longer sees the fix request.'))return;
+  var upd={approval_status:'Pending'};
+  var res=await sb.from('reports').update(upd).eq('id',r.id);
+  if(res.error){toast('Failed: '+res.error.message);return;}
+  Object.assign(r,upd);toast('Send-back undone');
+  if(typeof closeModal==='function')closeModal('detail_modal');
+  _sbRefresh();
+}
+
 </script>
 </body>
 </html>
